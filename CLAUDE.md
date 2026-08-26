@@ -123,10 +123,38 @@ result. Never make grading depend on request identity.
 
 ### The client never decides anything that scores
 
-`gradeQuestion` and `scoreAnswer` run on the server. In live play the server
-also measures elapsed time itself, since it knows when the question opened; a
-client-reported `elapsedMs` is only trusted in round-paced play, where it can
-only ever *add* a speed bonus clamped to the question's own window.
+`gradeQuestion` and `scoreAnswer` run on the server, and so does the clock.
+
+Live play measures from the phase's own `startedAt`. Round-paced play has no
+shared deadline — everyone reaches a question at their own moment — so the
+window is anchored per player instead: `begin` stamps `openedAt[index]` into
+that player's record the first time they see a question, and the server
+measures and enforces against that. The stamp is **first-write-wins**, which
+is what stops a reload buying a fresh window, and it lives under the player's
+own key, so it obeys the same rule every other write does.
+
+A client-reported `elapsedMs` survives only as the fallback for a round-paced
+answer to a question that was never opened, and even then it can only *add* a
+bonus clamped to the window.
+
+Two consequences. A deadline must never be computed at render time — that was
+the old client-side `ownPaceDeadline`, and because every re-render handed out
+a fresh full window, the async timer never actually expired. And opening a
+question is a *write*, so it belongs in an effect keyed on the question, never
+in the render that needs the deadline.
+
+An answer past a player's own window is still recorded, scoring zero: a stored
+zero tells the player they were too slow, where a dropped answer would leave
+the question looking untouched and the round unable to settle.
+
+**A round closes when every player has answered or let their window lapse.** A
+lapsed question settles without anything being written for it — an unanswered
+question in a revealed round already means "no answer" — so a player who
+abandons a round mid-way stops holding everyone else up. But only a question
+somebody actually *opened* can lapse: nothing may start a clock on a player's
+behalf, so a player who never opens the rest of the round holds it open until
+`roundOpenMinutes` passes or the host closes it. `roundOpenMinutes` defaults to
+null, so by default that host action is the only backstop.
 
 ### One engine, two transports
 
@@ -143,7 +171,8 @@ timeout is 10s — do not raise the hold near it.
 ## Adding things
 
 **A topic pack.** Copy `packages/content-atlas`. It needs an `id`, copy, an
-`atmosphere`, and items keyed by puzzle kind. Register it in
+`atmosphere` — optionally with `scenery`, the objects that drift through its
+background — and items keyed by puzzle kind. Register it in
 `packages/content/src/index.ts`. Kinds with too few items simply do not appear,
 so a partial pack is valid. `validatePack` runs over every pack in a test.
 
@@ -204,12 +233,24 @@ primitives; they do not hand-roll layout.
 - **Shared elements do the phase changes.** The option a player taps carries a
   `layoutId`, and the next screen's verdict carries the same one, so the thing
   they touched travels into the answer. That is `morphId` on `PuzzleProps`.
+- **The background is flat colour and moving objects — never a gradient.** A
+  wide gradient across a dark panel bands into visible steps, and the old orb
+  mesh needed a tiled noise bitmap over the top to disguise that, which is
+  what made it read as pixelated. Solid fills have nothing to band, so there
+  is no blur and no grain. A pack declares `scenery` — a closed vocabulary in
+  `packages/core` — and `SCENERY` in the web app is a mapped type over it, so
+  a name added there will not compile until something draws it.
 - **The background reacts.** `Atmosphere` takes a mood read straight off the
-  phase and rewrites three custom properties; the orbs transition between
-  them. No per-frame JS, so it stays cheap on a mid-range Android.
+  phase and rewrites three custom properties; `--scene-drift` scales every
+  drift cycle at once. No per-frame JS, so it stays cheap on a mid-range
+  Android. The two properties that transition are registered with `@property`,
+  because an unregistered custom property jumps rather than interpolating.
 - **The timer is a CSS animation**, offset by elapsed time so it stays locked
-  to the server's deadline. It renders once per question. Do not reintroduce a
-  per-tick React countdown; only the last five seconds mount a digit.
+  to the server's deadline. The ring is an **SVG stroke**, not a
+  `conic-gradient`: a conic gradient aliases along its sweep edge and the
+  radial mask that cut it into a ring stair-stepped the rim. The digit runs
+  for the whole question and ticks once a second — only that leaf re-renders,
+  never the ring.
 - **Gestures always have a tap fallback.** The sorter takes a drag *or* a tap
   on the bucket; a gesture nobody discovers is worse than no gesture.
 

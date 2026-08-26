@@ -160,7 +160,7 @@
   justify-content: center;
   gap: var(--s2);
   padding-inline: var(--s2);
-  min-height: 150px;
+  min-height: 210px;
   border-bottom: 2px solid color-mix(in oklab, var(--accent) 42%, var(--outline-variant));
 }
 
@@ -172,35 +172,97 @@
   justify-content: flex-end;
   align-items: center;
   gap: var(--s1);
-  padding: var(--s3) var(--s2);
-  border: var(--hairline) solid var(--outline-variant);
-  border-bottom: none;
-  border-radius: var(--r-md) var(--r-md) 0 0;
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--accent) 24%, var(--surface-container)),
-    color-mix(in oklab, var(--surface-low) 90%, transparent)
-  );
-  overflow: hidden;
-  /* Third, then second, then a held beat before the winner. */
+  padding: var(--s2) var(--s2) var(--s3);
+}
+
+/*
+ * The score, standing up.
+ *
+ * The height is set inline from the player's score rather than from their
+ * rank, so the gap between a runaway win and a close one is visible from
+ * across the room. Third, then second, then a held beat before the winner.
+ */
+.plinth__vessel {
+  display: block;
+  width: 100%;
+  transform-origin: 50% 100%;
   animation: plinth-rise var(--dur-slow) var(--ease-spring) both;
 }
 
-.plinth[data-place="3"] { animation-delay: 120ms; }
-.plinth[data-place="2"] { animation-delay: 380ms; }
-.plinth[data-place="1"] { animation-delay: 780ms; }
-
-.plinth[data-place="1"] {
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--accent) 42%, var(--surface-container)),
-    color-mix(in oklab, var(--surface-low) 90%, transparent)
-  );
-}
+.plinth[data-place="3"] .plinth__vessel { animation-delay: 120ms; }
+.plinth[data-place="2"] .plinth__vessel { animation-delay: 380ms; }
+.plinth[data-place="1"] .plinth__vessel { animation-delay: 780ms; }
 
 @keyframes plinth-rise {
-  from { transform: translateY(28px) scaleY(0.4); opacity: 0; }
+  from { transform: scaleY(0.06); opacity: 0; }
   to { transform: none; opacity: 1; }
+}
+
+/* ── the vessels ──────────────────────────────────────────────────────── */
+
+.vessel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+/* Candlelight: flame, wick, then wax taking whatever height is left. */
+.vessel--candle .vessel__flame {
+  flex: none;
+  transform-origin: 50% 100%;
+  animation: lean 2.4s var(--ease-in-out) infinite alternate;
+}
+
+.vessel__wick {
+  flex: none;
+  width: 2px;
+  height: 5px;
+  background: var(--outline);
+}
+
+.vessel--candle .vessel__body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  /* Narrow, so even the shortest candle is a column and not a lozenge. */
+  width: min(46%, 36px);
+  border-radius: 5px 5px 3px 3px;
+  /* Wax is warm and near-neutral; a signature colour would make it a prop. */
+  background: color-mix(in oklab, var(--accent) 24%, var(--surface-high));
+  overflow: hidden;
+}
+
+/* A lighter face on one side, so a flat column still reads as a cylinder. */
+.vessel__face {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 34%;
+  background: color-mix(in oklab, var(--on-surface) 20%, transparent);
+}
+
+.vessel--candle[data-lead="true"] .vessel__body {
+  background: color-mix(in oklab, var(--accent) 72%, var(--surface-high));
+}
+
+/* Atlas: a flag on top of a peak stretched to the full height. */
+.vessel--peak .vessel__flag {
+  flex: none;
+  margin-bottom: -2px;
+  z-index: 1;
+}
+
+.vessel--peak .vessel__body {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+/* The winner's peak takes the accent, the way the winner's candle does. */
+.vessel--peak[data-lead="true"] .vessel__body polygon:first-child {
+  fill: var(--accent);
 }
 
 .plinth__name {
@@ -594,6 +656,9 @@
   flex: none;
   color: var(--accent);
   display: inline-flex;
+  /* It sits inline against the name, so it needs the gap the row cannot give
+     it — the row's own gap only separates the row's direct children. */
+  margin-inline-end: var(--s2);
   animation: crown-in 700ms var(--ease-spring) both;
 }
 

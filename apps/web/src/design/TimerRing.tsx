@@ -9,40 +9,47 @@ interface TimerRingProps {
   now(): number;
 }
 
-/** Digits appear only for the last stretch; before that the ring is enough. */
-const COUNT_FROM_MS = 5_000;
+/** Circumference of the r=15.5 circle the ring draws, to 2dp. */
+const CIRCUMFERENCE = 97.39;
+
+/** Below this the ring turns to the warning colour and the digit swells. */
+const URGENT_MS = 5_000;
 
 /**
  * The countdown.
  *
- * The drain is a single CSS animation offset by the elapsed time, so it runs
- * on the compositor and stays locked to the server's deadline — React renders
- * this once per question rather than five times a second. Only the last few
- * seconds put a number on screen, and only then does anything re-render.
+ * The drain is one CSS animation on `stroke-dashoffset`, offset by the
+ * elapsed time so it stays locked to the server's deadline. An SVG stroke
+ * rather than the `conic-gradient` this used to be: a conic gradient aliases
+ * along its sweep edge, and the hard-edged radial mask that turned it into a
+ * ring stair-stepped the rim. A stroked circle is anti-aliased by the
+ * rasteriser and costs the same.
+ *
+ * The number is on screen for the whole question rather than only the last
+ * few seconds — players asked to see the count run down. It ticks once a
+ * second, and only this leaf re-renders; the ring itself never does.
  */
 export function TimerRing({ endsAt, totalMs, now }: TimerRingProps) {
-  const [seconds, setSeconds] = useState<number | null>(null);
+  const [seconds, setSeconds] = useState<number | null>(() =>
+    endsAt == null ? null : Math.max(0, Math.ceil((endsAt - now()) / 1000)),
+  );
 
   useEffect(() => {
-    setSeconds(null);
-    if (endsAt == null) return;
+    if (endsAt == null) {
+      setSeconds(null);
+      return;
+    }
 
-    let interval: number | undefined;
-    const begin = () => {
-      interval = window.setInterval(() => {
-        const left = Math.max(0, endsAt - now());
-        setSeconds(Math.ceil(left / 1000));
-        if (left <= 0) window.clearInterval(interval);
-      }, 200);
-    };
+    const read = () => Math.max(0, Math.ceil((endsAt - now()) / 1000));
+    setSeconds(read());
 
-    const untilCountdown = endsAt - now() - COUNT_FROM_MS;
-    const start = window.setTimeout(begin, Math.max(0, untilCountdown));
+    const interval = window.setInterval(() => {
+      const left = read();
+      setSeconds(left);
+      if (left <= 0) window.clearInterval(interval);
+    }, 1000);
 
-    return () => {
-      window.clearTimeout(start);
-      if (interval) window.clearInterval(interval);
-    };
+    return () => window.clearInterval(interval);
   }, [endsAt, now]);
 
   if (endsAt == null || !totalMs) {
@@ -54,7 +61,7 @@ export function TimerRing({ endsAt, totalMs, now }: TimerRingProps) {
   }
 
   const elapsed = Math.max(0, totalMs - (endsAt - now()));
-  const urgent = seconds != null;
+  const urgent = endsAt - now() <= URGENT_MS;
 
   return (
     <span
@@ -66,11 +73,15 @@ export function TimerRing({ endsAt, totalMs, now }: TimerRingProps) {
         {
           "--ring-duration": `${totalMs}ms`,
           "--ring-delay": `-${elapsed}ms`,
+          "--ring-length": `${CIRCUMFERENCE}`,
         } as CSSProperties
       }
     >
-      <PackTimerIcon size={14} className="ring__icon" />
-      {seconds != null ? <span className="ring__count">{seconds}</span> : null}
+      <svg className="ring__dial" viewBox="0 0 36 36" aria-hidden="true">
+        <circle className="ring__track" cx="18" cy="18" r="15.5" />
+        <circle className="ring__drain" cx="18" cy="18" r="15.5" />
+      </svg>
+      <span className="ring__count num">{seconds ?? 0}</span>
     </span>
   );
 }

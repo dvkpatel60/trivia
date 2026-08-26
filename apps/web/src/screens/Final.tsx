@@ -1,6 +1,6 @@
 import { ranked, type PublicGameState } from "@curio/core";
 
-import { Board, PackLeaderIcon, Scene } from "../design/index.js";
+import { Board, PackLeaderIcon, PackVessel, Scene } from "../design/index.js";
 
 interface FinalProps {
   game: PublicGameState;
@@ -8,14 +8,30 @@ interface FinalProps {
   onHome(): void;
 }
 
-/** Plinth heights and the order they stand in: 2nd, 1st, 3rd. */
-const HEIGHTS = [136, 104, 84];
+/** The order they stand in: 2nd, 1st, 3rd. */
 const ARRANGEMENT = [1, 0, 2];
+
+/**
+ * How tall a plinth can get, and how short it may be.
+ *
+ * Height is the score, not the rank. The floor exists so that last place is
+ * still a thing standing on the podium rather than a sliver, and so a game
+ * where nobody scored does not draw three invisible columns.
+ */
+const TALLEST = 200;
+const SHORTEST = 84;
+
+function heightFor(score: number, best: number): number {
+  if (best <= 0) return SHORTEST;
+  const ratio = Math.max(0, Math.min(1, score / best));
+  return Math.round(SHORTEST + ratio * (TALLEST - SHORTEST));
+}
 
 export function Final({ game, meId, onHome }: FinalProps) {
   const order = ranked(game.players);
   const top = order.slice(0, 3);
   const winner = top[0];
+  const best = winner?.score ?? 0;
 
   return (
     <Scene
@@ -43,12 +59,13 @@ export function Final({ game, meId, onHome }: FinalProps) {
           const player = top[place];
           if (!player) return null;
           return (
-            <div
-              className="plinth"
-              key={player.id}
-              data-place={place + 1}
-              style={{ height: HEIGHTS[place] }}
-            >
+            <div className="plinth" key={player.id} data-place={place + 1}>
+              <span
+                className="plinth__vessel"
+                style={{ height: heightFor(player.score, best) }}
+              >
+                <PackVessel lead={place === 0} />
+              </span>
               <span className="pip" style={{ color: player.color }} />
               <span className="plinth__name">{player.name}</span>
               <span className="plinth__score num">{player.score.toLocaleString()}</span>

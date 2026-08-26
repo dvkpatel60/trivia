@@ -11,6 +11,18 @@ interface RevealProps {
   onLeave(): void;
 }
 
+/**
+ * How long an answer took, in the shortest form that is still honest.
+ *
+ * Sub-ten-second times get a decimal because that is where the speed bonus
+ * actually moves; past that the tenth is noise.
+ */
+function took(elapsedMs: number | null): string | null {
+  if (elapsedMs == null || elapsedMs < 0) return null;
+  const seconds = elapsedMs / 1000;
+  return seconds < 10 ? `${seconds.toFixed(1)}s` : `${Math.round(seconds)}s`;
+}
+
 /** Every question in the round, its answer, and how you did on it. */
 export function Reveal({ game, meId, round, onNext, onLeave }: RevealProps) {
   const [busy, setBusy] = useState(false);
@@ -80,8 +92,15 @@ export function Reveal({ game, meId, round, onNext, onLeave }: RevealProps) {
                   <KindIcon icon={kind.icon} size={12} />
                   {kind.name}
                 </span>
-                <span className={`tiny ${result && result.fraction >= 0.999 ? "" : "faint"}`}>
-                  {outcome}
+                <span className="row--tight">
+                  <span className={`tiny ${result && result.fraction >= 0.999 ? "" : "faint"}`}>
+                    {outcome}
+                  </span>
+                  {result && took(result.elapsedMs) ? (
+                    <span className="tiny faint num" title="Time taken">
+                      {took(result.elapsedMs)}
+                    </span>
+                  ) : null}
                 </span>
               </div>
               <p className="small">{question.prompt}</p>

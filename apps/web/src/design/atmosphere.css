@@ -1,13 +1,34 @@
 /*
  * The pack's world, behind everything.
  *
- * A mesh of blurred orbs on independent orbits, plus whatever textures the
- * pack asked for. What makes it feel alive is that its speed, scale and
- * saturation are custom properties the app rewrites as the game moves —
- * so the background *knows* whether you are waiting in a lobby or three
- * seconds from the end of a question, and it gets there by transitioning a
- * property rather than by running anything per frame.
+ * Flat colour and moving objects. There is not a gradient in this file, and
+ * that is the point: the previous version was three huge radial-gradient orbs
+ * under a 58px blur, and a wide gradient across a dark panel bands into
+ * visible steps. It needed a tiled noise bitmap over the top to disguise
+ * that, which is what made the whole background read as pixelated.
+ *
+ * Solid fills have nothing to band, so there is no blur and no grain. Every
+ * piece is an absolutely positioned SVG that CSS drifts on its own cycle —
+ * no per-frame JavaScript, which is what keeps it cheap on a mid-range
+ * Android.
  */
+
+/*
+ * Registered so they interpolate. An unregistered custom property is a
+ * string to the engine and jumps between values instead of transitioning —
+ * the same reason --sweep is declared this way for the timer.
+ */
+@property --scene-lift {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --scene-ink {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.5;
+}
 
 .atmosphere {
   position: fixed;
@@ -17,13 +38,14 @@
   overflow: hidden;
   background: var(--surface);
 
-  --orb-speed: 26s;
-  --orb-scale: 1;
-  --orb-glow: 0.18;
+  /* Rewritten per mood. One multiplier drives every drift cycle at once. */
+  --scene-drift: 1;
+  --scene-lift: 1;
+  --scene-ink: 0.5;
 
   transition:
-    --orb-scale var(--dur-slow) var(--ease-out),
-    --orb-glow var(--dur-slow) var(--ease-out);
+    --scene-lift var(--dur-slow) var(--ease-out),
+    --scene-ink var(--dur-slow) var(--ease-out);
 }
 
 .atmosphere > * {
@@ -31,126 +53,215 @@
   inset: 0;
 }
 
-/* ── the mesh ─────────────────────────────────────────────────────────── */
+/* ── scenery ──────────────────────────────────────────────────────────── */
 
-.orb {
+.scenery {
+  overflow: hidden;
+}
+
+/*
+ * Every piece inherits its drift from here. `left` and the per-instance
+ * delay come from the component, so instances of one kind neither line up
+ * nor pulse together.
+ */
+.scenery__piece {
   position: absolute;
-  border-radius: 50%;
-  filter: blur(58px);
-  opacity: var(--orb-glow);
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  animation-delay: var(--piece-delay, 0s);
   will-change: transform;
-  transition:
-    opacity var(--dur-slow) var(--ease-out),
-    background var(--dur-slow) var(--ease-out);
-  animation: orbit var(--orb-speed) var(--ease-in-out) infinite alternate;
 }
 
-.orb--a {
-  inset: -14% auto auto -12%;
-  width: 62vmax;
-  height: 62vmax;
-  background: radial-gradient(circle, var(--accent), transparent 66%);
-  animation-duration: var(--orb-speed);
+/* The palette, as flat fills. Nothing here authors a colour. */
+.fill-accent { fill: var(--accent); }
+.fill-support { fill: var(--support); }
+.fill-extra { fill: var(--extra); }
+.fill-outline { fill: var(--outline); }
+.fill-void { fill: var(--surface); }
+/* A lighter face on a solid body, so a flat shape still reads as an object. */
+.fill-highlight { fill: color-mix(in oklab, var(--on-surface) 22%, transparent); }
+/* Wax is warm and near-neutral — a signature colour would make it a prop. */
+.fill-wax { fill: color-mix(in oklab, var(--accent) 26%, var(--surface-high)); }
+
+/*
+ * This is a background. It is meant to be felt rather than read, so it sits
+ * low enough that nothing on the stage ever competes with it.
+ */
+.scenery__piece { opacity: calc(var(--scene-ink) * 0.17); }
+
+/* ── Candlelight ──────────────────────────────────────────────────────── */
+
+/* Candles stand along the foot of the screen and gutter in place. */
+.scenery__candle {
+  bottom: -76px;
+  transform-origin: 50% 100%;
+  animation-name: gutter;
+  animation-duration: calc(9s * var(--scene-drift) * var(--piece-jitter, 1));
+  animation-direction: alternate;
+  animation-timing-function: var(--ease-in-out);
 }
 
-.orb--b {
-  inset: auto -18% -20% auto;
-  width: 54vmax;
-  height: 54vmax;
-  background: radial-gradient(circle, var(--extra), transparent 64%);
-  animation-duration: calc(var(--orb-speed) * 1.42);
-  animation-direction: alternate-reverse;
+@keyframes gutter {
+  from { transform: scaleY(calc(var(--scene-lift) * 0.97)); }
+  to { transform: scaleY(calc(var(--scene-lift) * 1.03)); }
 }
 
-.orb--c {
-  inset: 28% auto auto 44%;
-  width: 40vmax;
-  height: 40vmax;
-  background: radial-gradient(circle, var(--support), transparent 62%);
-  animation-duration: calc(var(--orb-speed) * 1.86);
-  opacity: calc(var(--orb-glow) * 0.62);
+/* The flame alone leans, so the candle does not wobble as a whole. */
+.scenery__flame {
+  transform-origin: 50% 100%;
+  animation: lean calc(2.4s * var(--scene-drift)) var(--ease-in-out) infinite alternate;
 }
 
-@keyframes orbit {
-  from {
-    transform: translate3d(-3%, -2%, 0) scale(calc(var(--orb-scale) * 0.94));
-  }
-  to {
-    transform: translate3d(4%, 5%, 0) scale(calc(var(--orb-scale) * 1.12));
-  }
+/*
+ * A candle carries a light source, so the whole piece sits brighter than the
+ * rest of the layer and the wax is knocked back with its own fill-opacity.
+ * Raising the flame alone cannot work: SVG child opacity multiplies with the
+ * parent's and clamps at 1, so it can only ever subtract.
+ */
+.scenery__candle { opacity: calc(var(--scene-ink) * 0.30); }
+.scenery__candle .fill-wax { fill-opacity: 0.5; }
+.scenery__candle .fill-highlight { fill-opacity: 0.5; }
+
+@keyframes lean {
+  from { transform: rotate(-5deg) scaleY(0.94); }
+  to { transform: rotate(5deg) scaleY(1.06); }
+}
+
+/* Embers rise off the candles and fade out near the top. */
+.scenery__ember {
+  bottom: 8%;
+  animation-name: rise;
+  animation-duration: calc(11s * var(--scene-drift) * var(--piece-jitter, 1));
+}
+
+@keyframes rise {
+  0% { transform: translate3d(0, 0, 0) scale(0.4); opacity: 0; }
+  14% { opacity: 1; }
+  70% { opacity: 0.7; }
+  100% { transform: translate3d(22px, -78vh, 0) scale(1); opacity: 0; }
+}
+
+/* A key turns over slowly as it crosses. */
+.scenery__key {
+  top: 7%;
+  animation-name: tumble;
+  animation-duration: calc(46s * var(--scene-drift) * var(--piece-jitter, 1));
+}
+
+@keyframes tumble {
+  from { transform: translate3d(-30vw, 0, 0) rotate(0deg); }
+  to { transform: translate3d(60vw, 12vh, 0) rotate(220deg); }
+}
+
+/* ── Atlas ────────────────────────────────────────────────────────────── */
+
+/* The skyline. It does not travel; it breathes. */
+.scenery__peak {
+  bottom: 0;
+  animation-name: loom;
+  animation-duration: calc(20s * var(--scene-drift) * var(--piece-jitter, 1));
+  animation-direction: alternate;
+  animation-timing-function: var(--ease-in-out);
+  opacity: calc(var(--scene-ink) * 0.3);
+}
+
+@keyframes loom {
+  from { transform: translate3d(0, 2%, 0) scaleY(calc(var(--scene-lift) * 0.98)); }
+  to { transform: translate3d(0, 0, 0) scaleY(calc(var(--scene-lift) * 1.04)); }
+}
+
+/* Weather, crossing. */
+.scenery__cloud {
+  top: 12%;
+  animation-name: cross;
+  animation-duration: calc(54s * var(--scene-drift) * var(--piece-jitter, 1));
+}
+
+.scenery__cloud:nth-child(even) { top: 34%; }
+
+@keyframes cross {
+  from { transform: translate3d(-40vw, 0, 0); }
+  to { transform: translate3d(120vw, 0, 0); }
+}
+
+/* Something making the trip, with a little lift in the middle of it. */
+.scenery__plane {
+  top: 18%;
+  animation-name: voyage;
+  animation-duration: calc(38s * var(--scene-drift) * var(--piece-jitter, 1));
+}
+
+@keyframes voyage {
+  0% { transform: translate3d(-20vw, 6vh, 0) rotate(-6deg); }
+  50% { transform: translate3d(45vw, -4vh, 0) rotate(4deg); }
+  100% { transform: translate3d(120vw, 8vh, 0) rotate(-3deg); }
 }
 
 /*
  * A single pulse when an answer lands right. One shot, keyed on the question
  * so it re-fires — the only celebratory thing the background ever does, which
  * is what keeps it worth noticing.
+ *
+ * A flat wash rather than the old radial bloom: it covers the screen for a
+ * moment and leaves, so there is no edge to band.
  */
 .bloom {
-  background: radial-gradient(
-    circle at 50% 58%,
-    color-mix(in oklab, var(--support) 55%, transparent),
-    transparent 58%
-  );
+  background: color-mix(in oklab, var(--support) 30%, transparent);
   opacity: 0;
-  animation: bloom 1100ms var(--ease-out) forwards;
+  animation: bloom 900ms var(--ease-out) forwards;
 }
 
 @keyframes bloom {
-  0% { opacity: 0; transform: scale(0.7); }
-  22% { opacity: 0.5; }
-  100% { opacity: 0; transform: scale(1.5); }
+  0% { opacity: 0; }
+  20% { opacity: 0.55; }
+  100% { opacity: 0; }
 }
 
 /* ── pack textures ────────────────────────────────────────────────────── */
 
-/* Atlas: a graticule, and a lit horizon at the foot of the screen. */
+/* Atlas: a graticule. Flat lines, no mask fade — a mask edge is a gradient. */
 .tex-grid {
   background-image:
-    linear-gradient(color-mix(in oklab, var(--on-surface) 6%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in oklab, var(--on-surface) 6%, transparent) 1px, transparent 1px);
+    linear-gradient(color-mix(in oklab, var(--on-surface) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--on-surface) 5%, transparent) 1px, transparent 1px);
   background-size: 56px 56px;
-  mask-image: radial-gradient(120vmax 90vmax at 50% 18%, black, transparent 78%);
 }
 
+/* The ground the peaks stand on: one flat band, one hard edge. */
 .tex-horizon {
-  background: linear-gradient(to top, color-mix(in oklab, var(--accent) 20%, transparent), transparent 32%);
-}
-
-/* Film grain, so flat dark surfaces don't band on cheap panels. */
-.tex-grain {
-  opacity: 0.3;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-}
-
-.tex-vignette {
-  background: radial-gradient(
-    120vmax 96vmax at 50% 30%,
-    transparent 40%,
-    color-mix(in oklab, var(--surface) 92%, black) 100%
-  );
-}
-
-/* Candlelight's embers ride the mesh rather than replacing it. */
-.tex-ember {
-  background: radial-gradient(
-    38vmax 30vmax at 26% 12%,
-    color-mix(in oklab, var(--accent) 14%, transparent),
-    transparent 66%
-  );
+  top: auto;
+  height: 26%;
+  background: color-mix(in oklab, var(--accent) 12%, var(--surface));
+  border-top: 2px solid color-mix(in oklab, var(--accent) 40%, transparent);
 }
 
 /*
- * Time pressure: a warm bloom at the screen edge that grows as a question
- * runs out. Peripheral, so nobody has to watch a number.
+ * Grain existed to hide gradient banding. There are no gradients left to
+ * band, so it draws nothing — kept as a no-op because the vocabulary is a
+ * published type and a pack may still name it.
+ */
+.tex-grain { display: none; }
+
+/* A flat inset frame rather than a radial darkening. */
+.tex-vignette {
+  box-shadow: inset 0 0 0 100vmax color-mix(in oklab, var(--surface) 22%, transparent);
+}
+
+/* Candlelight: a warm floor the candles stand on. */
+.tex-ember {
+  top: auto;
+  height: 18%;
+  background: color-mix(in oklab, var(--accent) 9%, var(--surface));
+}
+
+/*
+ * Time pressure: the screen edge takes on the warning colour as a question
+ * runs out. Peripheral, so nobody has to watch a number — a flat inset band
+ * rather than the old radial wash.
  */
 .tex-pressure {
   opacity: 0;
-  background: radial-gradient(
-    130vmax 100vmax at 50% 50%,
-    transparent 50%,
-    color-mix(in oklab, var(--warn) 48%, transparent) 100%
-  );
+  box-shadow: inset 0 0 0 14vmin color-mix(in oklab, var(--warn) 46%, transparent);
   animation-name: pressure;
   animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
   animation-fill-mode: forwards;
@@ -162,6 +273,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .orb { animation: none; }
+  .scenery__piece,
+  .scenery__flame {
+    animation: none;
+  }
   .bloom { display: none; }
 }

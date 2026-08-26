@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ComponentProps } from "react";
 import {
   getKind,
   isErrorResponse,
@@ -348,6 +349,7 @@ export function App() {
     <LazyMotion features={domMax} strict>
       <Atmosphere
         textures={pack.atmosphere.texture}
+        scenery={pack.atmosphere.scenery}
         mood={mood}
         pressure={pressure}
         bloomKey={bloomKey}
@@ -379,7 +381,6 @@ interface GameScreenProps {
  */
 function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }: GameScreenProps) {
   const { phase } = game;
-  const isHost = game.hostId === identity.id;
   const isLocal = game.config.pacing === "local";
 
   const roster = useMemo(
@@ -412,6 +413,29 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
     if (isErrorResponse(response)) onToast(response.error);
   }, [session, game.code, identity.id, onToast]);
 
+  /**
+   * Tell the server this player is looking at a question now.
+   *
+   * Round-paced play has no shared deadline, so the window has to be
+   * anchored per player, on the server. The stamp is first-write-wins, which
+   * is why calling this again after a reload is harmless — and why the
+   * deadline can no longer be computed from render time, the way it used to
+   * be, where every re-render silently handed out a fresh window.
+   */
+  const begin = useCallback(
+    async (round: number, index: number) => {
+      const response = await session.send({
+        op: "begin",
+        code: game.code,
+        playerId: activeId,
+        round,
+        index,
+      });
+      if (isErrorResponse(response)) onToast(response.error);
+    },
+    [session, game.code, activeId, onToast],
+  );
+
   const waiting = (
     <Scene id="settling">
       <div className="splash splash--solo">
@@ -440,13 +464,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
 
   if (phase.name === "standings") {
     return (
-      <Standings
-        game={game}
-        meId={identity.id}
-        round={phase.round}
-        isHost={isHost}
-        onSkip={() => void advance()}
-      />
+      <Standings game={game} meId={identity.id} round={phase.round} />
     );
   }
 
@@ -503,11 +521,18 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
   const answers = answersFor(round, activeId);
   const cursor = questions.findIndex((_, index) => !answers[index]);
 
-  /** Each player's window starts when they reach the question. */
+  /**
+   * Each player's window, as the server stamped it.
+   *
+   * Read from `openedAt` rather than from the clock: a deadline derived at
+   * render time is not a deadline, because every re-render extends it.
+   */
   const ownPaceDeadline = (kindIndex: number): number | null => {
     const question = questions[kindIndex];
     if (!question || !game.config.timerOn) return null;
-    return session.now() + questionDurationMs(game.config, getKind(question.kind).timeMultiplier);
+    const openedAt = game.players[activeId]?.rounds[round]?.openedAt?.[kindIndex];
+    if (openedAt == null) return null;
+    return openedAt + questionDurationMs(game.config, getKind(question.kind).timeMultiplier);
   };
 
   if (isLocal) {
@@ -538,7 +563,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
     if (!question) return waiting;
 
     return (
-      <Play
+      <OwnPaceQuestion
         game={game}
         question={question}
         round={round}
@@ -546,10 +571,10 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
         total={questions.length}
         endsAt={ownPaceDeadline(cursor)}
         now={session.now}
-        answered={false}
         answeredCount={0}
         playerCount={roster.length}
         whoseTurn={player.name}
+        onBegin={begin}
         onAnswer={(index, answer, elapsedMs) => void submit(round, index, answer, elapsedMs)}
       />
     );
@@ -573,7 +598,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
   if (!question) return waiting;
 
   return (
-    <Play
+    <OwnPaceQuestion
       game={game}
       question={question}
       round={round}
@@ -581,10 +606,44 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
       total={questions.length}
       endsAt={ownPaceDeadline(cursor)}
       now={session.now}
-      answered={false}
       answeredCount={0}
       playerCount={roster.length}
+      onBegin={begin}
       onAnswer={(index, answer, elapsedMs) => void submit(round, index, answer, elapsedMs)}
     />
   );
+}
+
+interface OwnPaceQuestionProps extends Omit<ComponentProps<typeof Play>, "answered"> {
+  onBegin(round: number, index: number): void;
+}
+
+/**
+ * A question in a round-paced game, with its window opened server-side.
+ *
+ * The `begin` call lives in an effect rather than in the render that needs
+ * the deadline, because starting a clock is a write and a render must not
+ * make one. The deadline arrives on the next state update; until then the
+ * question simply shows no timer, which is a far better failure than the old
+ * behaviour of showing one that quietly reset itself.
+ */
+function OwnPaceQuestion({ onBegin, round, index, ...rest }: OwnPaceQuestionProps) {
+  /**
+   * Fire once per question, not once per render of it.
+   *
+   * `onBegin` closes over the session, which is rebuilt on every state
+   * update — so depending on its identity would re-open the question on each
+   * poll, and since opening is itself a write, that is an infinite loop.
+   * Keying on the question is also just what "open this question" means.
+   */
+  const begun = useRef<string | null>(null);
+
+  useEffect(() => {
+    const key = `${round}:${index}`;
+    if (begun.current === key) return;
+    begun.current = key;
+    onBegin(round, index);
+  }, [onBegin, round, index]);
+
+  return <Play {...rest} round={round} index={index} answered={false} />;
 }

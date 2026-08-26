@@ -19,6 +19,14 @@ export interface AnswerResult {
   lines: ScoreLine[];
   /** When the server graded it. */
   at: number;
+  /**
+   * How long the answer took, by the same measure the speed bonus used.
+   *
+   * In live play that is the server's own reading; in round-paced play it is
+   * the client's claim, and null when the client sent none. It is a player's
+   * own record, so publishing it leaks nothing about anybody else's answer.
+   */
+  elapsedMs: number | null;
 }
 
 export interface PlayerRound {
@@ -31,6 +39,16 @@ export interface PlayerRound {
    * graded, so it returns the existing result instead of scoring twice.
    */
   answers: Record<number, AnswerResult>;
+  /**
+   * When this player first opened each question, by the server's clock.
+   *
+   * Round-paced play has no shared deadline — everyone reaches a question at
+   * their own moment — so the window has to be anchored per player. The
+   * stamp is first-write-wins, which is what stops a reload buying a fresh
+   * window, and it lives in the player's own record, so nobody else writes
+   * it. Empty in live play, where the phase already carries the deadline.
+   */
+  openedAt: Record<number, number>;
   score: number;
   streak: number;
   updatedAt: number;
@@ -121,10 +139,13 @@ export function toPublicGame(game: GameState): PublicGameState {
 export interface SubmittedAnswer {
   answer: unknown;
   /**
-   * Client-measured, and therefore a hint rather than a fact. It can only
-   * ever *add* a speed bonus, clamped to the round's own time limit — so the
-   * most a lying client wins is the bonus for answering instantly.
-   * Correctness, the part worth cheating for, is decided server-side.
+   * Client-measured, and only ever a fallback.
+   *
+   * Both pacings now measure server-side where they can: live play from the
+   * phase's own `startedAt`, round-paced play from the player's `openedAt`
+   * stamp. This is used only when a round-paced answer arrives for a
+   * question that was never opened — and even then it can only *add* a
+   * bonus clamped to the window. Correctness is always decided server-side.
    */
   elapsedMs: number | null;
 }
@@ -144,6 +165,14 @@ export type GameRequest =
       round: number;
       answers: Record<number, SubmittedAnswer>;
     }
+  /**
+   * Round-paced play: this player is looking at question `index` now.
+   *
+   * Starts their own window for it. Idempotent — the first stamp wins, so
+   * calling it again on a reload returns the original deadline rather than
+   * granting a fresh one.
+   */
+  | { op: "begin"; code: string; playerId: string; round: number; index: number }
   /** Host override: close the current round / skip the current beat. */
   | { op: "advance"; code: string; hostId: string }
   | { op: "leave"; code: string; playerId: string }

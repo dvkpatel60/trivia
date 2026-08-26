@@ -18,5 +18,6 @@ export {
   PackScoreIcon,
   PackLeaderIcon,
   PackProgress,
+  PackVessel,
 } from "./PackArtifacts.js";
 export { ScoreBurst } from "./ScoreBurst.js";

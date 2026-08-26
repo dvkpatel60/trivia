@@ -27,6 +27,27 @@ export type Mood = "enigmatic" | "deep" | "warm" | "stark";
 /** Background treatments, drawn by the app from this vocabulary. */
 export type Texture = "grain" | "emberGlow" | "horizonGlow" | "grid" | "vignette";
 
+/**
+ * Objects that drift through a pack's background.
+ *
+ * A closed vocabulary rather than free-form data, for the same reason
+ * `Texture` is one: a pack is plain data bundled into the client, so it
+ * declares *which* things belong in its world and the app decides how to
+ * draw them. The web app holds a renderer per member as a mapped type, so
+ * adding a name here without drawing it is a compile error.
+ *
+ * Everything here is drawn in flat colour taken from the pack's palette.
+ * Nothing in this layer uses a gradient — wide gradients band on dark
+ * surfaces, which is what made the old orb mesh look like noise.
+ */
+export type Scenery =
+  | "embers"
+  | "candles"
+  | "keys"
+  | "peaks"
+  | "clouds"
+  | "planes";
+
 /** Display faces a pack may set for its headings and question prompts. */
 export type DisplayFace = "fraunces" | "spaceGrotesk" | "inter";
 
@@ -42,6 +63,11 @@ export interface Atmosphere {
     extra: string;
   };
   texture: Texture[];
+  /**
+   * What moves in the background. Optional: a pack that declares none still
+   * gets a readable ground, it just does not have a cast of its own.
+   */
+  scenery?: Scenery[];
   display: DisplayFace;
 }
 

@@ -6,12 +6,17 @@ interface StandingsProps {
   game: PublicGameState;
   meId: string;
   round: number;
-  isHost: boolean;
-  onSkip(): void;
 }
 
-/** The live-play breather between rounds. Advances itself. */
-export function Standings({ game, meId, round, isHost, onSkip }: StandingsProps) {
+/**
+ * The live-play breather between rounds.
+ *
+ * It advances itself on the phase's own deadline, so there is nothing here
+ * for the host to press. The "Skip ahead" button that used to sit in the
+ * dock was one more decision during play for a screen that resolves in eight
+ * seconds by itself.
+ */
+export function Standings({ game, meId, round }: StandingsProps) {
   const last = round + 1 >= game.config.rounds;
 
   return (
@@ -19,16 +24,9 @@ export function Standings({ game, meId, round, isHost, onSkip }: StandingsProps)
       id={`standings-${round}`}
       rail={<span className="eyebrow">End of round {round + 1}</span>}
       dock={
-        <>
-          <p className="tiny faint center">
-            {last ? "Final scores coming up…" : `Round ${round + 2} opens in a moment…`}
-          </p>
-          {isHost ? (
-            <button type="button" className="button button--ghost state" onClick={onSkip}>
-              Skip ahead
-            </button>
-          ) : null}
-        </>
+        <p className="tiny faint center">
+          {last ? "Final scores coming up…" : `Round ${round + 2} opens in a moment…`}
+        </p>
       }
     >
       <div className="center stack--tight">
