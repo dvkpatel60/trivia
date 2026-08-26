@@ -26,9 +26,17 @@ npm run build        # every workspace; the app lands in apps/web/dist
 Run a single test file with `npx vitest run packages/core/src/__tests__/flow.test.ts`,
 or one case with `-t "closes the question once everyone has answered"`.
 
-`npx tsc --build` typechecks the workspace graph; the functions are checked
-separately with `npx tsc -p netlify/tsconfig.json` because they are not part
-of it.
+`npm run typecheck` runs three passes, because only one of them is a project
+-reference build: `tsc --build` for the workspace graph, then
+`tsc -p netlify/tsconfig.json` and `tsc -p tools/tsconfig.json` for the
+function and the art script, which sit outside it.
+
+**Anything not inside a tsconfig is not checked, and an editor cannot resolve
+it either.** `tools/` had no tsconfig for a while; `@curio/*` resolves through
+`"main": "./src/index.ts"`, which needs `moduleResolution: bundler`, so
+without one an editor reports "Cannot find module '@curio/content'" and `tsc`
+silently checks nothing. If you add a directory of TypeScript, give it a
+tsconfig and add it to the `typecheck` script in the same commit.
 
 ## The shape of it
 
