@@ -70,3 +70,21 @@ export function derange<T>(items: readonly T[], rng: Rng, same: (a: T, b: T) => 
   }
   return items.slice().reverse();
 }
+
+/**
+ * A seed derived from a game code and round number.
+ *
+ * Question generation has to be reproducible across servers: any request can
+ * be the one that advances a game into its next round, and two of them racing
+ * must not deal two different sets of questions. Seeding from the game's own
+ * identity makes the deal a pure function of (code, round).
+ */
+export function seedFor(code: string, round: number): number {
+  let hash = 2166136261;
+  const input = `${code}#${round}`;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}

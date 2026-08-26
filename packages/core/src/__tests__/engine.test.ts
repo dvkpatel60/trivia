@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRng, derange, randomSeed } from "../rng.js";
+import { createRng, derange, randomSeed, seedFor } from "../rng.js";
 import { scoreAnswer } from "../scoring.js";
 import { buildRound, playableKinds } from "../round.js";
 import { defaultConfig, sanitizeConfig } from "../config.js";
@@ -227,5 +227,26 @@ describe("answer secrecy", () => {
     expect(published).not.toContain('"solution"');
     expect(publicGame.rounds[0]?.solutions?.length).toBe(6);
     expect(publicGame.rounds[0]?.solutions?.some((s) => s.includes("PHOENIX"))).toBe(true);
+  });
+});
+
+describe("deterministic deals", () => {
+  it("derives the same seed for the same game and round", () => {
+    expect(seedFor("NIFFLER-42", 3)).toBe(seedFor("NIFFLER-42", 3));
+    expect(seedFor("NIFFLER-42", 3)).not.toBe(seedFor("NIFFLER-42", 4));
+    expect(seedFor("NIFFLER-42", 3)).not.toBe(seedFor("THESTRAL-11", 3));
+  });
+
+  it("deals an identical round to two servers racing to advance", () => {
+    const dealOn = () => {
+      const rng = createRng(seedFor("NIFFLER-42", 2));
+      return buildRound({
+        pack: fixturePack,
+        config: { ...defaultConfig("fixture"), questionsPerRound: 4 },
+        roundIndex: 2,
+        rng,
+      }).questions;
+    };
+    expect(JSON.stringify(dealOn())).toBe(JSON.stringify(dealOn()));
   });
 });

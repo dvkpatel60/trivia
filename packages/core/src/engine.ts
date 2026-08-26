@@ -24,7 +24,15 @@ import type { AnyQuestion, ContentPack, GameConfig } from "./types.js";
 
 export interface EngineContext {
   pack: ContentPack;
-  rng: Rng;
+  /**
+   * A generator for one round's deal.
+   *
+   * A factory rather than a single `Rng` because advancing can cascade
+   * through several rounds in one call — a game nobody polled for a while
+   * catching up — and each round has to be dealt from its own seed for two
+   * servers to agree on the questions.
+   */
+  rngFor(round: number): Rng;
   now: number;
 }
 
@@ -113,7 +121,7 @@ function dealRound(game: GameState, round: number, ctx: EngineContext): void {
     pack: ctx.pack,
     config: game.config,
     roundIndex: round,
-    rng: ctx.rng,
+    rng: ctx.rngFor(round),
     usage: game.usage as KindUsage,
   });
   game.usage = built.usage as Record<string, number[]>;
@@ -158,34 +166,52 @@ function asyncOpenPhase(game: GameState, round: number, from: number): Phase {
 }
 
 /**
- * Close a round: everything unanswered scores zero, and the answers go on
- * the table. Idempotent, because more than one poller can race to reveal.
+ * Close a round and put its answers on the table.
+ *
+ * Note what this does *not* do: it does not write a zero into every player
+ * who missed a question. An unanswered question in a revealed round already
+ * means "no answer" — worth no points and breaking the streak — and deriving
+ * that at read time is what lets each player's record stay written by that
+ * player alone. See `storage` in the Netlify function for why that matters.
  */
-function revealRound(game: GameState, round: number, now: number): void {
+function revealRound(game: GameState, round: number): void {
   const state = game.rounds[round];
   if (!state || state.revealed) return;
+  state.revealed = true;
+}
 
-  const total = state.questions.length;
-  for (const player of Object.values(game.players)) {
-    const playerRound = ensureRound(player, round, now);
-    let missed = false;
-    for (let index = 0; index < total; index++) {
-      if (playerRound.answers[index]) continue;
-      missed = true;
-      playerRound.answers[index] = {
-        fraction: 0,
-        points: 0,
-        message: "No answer.",
-        lines: [],
-        at: now,
-      };
-    }
-    if (missed) {
-      player.streak = 0;
-      playerRound.streak = 0;
+/**
+ * The streak a player carries into a given question, reconstructed from
+ * their own answers.
+ *
+ * Derived rather than stored because a missed question has to break a streak,
+ * and nobody but the player themselves may write their record — so there is
+ * no moment at which someone else could reach in and zero the counter.
+ */
+export function streakBefore(
+  game: GameState,
+  player: PlayerState,
+  round: number,
+  index: number,
+): number {
+  let streak = 0;
+  for (let r = 0; r <= round; r++) {
+    const state = game.rounds[r];
+    if (!state) continue;
+    const answers = player.rounds[r]?.answers ?? {};
+    const last = r === round ? index : state.questions.length;
+    for (let i = 0; i < last; i++) {
+      const answer = answers[i];
+      if (answer) {
+        streak = answer.fraction >= 0.999 ? streak + 1 : 0;
+      } else if (state.revealed) {
+        // They never answered and the round is closed: the streak is broken.
+        streak = 0;
+      }
+      // Unanswered in a round still open (async, out of order) is not yet a miss.
     }
   }
-  state.revealed = true;
+  return streak;
 }
 
 function ensureRound(player: PlayerState, round: number, now: number): PlayerRound {
@@ -257,8 +283,9 @@ export function submitAnswers(
   if (!state) throw new GameError("That round hasn't started.", "not_found");
 
   const playerRound = ensureRound(player, round, now);
-  let streak = player.streak;
   let gained = 0;
+  let streak = 0;
+  let streakKnown = false;
 
   const indices = Object.keys(answers)
     .map(Number)
@@ -274,6 +301,11 @@ export function submitAnswers(
     const question = state.questions[index];
     const submitted = answers[index];
     if (!question || !submitted) continue;
+
+    if (!streakKnown) {
+      streak = streakBefore(game, player, round, index);
+      streakKnown = true;
+    }
 
     const { fraction, message } = gradeQuestion(question, submitted.answer);
 
@@ -300,13 +332,15 @@ export function submitAnswers(
   }
 
   playerRound.score += gained;
-  playerRound.streak = streak;
   playerRound.updatedAt = now;
   player.score += gained;
-  player.streak = streak;
   player.lastSeenAt = now;
+  if (streakKnown) {
+    playerRound.streak = streak;
+    player.streak = streak;
+  }
 
-  return { results: playerRound.answers, roundScore: playerRound.score, streak };
+  return { results: playerRound.answers, roundScore: playerRound.score, streak: player.streak };
 }
 
 /* ── the phase machine ────────────────────────────────────────────────── */
@@ -365,7 +399,7 @@ function step(game: GameState, ctx: EngineContext, force: boolean): Phase | null
       if (next < questionCount(game, phase.round)) {
         return liveQuestionPhase(game, phase.round, next, anchor);
       }
-      revealRound(game, phase.round, anchor);
+      revealRound(game, phase.round);
       return { name: "standings", round: phase.round, startedAt: anchor, endsAt: anchor + STANDINGS_MS };
     }
 
@@ -381,7 +415,7 @@ function step(game: GameState, ctx: EngineContext, force: boolean): Phase | null
       const allIn = everyoneFinishedRound(game, phase.round);
       if (!force && !due && !allIn) return null;
       const from = allIn && !due ? now : anchor;
-      revealRound(game, phase.round, from);
+      revealRound(game, phase.round);
       return { name: "reveal", round: phase.round, startedAt: from };
     }
 

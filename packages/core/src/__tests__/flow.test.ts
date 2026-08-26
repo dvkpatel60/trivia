@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRng } from "../rng.js";
+import { createRng, seedFor } from "../rng.js";
 import { defaultConfig } from "../config.js";
 import {
   advance,
@@ -9,6 +9,7 @@ import {
   joinGame,
   removePlayer,
   startGame,
+  streakBefore,
   submitAnswers,
   touchPlayer,
   type EngineContext,
@@ -20,7 +21,11 @@ import type { GameConfig, Pacing } from "../types.js";
 
 const T0 = 1_700_000_000_000;
 
-const ctxAt = (now: number): EngineContext => ({ pack: fixturePack, rng: createRng(99), now });
+const ctxAt = (now: number): EngineContext => ({
+  pack: fixturePack,
+  rngFor: (round) => createRng(seedFor("TEST-01", round)),
+  now,
+});
 
 function makeGame(pacing: Pacing, overrides: Partial<GameConfig> = {}): GameState {
   const config: GameConfig = {
@@ -324,20 +329,61 @@ describe("async pacing", () => {
     expect(() => hostAdvance(game, "p2", ctxAt(T0 + 1))).toThrow(GameError);
   });
 
-  it("scores non-submitters zero and breaks their streak when the round closes", () => {
+  it("scores a non-submitter nothing when the round closes", () => {
     const game = makeGame("async");
     joinGame(game, "idle", "Idle", T0);
     startGame(game, "host", ctxAt(T0));
 
     const idle = game.players.idle;
     if (!idle) throw new Error("missing");
-    idle.streak = 3;
 
     hostAdvance(game, "host", ctxAt(T0 + 1_000));
     expect(game.phase.name).toBe("reveal");
-    expect(idle.rounds[0]?.answers[0]?.message).toBe("No answer.");
+    // No answer was written for them — the absence *is* the record.
+    expect(idle.rounds[0]?.answers[0]).toBeUndefined();
     expect(idle.score).toBe(0);
-    expect(idle.streak).toBe(0);
+  });
+
+  it("breaks a streak across a round the player sat out", () => {
+    const game = makeGame("async", { rounds: 3, questionsPerRound: 1 });
+    joinGame(game, "p2", "Ana", T0);
+    startGame(game, "host", ctxAt(T0));
+
+    // Round 0: answered correctly, so the streak is running.
+    answerRight(game, "p2", 0, 0, T0 + 100);
+    expect(game.players.p2?.streak).toBe(1);
+
+    // Round 1: sat it out entirely, and the host closed it.
+    hostAdvance(game, "host", ctxAt(T0 + 200));
+    hostAdvance(game, "host", ctxAt(T0 + 300));
+    answerRight(game, "host", 1, 0, T0 + 400);
+    hostAdvance(game, "host", ctxAt(T0 + 500));
+    hostAdvance(game, "host", ctxAt(T0 + 600));
+
+    // Round 2: back in, and starting from scratch rather than resuming at 2.
+    const outcome = answerRight(game, "p2", 2, 0, T0 + 700);
+    expect(outcome.streak).toBe(1);
+  });
+});
+
+describe("streak reconstruction", () => {
+  it("derives the streak from a player's own answers", () => {
+    const game = makeGame("async", { rounds: 1, questionsPerRound: 2 });
+    startGame(game, "host", ctxAt(T0));
+
+    answerRight(game, "host", 0, 0, T0 + 100);
+    expect(streakBefore(game, game.players.host!, 0, 1)).toBe(1);
+
+    submitAnswers(game, "host", 0, { 1: { answer: null, elapsedMs: 0 } }, T0 + 200);
+    expect(game.players.host?.streak).toBe(0);
+  });
+
+  it("does not count an unanswered question in a round still open", () => {
+    const game = makeGame("async", { rounds: 1, questionsPerRound: 2 });
+    startGame(game, "host", ctxAt(T0));
+    // Answering out of order: index 0 is still open, not a miss.
+    answerRight(game, "host", 0, 1, T0 + 100);
+    expect(streakBefore(game, game.players.host!, 0, 1)).toBe(0);
   });
 });
 
