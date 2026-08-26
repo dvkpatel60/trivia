@@ -3,11 +3,20 @@
   "compilerOptions": {
     "outDir": "./dist-types",
     "rootDir": ".",
-    "lib": ["ES2022", "DOM"],
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "composite": false,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["functions/**/*.mts", "lib/**/*.mts"]
+  "include": [
+    "functions/**/*.mts",
+    "lib/**/*.mts",
+    "tests/**/*.mts"
+  ]
 }

@@ -4,9 +4,20 @@
     "outDir": "./dist-types",
     "rootDir": "./src",
     "jsx": "react-jsx",
-    "types": ["vite/client"],
-    "noEmit": false
+    "types": [
+      "vite/client"
+    ],
+    "emitDeclarationOnly": true
   },
-  "include": ["src/**/*"],
-  "references": [{ "path": "../../packages/core" }, { "path": "../../packages/content" }]
+  "include": [
+    "src/**/*"
+  ],
+  "references": [
+    {
+      "path": "../../packages/core"
+    },
+    {
+      "path": "../../packages/content"
+    }
+  ]
 }

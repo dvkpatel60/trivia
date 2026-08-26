@@ -36,6 +36,17 @@ export interface EngineContext {
   now: number;
 }
 
+/**
+ * Pacings where the round, not the question, is the unit everyone shares.
+ *
+ * Pass-and-play belongs here with async: one device works through a whole
+ * round per player, so there is no shared per-question deadline to hold
+ * anyone to.
+ */
+function isRoundPaced(pacing: GameConfig["pacing"]): boolean {
+  return pacing === "async" || pacing === "local";
+}
+
 export class GameError extends Error {
   constructor(
     message: string,
@@ -230,10 +241,9 @@ export function startGame(game: GameState, hostId: string, ctx: EngineContext): 
   if (Object.keys(game.players).length === 0) throw new GameError("Nobody has joined.", "conflict");
 
   dealRound(game, 0, ctx);
-  game.phase =
-    game.config.pacing === "async"
-      ? asyncOpenPhase(game, 0, ctx.now)
-      : liveQuestionPhase(game, 0, 0, ctx.now);
+  game.phase = isRoundPaced(game.config.pacing)
+    ? asyncOpenPhase(game, 0, ctx.now)
+    : liveQuestionPhase(game, 0, 0, ctx.now);
 }
 
 /* ── answering ────────────────────────────────────────────────────────── */
@@ -255,7 +265,7 @@ function acceptsIndex(game: GameState, round: number, index: number, now: number
   const phase = game.phase;
   if (game.rounds[round]?.revealed) return false;
 
-  if (game.config.pacing === "async" || game.config.pacing === "local") {
+  if (isRoundPaced(game.config.pacing)) {
     return phase.name === "open" && phase.round === round;
   }
 
