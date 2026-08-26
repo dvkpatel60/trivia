@@ -59,7 +59,7 @@ export function Final({ game, meId, onHome }: FinalProps) {
 
       <div className="panel stack--tight">
         <span className="eyebrow">Everyone</span>
-        <Board players={game.players} meId={meId} />
+        <Board players={game.players} meId={meId} markLeader />
       </div>
     </Scene>
   );

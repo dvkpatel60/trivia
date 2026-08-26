@@ -17,7 +17,7 @@ import { useSession } from "./state/session.js";
 import { useToast } from "./state/useToast.js";
 import { domMax, LazyMotion } from "motion/react";
 
-import { applyPack, Atmosphere, Scene, type AtmosphereMood } from "./design/index.js";
+import { applyPack, Atmosphere, Scene, Wordmark, type AtmosphereMood } from "./design/index.js";
 
 import { Beat } from "./screens/Beat.js";
 import { Final } from "./screens/Final.js";
@@ -251,7 +251,7 @@ export function App() {
       return (
         <Scene id="boot">
           <div className="splash splash--solo">
-            <span className="ember" />
+            <Wordmark />
             <p className="lede">Opening the cabinet…</p>
           </div>
         </Scene>
@@ -324,7 +324,7 @@ export function App() {
           }
         >
           <div className="splash splash--solo">
-            <span className="ember" />
+            <Wordmark variant="compact" />
             <p className="lede">{session.trouble ?? "Finding the game…"}</p>
           </div>
         </Scene>

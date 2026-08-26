@@ -57,7 +57,7 @@ export function Reveal({ game, meId, round, onNext, onLeave }: RevealProps) {
     >
       <div className="panel stack--tight">
         <span className="eyebrow">Standings</span>
-        <Board players={game.players} meId={meId} round={round} />
+        <Board players={game.players} meId={meId} round={round} markLeader />
       </div>
 
       <div className="stack--tight stagger">

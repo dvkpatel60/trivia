@@ -319,14 +319,28 @@ export function submitAnswers(
 
     const { fraction, message } = gradeQuestion(question, submitted.answer);
 
-    // In live play the server knows when the question started, so it measures
-    // the elapsed time itself rather than believing the client.
-    const phase = game.phase;
-    const elapsedMs =
-      game.config.pacing === "live" && phase.name === "question"
-        ? now - phase.startedAt
-        : submitted.elapsedMs;
     const limitMs = windowMs(game, round, index) ?? game.config.seconds * 1000;
+
+    /**
+     * How long they took.
+     *
+     * In live play the server knows when the question opened, so it measures
+     * this itself and never believes the client — including for an answer
+     * that lands in the grace window after the deadline, where the question
+     * has by definition run its full length. Only round-paced play, which has
+     * no shared clock to measure against, trusts the number it is sent; there
+     * it can only ever add a bonus that is clamped to the window anyway.
+     */
+    const phase = game.phase;
+    let elapsedMs: number | null;
+    if (game.config.pacing === "live") {
+      elapsedMs =
+        phase.name === "question" && phase.round === round && phase.index === index
+          ? now - phase.startedAt
+          : limitMs;
+    } else {
+      elapsedMs = submitted.elapsedMs;
+    }
 
     const scored = scoreAnswer(game.config, fraction, elapsedMs, streak, limitMs);
     streak = scored.streak;

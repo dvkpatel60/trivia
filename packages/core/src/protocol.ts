@@ -213,6 +213,23 @@ export function ranked(players: Record<string, PlayerState>): PlayerState[] {
   );
 }
 
+/**
+ * Who is actually ahead, or null.
+ *
+ * Null covers the two cases where crowning somebody would be a lie: nobody
+ * has scored yet, and the top two are level. The ranking has to break a tie
+ * somehow to render a list, but that is an ordering decision — it does not
+ * make the first row a leader.
+ */
+export function leaderOf(players: Record<string, PlayerState>): string | null {
+  const order = ranked(players);
+  const first = order[0];
+  if (!first || first.score <= 0) return null;
+  const second = order[1];
+  if (second && second.score >= first.score) return null;
+  return first.id;
+}
+
 export const PLAYER_COLORS = [
   "#e8b55c",
   "#3f9c7d",

@@ -12,7 +12,7 @@ interface HomeProps {
   online: boolean;
 }
 
-import { Scene } from "../design/index.js";
+import { Scene, Wordmark } from "../design/index.js";
 
 export function Home({
   name,
@@ -73,9 +73,7 @@ export function Home({
       }
     >
       <div className="splash">
-        <span className="ember" />
-        <h1 className="wordmark">Curio</h1>
-        <p className="lede">Trivia worth collecting.</p>
+        <Wordmark />
       </div>
 
       <div className="field">

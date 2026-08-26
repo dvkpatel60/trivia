@@ -34,7 +34,7 @@ export function Standings({ game, meId, round, isHost, onSkip }: StandingsProps)
       <div className="center stack--tight">
         <h1>{last ? "That's the lot" : "How it stands"}</h1>
       </div>
-      <Board players={game.players} meId={meId} round={round} />
+      <Board players={game.players} meId={meId} round={round} markLeader />
     </Scene>
   );
 }

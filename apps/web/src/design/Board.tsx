@@ -1,14 +1,22 @@
 import { AnimatePresence, m } from "motion/react";
-import { ranked, type PlayerState } from "@curio/core";
+import { leaderOf, ranked, type PlayerState } from "@curio/core";
 
 import { Count } from "./Count.js";
 import { rise, cascade, settle } from "./motion.js";
+import { Sigil } from "./Sigil.js";
 
 interface BoardProps {
   players: Record<string, PlayerState>;
   meId: string;
   /** Shows what each player won in this round beside their total. */
   round?: number;
+  /**
+   * Marks whoever is ahead and pulses their row.
+   *
+   * Set when a round has just closed — that is the moment the standing
+   * matters, and the moment worth making somebody look up for.
+   */
+  markLeader?: boolean;
 }
 
 /**
@@ -19,14 +27,16 @@ interface BoardProps {
  * climb is most of the emotional payload of a trivia game, and it was the
  * single biggest thing the old static list threw away.
  */
-export function Board({ players, meId, round }: BoardProps) {
+export function Board({ players, meId, round, markLeader }: BoardProps) {
   const order = ranked(players);
+  const leaderId = markLeader === true ? leaderOf(players) : null;
 
   return (
     <m.div className="board" variants={cascade()} initial="hidden" animate="shown">
       <AnimatePresence initial={false}>
         {order.map((player, index) => {
           const delta = round == null ? 0 : (player.rounds[round]?.score ?? 0);
+          const leader = player.id === leaderId;
           return (
             <m.div
               key={player.id}
@@ -38,12 +48,18 @@ export function Board({ players, meId, round }: BoardProps) {
               className="board__row state"
               data-me={player.id === meId}
               data-rank={index + 1}
+              data-leader={leader}
             >
               <m.span layout="position" className="board__rank">
                 {index + 1}
               </m.span>
               <span className="pip" style={{ color: player.color }} />
               <span className="grow">
+                {leader ? (
+                  <span className="board__crown" aria-label="Leading">
+                    <Sigil size={14} weight={2.6} detail="seal" />
+                  </span>
+                ) : null}
                 {player.name}
                 {delta > 0 ? (
                   <m.span

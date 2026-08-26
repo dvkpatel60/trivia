@@ -118,13 +118,25 @@ describe("multi-topic plumbing", () => {
     expect(PACKS.length).toBeGreaterThanOrEqual(2);
   });
 
-  it("gives each pack its own categories rather than sharing one set", () => {
-    const packsWithCategories = PACKS.filter((pack) => (pack.categories ?? []).length > 0);
-    const signatures = packsWithCategories.map((pack) =>
-      (pack.categories ?? []).map((c) => c.id).join(","),
+  it("gives each pack its own ways of sorting rather than sharing one", () => {
+    const withSets = PACKS.filter((pack) => (pack.categorySets ?? []).length > 0);
+    const signatures = withSets.map((pack) =>
+      (pack.categorySets ?? []).map((set) => set.id).join(","),
     );
-    expect(new Set(signatures).size).toBe(packsWithCategories.length);
+    expect(new Set(signatures).size).toBe(withSets.length);
   });
+
+  it.each(PACKS.map((pack) => [pack.id, pack] as const))(
+    "%s can deal a full question from every sorting set it declares",
+    (_id, pack) => {
+      // A set too thin to fill a question is content nobody will ever see.
+      const needed = getKind("categorize").itemsPerQuestion;
+      for (const set of pack.categorySets ?? []) {
+        const count = livingItems(pack, "categorize").filter((item) => item.set === set.id).length;
+        expect(count, `${pack.id}/${set.id}`).toBeGreaterThanOrEqual(needed);
+      }
+    },
+  );
 
   it("gives each pack its own palette and display face", () => {
     expect(new Set(PACKS.map((p) => p.atmosphere.signature.accent)).size).toBe(PACKS.length);

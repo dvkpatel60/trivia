@@ -9,3 +9,5 @@ export { applyPack } from "./theme.js";
 export { KindIcon } from "./KindIcon.js";
 export type { AtmosphereMood } from "./Atmosphere.js";
 export { cascade, rise, glide, snap, pounce, settle, reduced } from "./motion.js";
+export { Sigil } from "./Sigil.js";
+export { Wordmark } from "./Wordmark.js";
