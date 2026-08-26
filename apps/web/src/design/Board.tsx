@@ -3,7 +3,7 @@ import { leaderOf, ranked, type PlayerState } from "@curio/core";
 
 import { Count } from "./Count.js";
 import { rise, cascade, settle } from "./motion.js";
-import { PackLeaderIcon, PackScoreIcon } from "./PackArtifacts.js";
+import { PackLeaderIcon } from "./PackArtifacts.js";
 import { ScoreBurst } from "./ScoreBurst.js";
 
 interface BoardProps {
@@ -74,7 +74,6 @@ export function Board({ players, meId, round, markLeader }: BoardProps) {
                 ) : null}
               </span>
               <span className="board__points num">
-                <PackScoreIcon size={12} className="board__score-icon" />
                 <Count value={player.score} />
                 <ScoreBurst active={delta > 0} />
               </span>
