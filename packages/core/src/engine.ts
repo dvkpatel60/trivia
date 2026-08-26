@@ -1,0 +1,427 @@
+/**
+ * Every legal change to a game, as pure-ish functions over `GameState`.
+ *
+ * The Netlify function is deliberately thin: read the blob, call one of
+ * these, write it back under compare-and-swap. All the rules — who may do
+ * what, when a phase ends, what an answer is worth — live here, where they
+ * can be tested without a network or a blob store.
+ */
+
+import { getKind } from "./kinds/index.js";
+import { gradeQuestion } from "./grade.js";
+import { buildRound, type KindUsage } from "./round.js";
+import { scoreAnswer } from "./scoring.js";
+import {
+  BEAT_MS,
+  questionDurationMs,
+  STANDINGS_MS,
+  SUBMIT_GRACE_MS,
+  type Phase,
+} from "./phase.js";
+import { PLAYER_COLORS, type AnswerResult, type GameState, type PlayerRound, type PlayerState, type SubmittedAnswer } from "./protocol.js";
+import type { Rng } from "./rng.js";
+import type { AnyQuestion, ContentPack, GameConfig } from "./types.js";
+
+export interface EngineContext {
+  pack: ContentPack;
+  rng: Rng;
+  now: number;
+}
+
+export class GameError extends Error {
+  constructor(
+    message: string,
+    readonly code: "not_found" | "forbidden" | "bad_request" | "conflict" = "bad_request",
+  ) {
+    super(message);
+    this.name = "GameError";
+  }
+}
+
+/* ── construction ─────────────────────────────────────────────────────── */
+
+function newPlayer(id: string, name: string, index: number, now: number): PlayerState {
+  return {
+    id,
+    name: name.trim() || `Player ${index + 1}`,
+    color: PLAYER_COLORS[index % PLAYER_COLORS.length] as string,
+    joinedAt: now,
+    lastSeenAt: now,
+    score: 0,
+    streak: 0,
+    rounds: {},
+  };
+}
+
+export function createGame(options: {
+  code: string;
+  hostId: string;
+  hostName: string;
+  config: GameConfig;
+  now: number;
+}): GameState {
+  const { code, hostId, hostName, config, now } = options;
+  return {
+    code,
+    hostId,
+    phase: { name: "lobby", startedAt: now },
+    config,
+    createdAt: now,
+    updatedAt: now,
+    version: 1,
+    players: { [hostId]: newPlayer(hostId, hostName, 0, now) },
+    rounds: {},
+    usage: {},
+  };
+}
+
+export function joinGame(game: GameState, playerId: string, playerName: string, now: number): void {
+  if (game.phase.name === "final") {
+    throw new GameError("That game has already finished.", "conflict");
+  }
+  const existing = game.players[playerId];
+  if (existing) {
+    // Re-joining from a refreshed tab: keep the score, take the new name.
+    if (playerName.trim()) existing.name = playerName.trim();
+    existing.lastSeenAt = now;
+    return;
+  }
+  game.players[playerId] = newPlayer(playerId, playerName, Object.keys(game.players).length, now);
+}
+
+export function touchPlayer(game: GameState, playerId: string | undefined, now: number): boolean {
+  if (!playerId) return false;
+  const player = game.players[playerId];
+  if (!player) return false;
+  // Only counts as a change worth a version bump if it's been a while, or
+  // every poll would wake every other client.
+  const stale = now - player.lastSeenAt > 15_000;
+  player.lastSeenAt = now;
+  return stale;
+}
+
+export function removePlayer(game: GameState, playerId: string): void {
+  if (playerId === game.hostId) return; // the host leaving would orphan the game
+  delete game.players[playerId];
+}
+
+/* ── rounds ───────────────────────────────────────────────────────────── */
+
+function dealRound(game: GameState, round: number, ctx: EngineContext): void {
+  if (game.rounds[round]) return;
+  const built = buildRound({
+    pack: ctx.pack,
+    config: game.config,
+    roundIndex: round,
+    rng: ctx.rng,
+    usage: game.usage as KindUsage,
+  });
+  game.usage = built.usage as Record<string, number[]>;
+  game.rounds[round] = { questions: built.questions, revealed: false };
+}
+
+export function questionCount(game: GameState, round: number): number {
+  return game.rounds[round]?.questions.length ?? 0;
+}
+
+function questionAt(game: GameState, round: number, index: number): AnyQuestion | undefined {
+  return game.rounds[round]?.questions[index];
+}
+
+/** How long a given live question is allowed, scaled by its kind. */
+function windowMs(game: GameState, round: number, index: number): number | null {
+  if (!game.config.timerOn) return null;
+  const question = questionAt(game, round, index);
+  const multiplier = question ? getKind(question.kind).timeMultiplier : 1;
+  return questionDurationMs(game.config, multiplier);
+}
+
+function liveQuestionPhase(game: GameState, round: number, index: number, from: number): Phase {
+  const window = windowMs(game, round, index);
+  return {
+    name: "question",
+    round,
+    index,
+    startedAt: from,
+    endsAt: window == null ? null : from + window,
+  };
+}
+
+function asyncOpenPhase(game: GameState, round: number, from: number): Phase {
+  const minutes = game.config.roundOpenMinutes;
+  return {
+    name: "open",
+    round,
+    startedAt: from,
+    endsAt: minutes == null ? null : from + minutes * 60_000,
+  };
+}
+
+/**
+ * Close a round: everything unanswered scores zero, and the answers go on
+ * the table. Idempotent, because more than one poller can race to reveal.
+ */
+function revealRound(game: GameState, round: number, now: number): void {
+  const state = game.rounds[round];
+  if (!state || state.revealed) return;
+
+  const total = state.questions.length;
+  for (const player of Object.values(game.players)) {
+    const playerRound = ensureRound(player, round, now);
+    let missed = false;
+    for (let index = 0; index < total; index++) {
+      if (playerRound.answers[index]) continue;
+      missed = true;
+      playerRound.answers[index] = {
+        fraction: 0,
+        points: 0,
+        message: "No answer.",
+        lines: [],
+        at: now,
+      };
+    }
+    if (missed) {
+      player.streak = 0;
+      playerRound.streak = 0;
+    }
+  }
+  state.revealed = true;
+}
+
+function ensureRound(player: PlayerState, round: number, now: number): PlayerRound {
+  const existing = player.rounds[round];
+  if (existing) return existing;
+  const fresh: PlayerRound = { answers: {}, score: 0, streak: player.streak, updatedAt: now };
+  player.rounds[round] = fresh;
+  return fresh;
+}
+
+/* ── starting ─────────────────────────────────────────────────────────── */
+
+export function startGame(game: GameState, hostId: string, ctx: EngineContext): void {
+  if (hostId !== game.hostId) throw new GameError("Only the host can start.", "forbidden");
+  if (game.phase.name !== "lobby") throw new GameError("Already started.", "conflict");
+  if (Object.keys(game.players).length === 0) throw new GameError("Nobody has joined.", "conflict");
+
+  dealRound(game, 0, ctx);
+  game.phase =
+    game.config.pacing === "async"
+      ? asyncOpenPhase(game, 0, ctx.now)
+      : liveQuestionPhase(game, 0, 0, ctx.now);
+}
+
+/* ── answering ────────────────────────────────────────────────────────── */
+
+export interface SubmitOutcome {
+  results: Record<number, AnswerResult>;
+  roundScore: number;
+  streak: number;
+}
+
+/**
+ * Which question indices this player may answer right now.
+ *
+ * Live play is one question at a time on a shared clock, with a short grace
+ * window so a slow connection doesn't eat an answer. Async play accepts any
+ * index in the open round.
+ */
+function acceptsIndex(game: GameState, round: number, index: number, now: number): boolean {
+  const phase = game.phase;
+  if (game.rounds[round]?.revealed) return false;
+
+  if (game.config.pacing === "async" || game.config.pacing === "local") {
+    return phase.name === "open" && phase.round === round;
+  }
+
+  if (phase.name === "question") {
+    if (phase.round !== round || phase.index !== index) return false;
+    return phase.endsAt == null || now <= phase.endsAt + SUBMIT_GRACE_MS;
+  }
+  // The question just closed; an answer already in flight still lands.
+  if (phase.name === "beat") {
+    return phase.round === round && phase.index === index && now <= phase.startedAt + SUBMIT_GRACE_MS;
+  }
+  return false;
+}
+
+export function submitAnswers(
+  game: GameState,
+  playerId: string,
+  round: number,
+  answers: Record<number, SubmittedAnswer>,
+  now: number,
+): SubmitOutcome {
+  const player = game.players[playerId];
+  if (!player) throw new GameError("You are not in this game.", "not_found");
+  const state = game.rounds[round];
+  if (!state) throw new GameError("That round hasn't started.", "not_found");
+
+  const playerRound = ensureRound(player, round, now);
+  let streak = player.streak;
+  let gained = 0;
+
+  const indices = Object.keys(answers)
+    .map(Number)
+    .filter((index) => Number.isInteger(index) && index >= 0 && index < state.questions.length)
+    .sort((a, b) => a - b);
+
+  for (const index of indices) {
+    // Already graded: a retry, a double-tap, a duplicated request. Returning
+    // the stored result is what makes submission idempotent without tokens.
+    if (playerRound.answers[index]) continue;
+    if (!acceptsIndex(game, round, index, now)) continue;
+
+    const question = state.questions[index];
+    const submitted = answers[index];
+    if (!question || !submitted) continue;
+
+    const { fraction, message } = gradeQuestion(question, submitted.answer);
+
+    // In live play the server knows when the question started, so it measures
+    // the elapsed time itself rather than believing the client.
+    const phase = game.phase;
+    const elapsedMs =
+      game.config.pacing === "live" && phase.name === "question"
+        ? now - phase.startedAt
+        : submitted.elapsedMs;
+    const limitMs = windowMs(game, round, index) ?? game.config.seconds * 1000;
+
+    const scored = scoreAnswer(game.config, fraction, elapsedMs, streak, limitMs);
+    streak = scored.streak;
+    gained += scored.total;
+
+    playerRound.answers[index] = {
+      fraction,
+      points: scored.total,
+      message,
+      lines: scored.lines,
+      at: now,
+    };
+  }
+
+  playerRound.score += gained;
+  playerRound.streak = streak;
+  playerRound.updatedAt = now;
+  player.score += gained;
+  player.streak = streak;
+  player.lastSeenAt = now;
+
+  return { results: playerRound.answers, roundScore: playerRound.score, streak };
+}
+
+/* ── the phase machine ────────────────────────────────────────────────── */
+
+/** Players who were already here when the current phase began. */
+function presentPlayers(game: GameState, since: number): PlayerState[] {
+  return Object.values(game.players).filter((player) => player.joinedAt <= since);
+}
+
+function everyoneAnswered(game: GameState, round: number, index: number, since: number): boolean {
+  const players = presentPlayers(game, since);
+  if (players.length === 0) return false;
+  return players.every((player) => player.rounds[round]?.answers[index]);
+}
+
+function everyoneFinishedRound(game: GameState, round: number): boolean {
+  const players = Object.values(game.players);
+  if (players.length === 0) return false;
+  const total = questionCount(game, round);
+  if (total === 0) return false;
+  return players.every((player) => {
+    const answers = player.rounds[round]?.answers ?? {};
+    for (let index = 0; index < total; index++) if (!answers[index]) return false;
+    return true;
+  });
+}
+
+/** One transition, or null if this phase isn't finished yet. */
+function step(game: GameState, ctx: EngineContext, force: boolean): Phase | null {
+  const phase = game.phase;
+  const { now } = ctx;
+  const due = "endsAt" in phase && phase.endsAt != null && now >= phase.endsAt;
+
+  /**
+   * When a deadline passed while nobody was looking, the next phase is
+   * anchored to that deadline rather than to now — so a game nobody polled
+   * for a minute fast-forwards correctly instead of crawling one step per
+   * request.
+   */
+  const anchor = due && "endsAt" in phase && phase.endsAt != null ? phase.endsAt : now;
+
+  switch (phase.name) {
+    case "lobby":
+      return null; // the host starts the game
+
+    case "question": {
+      const early = everyoneAnswered(game, phase.round, phase.index, phase.startedAt);
+      if (!force && !due && !early) return null;
+      const from = early && !due ? now : anchor;
+      return { name: "beat", round: phase.round, index: phase.index, startedAt: from, endsAt: from + BEAT_MS };
+    }
+
+    case "beat": {
+      if (!force && !due) return null;
+      const next = phase.index + 1;
+      if (next < questionCount(game, phase.round)) {
+        return liveQuestionPhase(game, phase.round, next, anchor);
+      }
+      revealRound(game, phase.round, anchor);
+      return { name: "standings", round: phase.round, startedAt: anchor, endsAt: anchor + STANDINGS_MS };
+    }
+
+    case "standings": {
+      if (!force && !due) return null;
+      const next = phase.round + 1;
+      if (next >= game.config.rounds) return { name: "final", startedAt: anchor };
+      dealRound(game, next, ctx);
+      return liveQuestionPhase(game, next, 0, anchor);
+    }
+
+    case "open": {
+      const allIn = everyoneFinishedRound(game, phase.round);
+      if (!force && !due && !allIn) return null;
+      const from = allIn && !due ? now : anchor;
+      revealRound(game, phase.round, from);
+      return { name: "reveal", round: phase.round, startedAt: from };
+    }
+
+    case "reveal": {
+      // Async reveal waits for the host; there is no clock on reading answers.
+      if (!force) return null;
+      const next = phase.round + 1;
+      if (next >= game.config.rounds) return { name: "final", startedAt: now };
+      dealRound(game, next, ctx);
+      return asyncOpenPhase(game, next, now);
+    }
+
+    case "final":
+      return null;
+  }
+}
+
+/**
+ * Drive the machine as far as it will go. Returns true if anything moved.
+ *
+ * `force` applies to the first step only — a host tapping "skip" advances one
+ * phase, then normal deadline rules resume.
+ */
+export function advance(game: GameState, ctx: EngineContext, force = false): boolean {
+  let changed = false;
+  let allowForce = force;
+
+  // Bounded so a game left alone for a week can't spin here forever.
+  for (let guard = 0; guard < 64; guard++) {
+    const next = step(game, ctx, allowForce);
+    if (!next) break;
+    game.phase = next;
+    changed = true;
+    allowForce = false;
+  }
+  return changed;
+}
+
+export function hostAdvance(game: GameState, hostId: string, ctx: EngineContext): boolean {
+  if (hostId !== game.hostId) throw new GameError("Only the host can do that.", "forbidden");
+  if (game.phase.name === "lobby") throw new GameError("Start the game first.", "conflict");
+  return advance(game, ctx, true);
+}

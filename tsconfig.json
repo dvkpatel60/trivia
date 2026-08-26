@@ -1,0 +1,10 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/content-hogwarts" },
+    { "path": "./packages/content-atlas" },
+    { "path": "./packages/content" },
+    { "path": "./apps/web" }
+  ]
+}
