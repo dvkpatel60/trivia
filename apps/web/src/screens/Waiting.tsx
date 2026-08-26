@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { type PublicGameState } from "@curio/core";
+import { getKind, questionDurationMs, type PublicGameState } from "@curio/core";
 
 import { Roster, Scene, TimerRing } from "../design/index.js";
 
@@ -20,11 +20,30 @@ export function Waiting({ game, meId, round, endsAt, now, onClose, onLeave }: Wa
   const total = game.rounds[round]?.questions.length ?? 0;
 
   const players = Object.values(game.players).sort((a, b) => a.joinedAt - b.joinedAt);
-  const done = new Set(
-    players
-      .filter((player) => Object.keys(player.rounds[round]?.answers ?? {}).length >= total)
-      .map((player) => player.id),
-  );
+  const questions = game.rounds[round]?.questions ?? [];
+
+  /**
+   * Settled, not merely answered.
+   *
+   * A question whose own window has run out counts as done even though
+   * nothing was written for it — which is exactly the rule the engine closes
+   * the round on, so this list agrees with what actually happens rather than
+   * showing somebody as outstanding forever.
+   */
+  const settled = (playerId: string): boolean => {
+    const record = game.players[playerId]?.rounds[round];
+    for (let index = 0; index < total; index++) {
+      if (record?.answers[index]) continue;
+      const openedAt = record?.openedAt?.[index];
+      const question = questions[index];
+      if (openedAt == null || !question || !game.config.timerOn) return false;
+      const window = questionDurationMs(game.config, getKind(question.kind).timeMultiplier);
+      if (now() < openedAt + window) return false;
+    }
+    return true;
+  };
+
+  const done = new Set(players.filter((player) => settled(player.id)).map((player) => player.id));
   const everyone = done.size === players.length;
 
   const close = async () => {

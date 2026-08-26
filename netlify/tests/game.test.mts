@@ -154,6 +154,18 @@ describe("storage layout", () => {
     expect(fake.raw.get(`g/${code}/p/host`)).toBe(before);
   });
 
+  it("does not write another player's key when one of them opens a question", async () => {
+    const code = await openGame("async");
+    await call<Envelope>({ op: "start", code, hostId: "host" });
+
+    const before = fake.raw.get(`g/${code}/p/host`);
+    await call<Envelope>({ op: "begin", code, playerId: "ana", round: 0, index: 0 });
+    // Opening a question is a write, so it has to obey the same rule every
+    // other write here does: only the player's own key is touched.
+    expect(fake.raw.get(`g/${code}/p/host`)).toBe(before);
+    expect(fake.keys()).toContain(`g/${code}/p/ana`);
+  });
+
   it("survives two players answering at the same instant", async () => {
     const code = await openGame("live");
     await call<Envelope>({ op: "start", code, hostId: "host" });
@@ -266,6 +278,31 @@ describe("async pacing over the wire", () => {
     });
     expect(Object.keys(submitted.results).length).toBe(2);
     expect(submitted.roundScore).toBeGreaterThan(0);
+  });
+
+  it("stamps a player's own window when they open a question", async () => {
+    const code = await openGame("async");
+    await call<Envelope>({ op: "start", code, hostId: "host" });
+
+    const opened = await call<Envelope>({
+      op: "begin",
+      code,
+      playerId: "ana",
+      round: 0,
+      index: 0,
+    });
+    const stamp = opened.game.players.ana?.rounds[0]?.openedAt?.[0];
+    expect(stamp).toBeTypeOf("number");
+
+    // A second open is not a fresh window — a reload must not buy more time.
+    const again = await call<Envelope>({
+      op: "begin",
+      code,
+      playerId: "ana",
+      round: 0,
+      index: 0,
+    });
+    expect(again.game.players.ana?.rounds[0]?.openedAt?.[0]).toBe(stamp);
   });
 
   it("closes the round when the last player finishes", async () => {

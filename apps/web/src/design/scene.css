@@ -136,3 +136,59 @@
 @keyframes fade-out {
   to { opacity: 0; transform: translate3d(0, -8px, 0); }
 }
+
+/* ── wide screens ─────────────────────────────────────────────────────── */
+
+/*
+ * A question, given the room it has.
+ *
+ * On a phone the prompt sits above the answers and the dock owns the thumb
+ * zone — that stays exactly as it was. On a landscape screen wide enough to
+ * hold both, the prompt takes the left and the answers the right, so a
+ * question cast to a laptop or a television is read rather than squinted at.
+ *
+ * Gated on landscape as well as width: a tablet held upright is still a tall
+ * screen, and splitting it would put the answers where no thumb reaches.
+ */
+@media (min-width: 60rem) and (orientation: landscape) {
+  .scene__stage[data-flow="end"] > * {
+    flex-direction: row;
+    align-items: stretch;
+    gap: var(--s7);
+  }
+
+  /*
+   * The prompt is the thing being read from across a room, so it takes the
+   * room it is given rather than stopping at the phone-sized cap.
+   */
+  .scene__stage[data-flow="end"] > * > .prompt {
+    flex: 1 1 45%;
+    align-content: center;
+    font-size: clamp(2rem, 2.6vw, 3.1rem);
+  }
+
+  /* Whatever the puzzle renders after the prompt takes the other half. */
+  .scene__stage[data-flow="end"] > * > .prompt ~ * {
+    flex: 1 1 55%;
+    align-self: center;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Dense puzzles are a board; a board wants the whole width, not a column. */
+  .scene__stage[data-flow="end"] > .puzzle--dense {
+    flex-direction: column;
+  }
+
+  .scene__stage[data-flow="end"] > .puzzle--dense > .prompt {
+    flex: none;
+    font-size: clamp(1.5rem, 1.8vw, 2.1rem);
+  }
+
+  /*
+   * The answers stay a single stack. Splitting them again inside their own
+   * half would make each one narrower than it is on a phone, which is the
+   * opposite of the point.
+   */
+  .scene__stage[data-flow="end"] .option { min-height: 60px; }
+}

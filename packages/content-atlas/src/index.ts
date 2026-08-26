@@ -34,6 +34,8 @@ export const atlasPack: ContentPack = {
       extra: "#f2cc8f",
     },
     texture: ["grid", "horizonGlow"],
+    // A skyline of peaks, weather crossing it, and something making the trip.
+    scenery: ["peaks", "clouds", "planes"],
     display: "spaceGrotesk",
   },
   /**

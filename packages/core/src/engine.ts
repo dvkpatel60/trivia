@@ -228,7 +228,13 @@ export function streakBefore(
 function ensureRound(player: PlayerState, round: number, now: number): PlayerRound {
   const existing = player.rounds[round];
   if (existing) return existing;
-  const fresh: PlayerRound = { answers: {}, score: 0, streak: player.streak, updatedAt: now };
+  const fresh: PlayerRound = {
+    answers: {},
+    openedAt: {},
+    score: 0,
+    streak: player.streak,
+    updatedAt: now,
+  };
   player.rounds[round] = fresh;
   return fresh;
 }
@@ -324,12 +330,17 @@ export function submitAnswers(
     /**
      * How long they took.
      *
-     * In live play the server knows when the question opened, so it measures
-     * this itself and never believes the client — including for an answer
-     * that lands in the grace window after the deadline, where the question
-     * has by definition run its full length. Only round-paced play, which has
-     * no shared clock to measure against, trusts the number it is sent; there
-     * it can only ever add a bonus that is clamped to the window anyway.
+     * Both pacings measure it themselves rather than believing the client.
+     *
+     * Live play reads the phase's own `startedAt` — including for an answer
+     * landing in the grace window after the deadline, where the question has
+     * by definition run its full length. Round-paced play has no shared
+     * clock, but it does have this player's own `openedAt` stamp, which is
+     * the same measurement anchored per player.
+     *
+     * The client's number survives only as the fallback for a round-paced
+     * answer to a question that was never opened, and even then it can only
+     * add a bonus clamped to the window.
      */
     const phase = game.phase;
     let elapsedMs: number | null;
@@ -339,10 +350,22 @@ export function submitAnswers(
           ? now - phase.startedAt
           : limitMs;
     } else {
-      elapsedMs = submitted.elapsedMs;
+      const openedAt = playerRound.openedAt[index];
+      elapsedMs = openedAt == null ? submitted.elapsedMs : now - openedAt;
     }
 
-    const scored = scoreAnswer(game.config, fraction, elapsedMs, streak, limitMs);
+    /**
+     * Past their own window, the answer lands but scores nothing.
+     *
+     * It is still recorded rather than dropped: a stored zero is what tells
+     * the player they were too slow, where a dropped answer would leave the
+     * question looking untouched and the round unable to settle.
+     */
+    const tooLate = lapsed(game, player, round, index, now);
+
+    const scored = tooLate
+      ? { total: 0, streak: 0, lines: [{ label: "too slow", points: 0 }] }
+      : scoreAnswer(game.config, fraction, elapsedMs, streak, limitMs);
     streak = scored.streak;
     gained += scored.total;
 
@@ -352,6 +375,7 @@ export function submitAnswers(
       message,
       lines: scored.lines,
       at: now,
+      elapsedMs,
     };
   }
 
@@ -380,16 +404,78 @@ function everyoneAnswered(game: GameState, round: number, index: number, since: 
   return players.every((player) => player.rounds[round]?.answers[index]);
 }
 
-function everyoneFinishedRound(game: GameState, round: number): boolean {
+/**
+ * Has this player's own window for a question run out?
+ *
+ * Only a question they actually opened can lapse. One they never looked at
+ * has no stamp and no deadline — which is deliberate: round-paced play is
+ * "whenever you get to it", so nothing may start a clock on a player's
+ * behalf. The backstop for a player who walks away without opening the rest
+ * is the round's own `roundOpenMinutes` deadline, or the host closing it.
+ */
+function lapsed(game: GameState, player: PlayerState, round: number, index: number, now: number) {
+  const openedAt = player.rounds[round]?.openedAt?.[index];
+  if (openedAt == null) return false;
+  const window = windowMs(game, round, index);
+  if (window == null) return false;
+  return now >= openedAt + window + SUBMIT_GRACE_MS;
+}
+
+/**
+ * Everyone has either answered every question or let their window run out.
+ *
+ * A lapsed question counts as settled without anything being written into
+ * that player's record — an unanswered question in a revealed round already
+ * means "no answer". That is what lets a player who abandons a round
+ * mid-way stop holding everybody else up.
+ */
+function everyoneFinishedRound(game: GameState, round: number, now: number): boolean {
   const players = Object.values(game.players);
   if (players.length === 0) return false;
   const total = questionCount(game, round);
   if (total === 0) return false;
   return players.every((player) => {
     const answers = player.rounds[round]?.answers ?? {};
-    for (let index = 0; index < total; index++) if (!answers[index]) return false;
+    for (let index = 0; index < total; index++) {
+      if (!answers[index] && !lapsed(game, player, round, index, now)) return false;
+    }
     return true;
   });
+}
+
+/**
+ * Open a question's window for one player.
+ *
+ * First stamp wins, so a reload — or a second device — returns the window
+ * already running rather than a fresh one. Returns the deadline, or null
+ * when the game is untimed.
+ */
+export function beginQuestion(
+  game: GameState,
+  playerId: string,
+  round: number,
+  index: number,
+  now: number,
+): number | null {
+  const player = game.players[playerId];
+  if (!player) throw new GameError("You are not in this game.", "forbidden");
+  if (!isRoundPaced(game.config.pacing)) {
+    throw new GameError("This game is paced by the host.", "conflict");
+  }
+  if (game.phase.name !== "open" || game.phase.round !== round) {
+    throw new GameError("That round is not open.", "conflict");
+  }
+  if (index < 0 || index >= questionCount(game, round)) {
+    throw new GameError("No such question.", "conflict");
+  }
+
+  const record = ensureRound(player, round, now);
+  record.openedAt[index] ??= now;
+  record.updatedAt = now;
+
+  const window = windowMs(game, round, index);
+  const openedAt = record.openedAt[index];
+  return window == null || openedAt == null ? null : openedAt + window;
 }
 
 /** One transition, or null if this phase isn't finished yet. */
@@ -436,7 +522,7 @@ function step(game: GameState, ctx: EngineContext, force: boolean): Phase | null
     }
 
     case "open": {
-      const allIn = everyoneFinishedRound(game, phase.round);
+      const allIn = everyoneFinishedRound(game, phase.round, now);
       if (!force && !due && !allIn) return null;
       const from = allIn && !due ? now : anchor;
       revealRound(game, phase.round);

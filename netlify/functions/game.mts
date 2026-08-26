@@ -19,6 +19,7 @@ import {
   sanitizeConfig,
   seedFor,
   startGame,
+  beginQuestion,
   submitAnswers,
   toPublicGame,
   touchPlayer,
@@ -153,6 +154,25 @@ async function handle(body: GameRequest): Promise<Response> {
 
       startGame(game, body.hostId, contextFor(game, now));
       await saveMain(game, now);
+      return envelope(game, now);
+    }
+
+    /**
+     * A player has reached a question in a round-paced game.
+     *
+     * Writes only their own record — the same rule every other write here
+     * follows — so two players opening questions at once cannot lose each
+     * other's stamps.
+     */
+    case "begin": {
+      const loaded = await loadGame(body.code);
+      if (!loaded) return fail("No game with that code.", "not_found", 404);
+      const { game } = loaded;
+
+      beginQuestion(game, body.playerId, body.round, body.index, now);
+
+      const player = game.players[body.playerId];
+      if (player) await savePlayer(game.code, player);
       return envelope(game, now);
     }
 

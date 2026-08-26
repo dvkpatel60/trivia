@@ -9,6 +9,7 @@ import {
   removePlayer,
   sanitizeConfig,
   seedFor,
+  beginQuestion,
   startGame,
   submitAnswers,
   toPublicGame,
@@ -92,6 +93,14 @@ export function createLocalTransport(): Transport {
           case "start": {
             const game = find(request.code);
             startGame(game, request.hostId, context(game, now));
+            bump(game);
+            notify(game);
+            return { game: toPublicGame(game), serverNow: now };
+          }
+
+          case "begin": {
+            const game = find(request.code);
+            beginQuestion(game, request.playerId, request.round, request.index, now);
             bump(game);
             notify(game);
             return { game: toPublicGame(game), serverNow: now };

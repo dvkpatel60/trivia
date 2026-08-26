@@ -52,6 +52,13 @@
   --s6: 32px;
   --s7: 48px;
 
+  /*
+   * The column the whole app lives in.
+   *
+   * Phone width everywhere was leaving a party game marooned in a 544px
+   * strip on the laptop or TV it was being played on. It widens in steps
+   * rather than fluidly, so the reading measure never runs away.
+   */
   --page: 34rem;
   --gutter: clamp(16px, 4vw, 22px);
 
@@ -87,6 +94,21 @@
   --shadow-lg: 0 24px 60px rgb(0 0 0 / 0.46);
   --glow: 0 0 0 1px color-mix(in oklab, var(--accent) 30%, transparent),
     0 8px 30px color-mix(in oklab, var(--accent) 18%, transparent);
+}
+
+/*
+ * The column widens on a real screen.
+ *
+ * In steps rather than fluidly: a party game is read from across a room as
+ * often as from a hand, and an unbounded measure would put a question on one
+ * very long line.
+ */
+@media (min-width: 60rem) {
+  :root { --page: 46rem; }
+}
+
+@media (min-width: 90rem) {
+  :root { --page: 62rem; }
 }
 
 /* Per-pack display faces. Set by `applyPack` on the document element. */

@@ -265,6 +265,59 @@ export function Star({ size = 16, className }: { size?: number; className?: stri
   );
 }
 
+/* ── Podium vessels ───────────────────────────────────────────────────── */
+
+/**
+ * What a player's final score stands up as.
+ *
+ * The podium used to be three bars at hardcoded heights, ordered by rank —
+ * so a runaway win and a one-point squeak drew the same picture. These are
+ * sized from the score itself, and they are the pack's own object rather
+ * than a histogram column.
+ */
+
+/** Candlelight: a candle, burnt down as far as the score is short. */
+export function CandleVessel({ lead }: { lead: boolean }) {
+  return (
+    <span className="vessel vessel--candle" data-lead={lead}>
+      <svg className="vessel__flame" viewBox="0 0 16 24" width="15" height="22" aria-hidden="true">
+        <ellipse cx="8" cy="13" rx="5" ry="9" fill="var(--accent)" />
+        <ellipse cx="8" cy="16" rx="2" ry="4.5" fill="var(--on-accent)" opacity="0.45" />
+      </svg>
+      <span className="vessel__wick" />
+      <span className="vessel__body">
+        <span className="vessel__face" />
+      </span>
+    </span>
+  );
+}
+
+/** Atlas: a peak, as high as the score reached. */
+export function PeakVessel({ lead }: { lead: boolean }) {
+  return (
+    <span className="vessel vessel--peak" data-lead={lead}>
+      <svg className="vessel__flag" viewBox="0 0 22 26" width="20" height="24" aria-hidden="true">
+        <rect x="9" y="2" width="2" height="24" fill="var(--outline)" />
+        <polygon points="11,3 22,8 11,13" fill="var(--accent)" />
+      </svg>
+      <svg
+        className="vessel__body"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <polygon points="50,0 100,100 0,100" fill="var(--support)" />
+        <polygon points="50,0 72,44 50,58 28,44" fill="var(--extra)" opacity="0.5" />
+      </svg>
+    </span>
+  );
+}
+
+export function PackVessel({ lead }: { lead: boolean }) {
+  const pack = usePack();
+  return pack === "atlas" ? <PeakVessel lead={lead} /> : <CandleVessel lead={lead} />;
+}
+
 /* ── Convenience: themed pack-aware components ────────────────── */
 
 export function PackTimerIcon({ size, className }: { size?: number; className?: string }) {

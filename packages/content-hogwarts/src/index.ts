@@ -35,7 +35,10 @@ export const hogwartsPack: ContentPack = {
       warn: "#c2543a",
       extra: "#8878d6",
     },
-    texture: ["emberGlow", "grain", "vignette"],
+    // Grain is gone with the gradients it existed to mask.
+    texture: ["emberGlow", "vignette"],
+    // Candles burn upward, embers rise off them, and a key drifts past.
+    scenery: ["candles", "embers", "keys"],
     display: "fraunces",
   },
   /**

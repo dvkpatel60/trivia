@@ -3,6 +3,7 @@ import { createRng, seedFor } from "../rng.js";
 import { defaultConfig } from "../config.js";
 import {
   advance,
+  beginQuestion,
   createGame,
   GameError,
   hostAdvance,
@@ -244,9 +245,116 @@ describe("live pacing", () => {
     expect(points).toBeGreaterThanOrEqual(100);
     expect(points).toBeLessThan(150); // no full-speed bonus for a slow answer
   });
+
+  it("records how long the answer took, by the server's measure", () => {
+    const game = makeGame("live", { questionsPerRound: 1, rounds: 1 });
+    startGame(game, "host", ctxAt(T0));
+    const outcome = submitAnswers(
+      game,
+      "host",
+      0,
+      // The same lie as above: the client claims it answered instantly.
+      { 0: { answer: correctAnswer(game, 0, 0), elapsedMs: 0 } },
+      T0 + 4_200,
+    );
+    // What is stored is what scoring used, so the number shown to a player
+    // always explains the speed bonus they were given.
+    expect(outcome.results[0]?.elapsedMs).toBe(4_200);
+  });
 });
 
 describe("async pacing", () => {
+  it("falls back to the client's timing for a question never opened", () => {
+    const game = makeGame("async", { questionsPerRound: 1, rounds: 1 });
+    startGame(game, "host", ctxAt(T0));
+    // No beginQuestion call, so there is no stamp to measure against.
+    const outcome = submitAnswers(
+      game,
+      "host",
+      0,
+      { 0: { answer: correctAnswer(game, 0, 0), elapsedMs: 7_500 } },
+      T0 + 90_000,
+    );
+    expect(outcome.results[0]?.elapsedMs).toBe(7_500);
+  });
+
+  it("times from its own stamp once opened, ignoring the client's claim", () => {
+    const game = makeGame("async", { questionsPerRound: 1, rounds: 1 });
+    startGame(game, "host", ctxAt(T0));
+    beginQuestion(game, "host", 0, 0, T0 + 1_000);
+    const outcome = submitAnswers(
+      game,
+      "host",
+      0,
+      // The client claims it answered instantly. It did not.
+      { 0: { answer: correctAnswer(game, 0, 0), elapsedMs: 0 } },
+      T0 + 6_000,
+    );
+    expect(outcome.results[0]?.elapsedMs).toBe(5_000);
+  });
+
+  it("does not hand out a fresh window on a second open", () => {
+    const game = makeGame("async", { questionsPerRound: 1, rounds: 1 });
+    startGame(game, "host", ctxAt(T0));
+    const first = beginQuestion(game, "host", 0, 0, T0 + 1_000);
+    // A reload, a second device, a duplicated request: the clock is running.
+    const again = beginQuestion(game, "host", 0, 0, T0 + 20_000);
+    expect(again).toBe(first);
+  });
+
+  it("scores nothing for an answer past the player's own window", () => {
+    const game = makeGame("async", { questionsPerRound: 1, rounds: 1, seconds: 30 });
+    startGame(game, "host", ctxAt(T0));
+    beginQuestion(game, "host", 0, 0, T0);
+    const outcome = submitAnswers(
+      game,
+      "host",
+      0,
+      { 0: { answer: correctAnswer(game, 0, 0), elapsedMs: 100 } },
+      // Well past 30s, even allowing for the grace window.
+      T0 + 120_000,
+    );
+    // Recorded rather than dropped, so the player can see they were too slow.
+    expect(outcome.results[0]).toBeDefined();
+    expect(outcome.results[0]?.points).toBe(0);
+  });
+
+  it("refuses to open a window in live play, which has a shared clock", () => {
+    const game = makeGame("live");
+    startGame(game, "host", ctxAt(T0));
+    expect(() => beginQuestion(game, "host", 0, 0, T0)).toThrow(GameError);
+  });
+
+  it("closes a round once every opened question has lapsed", () => {
+    const game = makeGame("async", { questionsPerRound: 1, rounds: 1, seconds: 30 });
+    joinGame(game, "p2", "Ana", T0);
+    startGame(game, "host", ctxAt(T0));
+
+    answerRight(game, "host", 0, 0, T0 + 1_000);
+    // Ana opens hers and walks away without answering.
+    beginQuestion(game, "p2", 0, 0, T0 + 2_000);
+
+    // Still inside her window: the round waits for her.
+    advance(game, ctxAt(T0 + 10_000));
+    expect(game.phase.name).toBe("open");
+
+    // Past it: nothing was written for her, and the round settles anyway.
+    advance(game, ctxAt(T0 + 60_000));
+    expect(game.phase.name).toBe("reveal");
+  });
+
+  it("keeps waiting on a player who never opened the question at all", () => {
+    const game = makeGame("async", { questionsPerRound: 1, rounds: 1, seconds: 30 });
+    joinGame(game, "p2", "Ana", T0);
+    startGame(game, "host", ctxAt(T0));
+    answerRight(game, "host", 0, 0, T0 + 1_000);
+
+    // No stamp means no clock: nothing may start one on a player's behalf,
+    // so only the round deadline or the host can resolve this.
+    advance(game, ctxAt(T0 + 600_000));
+    expect(game.phase.name).toBe("open");
+  });
+
   it("opens a round instead of a question", () => {
     const game = makeGame("async");
     joinGame(game, "p2", "Ana", T0);
