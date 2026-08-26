@@ -10,6 +10,14 @@
   border: var(--hairline) solid var(--outline-variant);
   box-shadow: var(--shadow-md);
   display: block;
+  /*
+   * An <img> with aspect-ratio and no object-fit defaults to `fill`, which
+   * stretches. Models do not always return the shape they were asked for, so
+   * a mismatch has to crop rather than distort — a squashed hippogriff is a
+   * worse answer than a cropped one.
+   */
+  object-fit: cover;
+  background: color-mix(in oklab, var(--surface-lowest) 80%, transparent);
   animation: pop-in var(--dur-slow) var(--ease-spring) both;
 }
 
