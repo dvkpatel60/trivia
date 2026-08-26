@@ -3,7 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Candlelight — a wizarding trivia party</title>
+<title>Deep's Dueling Dragons — a wizarding trivia party</title>
+<meta name="description" content="A wizarding trivia party. Tap the invite link, pick a name, and you're playing — phone, laptop, anything.">
+<meta name="theme-color" content="#0d0918">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Deep's Dueling Dragons">
+<meta property="og:description" content="A wizarding trivia party. Tap the invite link, pick a name, and you're in.">
+<meta name="twitter:card" content="summary">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -245,6 +251,14 @@ hr.rule{border:0;border-top:1px solid var(--edge-soft);margin:18px 0}
   border:1px dashed var(--candle-dim)}
 .code-plate .code{font-family:var(--display);font-size:2.4rem;font-weight:700;letter-spacing:.04em;color:var(--candle);line-height:1.05;word-break:break-word}
 .code-plate .sub{font-family:var(--mono);font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--parchment-dim);margin-bottom:8px}
+.code-plate .link{display:block;margin-top:12px;font-family:var(--mono);font-size:.7rem;line-height:1.6;color:var(--iris);
+  word-break:break-all;text-decoration:none;border-top:1px dashed var(--edge);padding-top:11px}
+.code-plate .link:hover{color:var(--parchment)}
+.btn-row{display:flex;gap:9px}
+.btn-row .btn{margin-top:0}
+.invite-strip{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.invite-strip .num{flex:1 1 160px;font-size:.68rem;color:var(--parchment-dim);word-break:break-all}
+.invite-strip button{width:auto;padding:9px 14px;flex:0 0 auto}
 
 .roster{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
 .chip-p{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:99px;background:var(--ink-2);border:1px solid var(--edge-soft);font-size:.88rem}
@@ -324,6 +338,7 @@ hr.rule{border:0;border-top:1px solid var(--edge-soft);margin:18px 0}
 
 <script>
 "use strict";
+const APP_NAME="Deep's Dueling Dragons";
 /* ═══════════════════════════════════════════════════════════════
    CONTENT BANK
    Add more items to any array below — the game picks them up
@@ -607,8 +622,15 @@ async function roundTrip(store,label){
     await store.set(k,JSON.stringify({token}),true);
     const back=unwrap(await store.get(k,true));
     if(!back||back.token!==token)return label+": wrote a test value but couldn't read it back";
-    const r=await store.list(`${NS}:probe:`,true);
-    const ks=(r&&r.keys)||[];
+    // Listing can trail a fresh write by a moment. Give it a second chance
+    // before writing off cross-device play for the whole session.
+    let ks=[];
+    for(let attempt=0;attempt<2;attempt++){
+      const r=await store.list(`${NS}:probe:`,true);
+      ks=(r&&r.keys)||[];
+      if(ks.length)break;
+      await new Promise(r=>setTimeout(r,600));
+    }
     if(!ks.length)return label+": saved, but listing keys came back empty";
     await store.delete(k,true);
     return null;                                   // null means healthy
@@ -722,6 +744,54 @@ async function copyText(txt){
     try{const ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";
       document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();return true;}catch(e2){return false;}
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INVITE LINKS
+   A code is only half an invitation. The other half is the link
+   that carries it: open one and the only thing left to do is
+   choose a name — the join happens by itself.
+   ═══════════════════════════════════════════════════════════════ */
+const CODE_RE=/[A-Z]+-[A-Z0-9]{2,}/i;
+const PARAM_RE=/[#?&](?:g|game|code)=([^&\s#]+)/i;
+
+function inviteURL(code){
+  return location.origin+location.pathname+"#g="+encodeURIComponent(code);
+}
+/* Accepts a bare code, a full invite link, or a link someone's chat app
+   has mangled — and gives back the code. */
+function extractCode(text){
+  if(!text)return "";
+  let s=String(text).trim();
+  const hit=s.match(PARAM_RE);
+  if(hit)s=decodeURIComponent(hit[1]);
+  else if(/^https?:\/\//i.test(s)){
+    const tail=s.split(/[#/?]/).filter(Boolean).pop()||"";
+    s=decodeURIComponent(tail);
+  }
+  s=s.trim().toUpperCase();
+  const m=s.match(CODE_RE);
+  return m?m[0]:s.replace(/[^A-Z0-9-]/g,"");
+}
+function inviteCodeFromLocation(){
+  const hit=(location.hash+" "+location.search).match(PARAM_RE);
+  if(hit)return extractCode(hit[0]);
+  const bare=location.hash.replace(/^#\/?/,"").trim();      // plain #NIFFLER-27 works too
+  return CODE_RE.test(bare)?bare.toUpperCase():"";
+}
+/* Once you're in, the invite has done its job — tidy it out of the
+   address bar so a refresh lands you back in the game, not the door. */
+function clearInviteFromURL(){
+  try{if(history.replaceState)history.replaceState(null,"",location.origin+location.pathname);}catch(e){}
+}
+function inviteText(code){return `Join my ${APP_NAME} trivia game: ${inviteURL(code)}`;}
+async function shareInvite(code){
+  const url=inviteURL(code);
+  if(navigator.share){
+    try{await navigator.share({title:APP_NAME,text:`Join my ${APP_NAME} trivia game`,url});return "shared";}
+    catch(e){if(e&&e.name==="AbortError")return "cancelled";}
+  }
+  return await copyText(inviteText(code))?"copied":"failed";
 }
 
 /* ── mode + async game state ── */
@@ -850,8 +920,8 @@ function screenSetup(kind="local"){
       <span class="eyebrow">${host?"Host a game":"One device"}</span>
     </div>
     <div class="center" style="padding:16px 0 6px">
-      <h1 style="font-size:2.2rem">${host?"Set the table":"Candlelight"}</h1>
-      <p class="serif-i" style="margin:8px 0 0">${host?"Players join with a code and answer in their own time.":"Answer before the wick runs out."}</p>
+      <h1 style="font-size:2.2rem">${host?"Set the table":APP_NAME}</h1>
+      <p class="serif-i" style="margin:8px 0 0">${host?"Players tap one link and answer in their own time.":"Answer before the wick runs out."}</p>
     </div>
 
     ${host?"":`
@@ -1500,7 +1570,7 @@ function screenHome(){
   app.innerHTML=`
     <div class="center" style="padding:44px 0 6px">
       <span class="eyebrow">A wizarding trivia party</span>
-      <h1 style="margin-top:6px">Candlelight</h1>
+      <h1 style="margin-top:6px">${APP_NAME}</h1>
       <p class="serif-i" style="margin:8px 0 0">Answer before the wick runs out.</p>
     </div>
     <div class="card mt-l">
@@ -1512,16 +1582,16 @@ function screenHome(){
     </div>
     <div class="stack mt">
       ${resume}
-      <button class="mode-btn" id="mHost">${icon("i-owl")}<span><span class="mt2">Host a game</span><span class="ms">Get a code, invite friends, close each round when everyone's in</span></span></button>
-      <button class="mode-btn" id="mJoin">${icon("i-key")}<span><span class="mt2">Join with a code</span><span class="ms">Someone has already started one</span></span></button>
+      <button class="mode-btn" id="mHost">${icon("i-owl")}<span><span class="mt2">Host a game</span><span class="ms">Get a link to send round, close each round when everyone's in</span></span></button>
+      <button class="mode-btn" id="mJoin">${icon("i-key")}<span><span class="mt2">Join with a link or code</span><span class="ms">Someone has already started one</span></span></button>
       <button class="mode-btn" id="mLocal">${icon("i-hat")}<span><span class="mt2">Play on one device</span><span class="ms">Pass-and-play, everyone in the same room</span></span></button>
     </div>
     <div class="card mt">
       ${crossDevice()
         ? `<div class="between"><span class="eyebrow">Cross-device play</span><span class="pill-live">Ready</span></div>
-           <p class="hint" style="margin-top:8px">${esc(BACKEND_LABEL[BACKEND])}. Everyone must open the <b>same link</b> to this page — a separate copy is a separate game.</p>`
+           <p class="hint" style="margin-top:8px">${esc(BACKEND_LABEL[BACKEND])}. Host a game and you get an invite link — anyone who taps it just picks a name and starts playing.</p>`
         : `<div class="between"><span class="eyebrow">Cross-device play</span><span class="tiny" style="color:var(--ember);font-family:var(--mono);font-size:.66rem;letter-spacing:.14em">UNAVAILABLE</span></div>
-           <p class="hint" style="margin-top:8px">Running on: ${esc(BACKEND_LABEL[BACKEND])}. Codes work here only — other phones can't join. One-device play is unaffected.</p>
+           <p class="hint" style="margin-top:8px">Running on: ${esc(BACKEND_LABEL[BACKEND])}. Invite links work here only — other phones can't join. One-device play is unaffected.</p>
            ${PROBE.why?`<p class="hint num" style="font-size:.68rem;word-break:break-word">${esc(PROBE.why)}</p>`:""}
            <button class="btn quiet mt-s" id="retryProbe">Try connecting again</button>`}
     </div>
@@ -1561,39 +1631,139 @@ function screenHome(){
   };
 }
 
-/* ── join ── */
+/* ── joining ──────────────────────────────────────────────────
+   One door for every way in: a typed code, a pasted link, or a
+   tapped invite. Returns null once you're in, or the reason why not. */
+async function joinGame(code,say){
+  const note=say||(()=>{});
+  if(!code)return "Paste the invite link, or type the code you were given.";
+  if(!ME.name.trim())return "Add your name first.";
+  note("Looking for that game…");
+  const meta=await S.get(kMeta(code));
+  if(!meta)return crossDevice()
+    ? "No game with that code. Check the spelling and the number."
+    : "No game with that code — and this browser can't reach shared games, so invites from other devices won't open here.";
+  if(meta.status==="done")return "That game has already finished.";
+  note("Taking your seat…");
+  const keys=await S.list(pPfx(code));
+  const existing=await S.get(kPlr(code,ME.id));
+  const color=PLAYER_COLORS[(existing?keys.indexOf(kPlr(code,ME.id)):keys.length)%8];
+  const ok=await S.set(kPlr(code,ME.id),{id:ME.id,name:ME.name.trim(),color:existing?existing.color:color,
+    joined:existing?existing.joined:Date.now(),rounds:existing?existing.rounds||{}:{},seen:Date.now()});
+  if(!ok)return "Couldn't add you to the game"+(LAST_ERR?" — "+LAST_ERR:".");
+  ME.code=code;await saveMe();
+  clearInviteFromURL();
+  await enterGame(code);
+  return null;
+}
+
 function screenJoin(){
   app.innerHTML=`
     <div class="between" style="padding:14px 0 2px">
       <button class="btn quiet" style="width:auto;padding:8px 14px" id="back">← Back</button>
       <span class="eyebrow">Join a game</span>
     </div>
-    <div class="center" style="padding:34px 0 4px"><h2>Enter the code</h2>
-      <p class="serif-i" style="margin-top:8px">The host will have it on their screen.</p></div>
+    <div class="center" style="padding:34px 0 4px"><h2>Paste the invite</h2>
+      <p class="serif-i" style="margin-top:8px">The link the host sent you — or just the code on their screen.</p></div>
     <input class="answer-input mt-l" id="code" placeholder="NIFFLER-27" autocomplete="off" autocorrect="off" spellcheck="false" style="letter-spacing:.04em">
     <button class="btn mt" id="join">Join the game</button>
     <p class="tiny muted center mt-s" id="err" style="min-height:22px"></p>`;
   document.getElementById("back").onclick=()=>screenHome();
   const inp=document.getElementById("code");
   const go=async()=>{
-    const code=inp.value.trim().toUpperCase();
     const err=document.getElementById("err");
-    if(!code){err.textContent="Type the code you were given.";return;}
-    err.textContent="Looking for that game…";
-    const meta=await S.get(kMeta(code));
-    if(!meta){err.textContent="No game with that code. Check the spelling and the number.";return;}
-    if(meta.status==="done"){err.textContent="That game has already finished.";return;}
-    const keys=await S.list(pPfx(code));
-    const existing=await S.get(kPlr(code,ME.id));
-    const color=PLAYER_COLORS[(existing?keys.indexOf(kPlr(code,ME.id)):keys.length)%8];
-    await S.set(kPlr(code,ME.id),{id:ME.id,name:ME.name.trim(),color:existing?existing.color:color,
-      joined:existing?existing.joined:Date.now(),rounds:existing?existing.rounds||{}:{},seen:Date.now()});
-    ME.code=code;await saveMe();
-    await enterGame(code);
+    const problem=await joinGame(extractCode(inp.value),m=>{err.textContent=m;});
+    if(problem)err.textContent=problem;
   };
   document.getElementById("join").onclick=go;
   inp.onkeydown=e=>{if(e.key==="Enter")go();};
   setTimeout(()=>inp.focus(),80);
+}
+
+/* ── the door an invite link opens ──────────────────────────────
+   Everything is already decided except who you are. Ask that, and
+   nothing else, then walk them straight in. */
+async function screenInvite(code){
+  stopPoll();MODE="local";A=null;
+  app.innerHTML=`<div class="pass"><span class="pill-live">Invitation</span>
+    <p class="serif-i mt">Finding ${esc(code)}…</p></div>`;
+
+  let g=await loadGame(code);
+  if(!g){await new Promise(r=>setTimeout(r,900));g=await loadGame(code);}
+
+  if(!g||g.meta.status==="done"){
+    const gone=g&&g.meta.status==="done";
+    app.innerHTML=`
+      <div class="center" style="padding:44px 0 6px">
+        <span class="eyebrow">Invitation</span>
+        <h1 style="margin-top:6px;font-size:2.2rem">${esc(code)}</h1>
+        <p class="serif-i" style="margin:10px 0 0">${gone
+          ? "That game has already finished. Ask for a fresh invite — or start one of your own."
+          : (crossDevice()
+             ? "Nothing's waiting behind this link. The code may be wrong, or the game was cleared."
+             : "This browser can't reach shared games, so the invite can't be opened here.")}</p>
+      </div>
+      ${gone?"":`<button class="btn mt-l" id="retry">Try again</button>`}
+      <button class="btn ${gone?"mt-l":"quiet mt-s"}" id="home">Go to the start</button>`;
+    const rt=document.getElementById("retry");
+    if(rt)rt.onclick=()=>screenInvite(code);
+    document.getElementById("home").onclick=()=>{clearInviteFromURL();screenHome();};
+    return;
+  }
+
+  const hostName=(g.players.find(p=>p.id===g.meta.host)||{}).name||"Someone";
+  const started=g.meta.status!=="lobby";
+  const already=g.players.some(p=>p.id===ME.id);
+  const c=g.meta.cfg||{};
+  app.innerHTML=`
+    <div class="center" style="padding:40px 0 6px">
+      <span class="eyebrow">${esc(hostName)} invited you</span>
+      <h1 style="margin-top:6px;font-size:2.3rem">${APP_NAME}</h1>
+      <p class="serif-i" style="margin:10px 0 0">${started
+        ? "The game is already under way — you can still slot in."
+        : "Everyone's gathering. Pick a name and you're in."}</p>
+    </div>
+
+    <div class="code-plate mt-l">
+      <div class="sub">Game</div>
+      <div class="code">${esc(code)}</div>
+    </div>
+
+    <div class="card mt">
+      <span class="eyebrow">What should we call you?</span>
+      <div class="player-row mt-s">
+        <span class="pip" style="color:var(--candle);background:var(--candle)"></span>
+        <input id="myname" maxlength="16" placeholder="Your name" value="${esc((ME&&ME.name)||"")}" autocomplete="nickname">
+      </div>
+      <p class="hint">${already?"You've played under this name before — change it if you like.":"Just a name. Nothing else to set up."}</p>
+    </div>
+
+    <button class="btn mt" id="go">${already?"Back into the game":"Join the game"}</button>
+    <p class="tiny muted center mt-s" id="err" style="min-height:22px"></p>
+
+    <div class="card mt">
+      <span class="eyebrow">The format</span>
+      <p class="tiny muted" style="margin-top:8px;line-height:1.7">
+        ${c.rounds||"?"} round${c.rounds===1?"":"s"} · ${c.turnsPerPlayer||"?"} question${c.turnsPerPlayer===1?"":"s"} each per round<br>
+        ${g.players.length} already in${g.players.length?": "+g.players.map(p=>esc(p.name)).join(", "):""}
+      </p>
+    </div>
+    <button class="btn quiet mt-s" id="notme" style="opacity:.7">Not now — go to the start</button>`;
+
+  const nm=document.getElementById("myname");
+  const err=document.getElementById("err");
+  const go=async()=>{
+    ME.name=nm.value;
+    if(!ME.name.trim()){err.textContent="We need a name to seat you.";nm.focus();return;}
+    await saveMe();
+    const problem=await joinGame(code,m=>{err.textContent=m;});
+    if(problem)err.textContent=problem;
+  };
+  nm.oninput=()=>{ME.name=nm.value;};
+  nm.onkeydown=e=>{if(e.key==="Enter")go();};
+  document.getElementById("go").onclick=go;
+  document.getElementById("notme").onclick=()=>{clearInviteFromURL();screenHome();};
+  setTimeout(()=>nm.focus(),80);
 }
 
 /* ── host creates ── */
@@ -1702,20 +1872,24 @@ function screenTrouble(code){
 /* ── lobby ── */
 function renderLobby(){
   const m=A.meta,ps=A.players;
-  const invite=`Join my Candlelight trivia game — code: ${A.code}`;
+  const link=inviteURL(A.code);
   app.innerHTML=`
     <div id="lobbyRoot">
       <div class="between" style="padding:14px 0 2px">
         <span class="eyebrow">Lobby</span><span class="pill-live">Live</span>
       </div>
       <div class="code-plate mt-s">
-        <div class="sub">Game code</div>
+        <div class="sub">Invite link</div>
         <div class="code">${esc(A.code)}</div>
+        <a class="link" href="${esc(link)}" id="linkLine">${esc(link)}</a>
       </div>
-      <button class="btn quiet mt-s" id="copy">Copy the invite</button>
+      <div class="btn-row mt-s">
+        <button class="btn" id="copy">Copy invite link</button>
+        ${navigator.share?`<button class="btn quiet" id="share">Share…</button>`:""}
+      </div>
       <p class="hint center">${crossDevice()
-        ? "Share this page with your friends, then give them the code. They tap <b>Join with a code</b>."
-        : "<b>In-memory game.</b> This code only works in this browser — other phones can't join, and a refresh clears it. Turn on <b>Play across devices</b> at the start for real invites."}</p>
+        ? "Send the link to anyone, anywhere. They tap it, type a name, and they're playing — no code to read out, nothing to install."
+        : "<b>In-memory game.</b> This link only works in this browser — other phones can't open it, and a refresh clears the game."}</p>
 
       <div class="card mt">
         <div class="between"><span class="eyebrow">In the game</span><span class="tiny muted num">${ps.length}</span></div>
@@ -1739,7 +1913,18 @@ function renderLobby(){
       ${leaveButton()}
     </div>`;
   document.getElementById("copy").onclick=async()=>{
-    toast(await copyText(invite)?"Invite copied":"Couldn't copy — read the code out instead");
+    toast(await copyText(inviteText(A.code))?"Invite link copied":"Couldn't copy — read the code out instead");
+  };
+  const ln=document.getElementById("linkLine");
+  if(ln)ln.onclick=async e=>{
+    e.preventDefault();                       // it's our own game — copy it, don't walk back in
+    toast(await copyText(link)?"Invite link copied":"Couldn't copy — read the code out instead");
+  };
+  const sh=document.getElementById("share");
+  if(sh)sh.onclick=async()=>{
+    const r=await shareInvite(A.code);
+    if(r==="copied")toast("Invite link copied");
+    else if(r==="failed")toast("Couldn't share — read the code out instead");
   };
   if(A.isHost)document.getElementById("start").onclick=hostStart;
   wireLeave();
@@ -1875,6 +2060,16 @@ function renderWaiting(){
         <p class="hint">${m.cfg.hideAnswers?"Scores stay sealed until the round closes.":"Running totals appear when the round closes."}</p>
       </div>
 
+      ${A.isHost?`
+      <div class="card">
+        <span class="eyebrow">Still room at the table</span>
+        <div class="invite-strip mt-s">
+          <span class="num">${esc(inviteURL(A.code))}</span>
+          <button class="btn quiet" id="copyLate">Copy link</button>
+        </div>
+        <p class="hint">Latecomers can join from this round onwards.</p>
+      </div>`:""}
+
       ${A.isHost
         ? `<button class="btn mt" id="close">Close round ${ROMAN[r+1]}${allIn?"":" without them"}</button>
            ${allIn?"":`<p class="tiny muted center mt-s">Anyone who hasn't answered scores nothing for this round.</p>`}`
@@ -1882,7 +2077,12 @@ function renderWaiting(){
             <p class="serif-i" style="margin-top:10px">${esc(ps.find(p=>p.id===m.host)?.name||"The host")} closes the round.</p></div>`}
       ${leaveButton()}
     </div>`;
-  if(A.isHost)document.getElementById("close").onclick=hostCloseRound;
+  if(A.isHost){
+    document.getElementById("close").onclick=hostCloseRound;
+    document.getElementById("copyLate").onclick=async()=>{
+      toast(await copyText(inviteText(A.code))?"Invite link copied":"Couldn't copy — read the code out instead");
+    };
+  }
   wireLeave();
   poll(syncAndRoute);
 }
@@ -1977,12 +2177,24 @@ async function boot(){
   await probeBackends();
   const saved=await S.get(kMe,false);
   ME=saved&&saved.id?{id:saved.id,name:saved.name||"",code:saved.code||null}:{id:uid(),name:"",code:null};
+
+  // arrived on an invite link: skip the front door entirely
+  const invited=inviteCodeFromLocation();
+  if(invited){await screenInvite(invited);return;}
+
   if(ME.code){
     const meta=await S.get(kMeta(ME.code));
     if(!meta||meta.status==="done")ME.code=null;
   }
   screenHome();
 }
+
+// an invite pasted into a tab that's already open
+window.addEventListener("hashchange",()=>{
+  const c=inviteCodeFromLocation();
+  if(c&&!(A&&A.code===c))screenInvite(c);
+});
+
 boot();
 </script>
 </body>

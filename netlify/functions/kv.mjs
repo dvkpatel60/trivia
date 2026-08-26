@@ -1,8 +1,12 @@
-// Shared key-value store for Candlelight.
+// Shared key-value store for Deep's Dueling Dragons.
 // Four operations, backed by Netlify Blobs. No database to set up.
 //
-// Deploy this file at:  netlify/functions/kv.mjs
+// This file lives at:   netlify/functions/kv.mjs
 // The game calls it at: /.netlify/functions/kv
+//
+// Netlify maps every file in the functions directory (see netlify.toml)
+// to /.netlify/functions/<filename>, so the path above is what makes
+// cross-device play work. Move this file and invites stop reaching anyone.
 
 import { getStore } from "@netlify/blobs";
 
@@ -27,6 +31,8 @@ export default async (req) => {
   // Personal data never reaches the server — the browser keeps that itself.
   if (shared === false) return json({ error: "Personal scope is client-side only" }, 400);
 
+  // Store name is the original one on purpose: renaming it would orphan
+  // every game already in flight.
   const store = getStore("candlelight");
 
   try {
