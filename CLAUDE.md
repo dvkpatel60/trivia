@@ -26,9 +26,17 @@ npm run build        # every workspace; the app lands in apps/web/dist
 Run a single test file with `npx vitest run packages/core/src/__tests__/flow.test.ts`,
 or one case with `-t "closes the question once everyone has answered"`.
 
-`npx tsc --build` typechecks the workspace graph; the functions are checked
-separately with `npx tsc -p netlify/tsconfig.json` because they are not part
-of it.
+`npm run typecheck` runs three passes, because only one of them is a project
+-reference build: `tsc --build` for the workspace graph, then
+`tsc -p netlify/tsconfig.json` and `tsc -p tools/tsconfig.json` for the
+function and the art script, which sit outside it.
+
+**Anything not inside a tsconfig is not checked, and an editor cannot resolve
+it either.** `tools/` had no tsconfig for a while; `@curio/*` resolves through
+`"main": "./src/index.ts"`, which needs `moduleResolution: bundler`, so
+without one an editor reports "Cannot find module '@curio/content'" and `tsc`
+silently checks nothing. If you add a directory of TypeScript, give it a
+tsconfig and add it to the `typecheck` script in the same commit.
 
 ## The shape of it
 
@@ -228,6 +236,8 @@ Cloudflare.
 
 - `--dry-run` prints every composed prompt and calls nothing. Use it when
   editing art direction.
+- It needs `CLOUDFLARE_ACCOUNT_ID` unless the token can list accounts; the
+  script says so rather than returning a bare 403.
 - Seeds come from `seedForArt(id)`, so a rerun reproduces the same picture and
   regenerating one item leaves the pack alone.
 - Existing files are skipped unless `--force`.
@@ -235,6 +245,21 @@ Cloudflare.
   key, and a deploy costs nothing.
 - `manifest.json` beside the images records the prompt and seed behind each
   one. Nothing reads it; it exists so a picture can be traced to its words.
+
+**What the prompt can and cannot standardise.** A diffusion model will not
+reliably return a consistent size, background, or anything like a rounded
+corner, so none of that is asked of it. `Plate` supplies the frame instead —
+one aspect ratio, one radius, one ground built from the pack's palette, one
+vignette — and crops rather than stretches whatever shape arrives. Ask the
+model for the subject; let the app do the framing.
+
+What remains genuinely variable is *style*, and no CSS fixes that: the same
+style clause on "a phoenix" and on "a vast banqueting hall" returns different
+lighting and detail. The levers are the pack's `art.style` clause, and keeping
+a pack's subjects in one register rather than mixing objects with interiors.
+A colour overlay would unify them further but is off the table — Atlas asks
+players to identify flags, so the palette of an image is sometimes the
+answer.
 
 ## Testing layers
 

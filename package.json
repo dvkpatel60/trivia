@@ -13,12 +13,12 @@
     "preview": "npm run preview --workspace @curio/web",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --build --force",
+    "typecheck": "tsc --build --force && tsc -p netlify/tsconfig.json && tsc -p tools/tsconfig.json",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test:e2e": "npm run build --workspace @curio/web && vitest run --config vitest.e2e.config.ts",
     "check": "npm run typecheck && npm run lint && npm run test",
-    "art": "vite-node tools/generate-art.mts --"
+    "art": "npx --yes vite-node tools/generate-art.mts --"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.0",

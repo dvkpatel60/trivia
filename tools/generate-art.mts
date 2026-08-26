@@ -35,23 +35,33 @@ const ROOT = path.resolve(import.meta.dirname, "..");
 const OUT_ROOT = path.join(ROOT, "apps/web/public/packs");
 
 /**
- * Free-tier text-to-image models.
+ * Free-tier text-to-image models, and what each will actually accept.
  *
- * flux-1-schnell is the default: fastest, and the best looking of the free
- * models. It takes no negative prompt, which is why the constraints are
- * folded into the positive prompt instead. SDXL is the fallback when a pack
- * needs the negatives honoured properly.
+ * The capability flags are not decoration. SDXL takes a seed, a negative
+ * prompt, and an explicit size — the three things this pipeline is built on,
+ * which is why it is the default. flux-1-schnell is faster and arguably
+ * prettier, but it accepts a prompt and a step count and nothing else: no
+ * seed, so its output is not reproducible, and no size, so it returns its own
+ * square rather than the shape the packs declare.
  */
+interface ModelSpec {
+  id: string;
+  /** Honours `seed`, so a rerun reproduces the same picture. */
+  seeded: boolean;
+  /** Honours `width`/`height`, so it returns `ART_SIZE`. */
+  sized: boolean;
+  /** Honours `negative_prompt`. */
+  negatives: boolean;
+  body(prompt: string, seed: number, negative: string): Record<string, unknown>;
+}
+
 const MODELS = {
-  flux: {
-    id: "@cf/black-forest-labs/flux-1-schnell",
-    /** flux-schnell is distilled; more than 8 steps buys nothing. */
-    body: (prompt: string, seed: number) => ({ prompt, steps: 8, seed }),
-    negatives: false,
-  },
   sdxl: {
     id: "@cf/stabilityai/stable-diffusion-xl-base-1.0",
-    body: (prompt: string, seed: number, negative: string) => ({
+    seeded: true,
+    sized: true,
+    negatives: true,
+    body: (prompt, seed, negative) => ({
       prompt,
       negative_prompt: negative,
       num_steps: 20,
@@ -59,9 +69,16 @@ const MODELS = {
       height: ART_SIZE.height,
       seed,
     }),
-    negatives: true,
   },
-} as const;
+  flux: {
+    id: "@cf/black-forest-labs/flux-1-schnell",
+    seeded: false,
+    sized: false,
+    negatives: false,
+    /* Distilled: more than 8 steps buys nothing, and nothing else is allowed. */
+    body: (prompt) => ({ prompt, steps: 8 }),
+  },
+} satisfies Record<string, ModelSpec>;
 
 type ModelName = keyof typeof MODELS;
 
@@ -79,7 +96,7 @@ function parseArgs(argv: string[]): Options {
     const index = argv.indexOf(flag);
     return index >= 0 ? argv[index + 1] : undefined;
   };
-  const model = (value("--model") ?? "flux") as ModelName;
+  const model = (value("--model") ?? "sdxl") as ModelName;
   if (!(model in MODELS)) {
     throw new Error(`Unknown model "${model}". Try: ${Object.keys(MODELS).join(", ")}`);
   }
@@ -196,6 +213,17 @@ const exists = async (file: string): Promise<boolean> => {
   }
 };
 
+/**
+ * Workers AI rejects an unknown field by naming it, like:
+ *   Additional or unevaluated properties '/seed' at '/' not allowed
+ * Pulling that name out lets one bad field be dropped and the call retried,
+ * rather than the whole run failing on a schema that changed under us.
+ */
+function rejectedProperty(detail: string): string | null {
+  const match = /properties '\/([A-Za-z0-9_]+)'/.exec(detail);
+  return match?.[1] ?? null;
+}
+
 /** One image. Returns the PNG bytes. */
 async function generate(
   job: Job,
@@ -203,21 +231,33 @@ async function generate(
   token: string,
   model: ModelName,
 ): Promise<Uint8Array> {
-  const spec = MODELS[model];
-  const body =
-    spec.negatives === true
-      ? (spec.body as (p: string, s: number, n: string) => unknown)(job.prompt, job.seed, job.negative)
-      : (spec.body as (p: string, s: number) => unknown)(job.prompt, job.seed);
+  const spec: ModelSpec = MODELS[model];
+  let body = spec.body(job.prompt, job.seed, job.negative);
+  let response: Response | undefined;
 
-  const response = await fetch(`${API}/accounts/${account}/ai/run/${spec.id}`, {
-    method: "POST",
-    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  // At most a couple of goes: enough to shed fields a model has stopped
+  // accepting, without looping if something else is wrong.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    response = await fetch(`${API}/accounts/${account}/ai/run/${spec.id}`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (response.ok) break;
 
-  if (!response.ok) {
     const detail = await response.text();
-    throw new Error(`${response.status} ${response.statusText} — ${detail.slice(0, 300)}`);
+    const unwanted = response.status === 400 ? rejectedProperty(detail) : null;
+    if (!unwanted || !(unwanted in body)) {
+      throw new Error(`${response.status} ${response.statusText} — ${detail.slice(0, 300)}`);
+    }
+
+    console.log(`    (${spec.id} rejects "${unwanted}" — dropping it and retrying)`);
+    const { [unwanted]: _dropped, ...rest } = body;
+    body = rest;
+  }
+
+  if (!response || !response.ok) {
+    throw new Error("gave up after retrying without the rejected fields");
   }
 
   // flux answers with JSON carrying base64; SDXL answers with raw image bytes.
@@ -251,12 +291,15 @@ async function writeManifest(packId: string, jobs: Job[], model: string): Promis
   );
 
   const images = { ...(previous.images ?? {}) };
+  const spec = Object.values(MODELS).find((entry) => entry.id === model);
   for (const job of jobs) {
     images[job.art.id] = {
       subject: job.art.subject,
       alt: job.alt,
       prompt: job.prompt,
-      seed: job.seed,
+      // Recorded only when the model actually used it — otherwise it would
+      // read like a promise of reproducibility this run cannot keep.
+      ...(spec?.seeded ? { seed: job.seed } : {}),
       model,
       generatedAt: new Date().toISOString(),
     };
@@ -275,13 +318,23 @@ async function main(): Promise<void> {
     return;
   }
 
-  console.log(`${jobs.length} image${jobs.length === 1 ? "" : "s"} · model ${MODELS[options.model].id}\n`);
+  const spec: ModelSpec = MODELS[options.model];
+  console.log(`${jobs.length} image${jobs.length === 1 ? "" : "s"} · model ${spec.id}\n`);
+  if (!spec.sized) {
+    console.log(
+      `  note: ${spec.id} ignores width and height, so images come back square`,
+      `rather than ${ART_SIZE.width}x${ART_SIZE.height}. They are cropped to fit.\n`,
+    );
+  }
+  if (!spec.seeded) {
+    console.log(`  note: ${spec.id} takes no seed, so a rerun will not reproduce these.\n`);
+  }
 
   if (options.dryRun) {
     for (const job of jobs) {
       console.log(`── ${job.pack.id}/${job.art.id}  seed ${job.seed}`);
       console.log(`   ${job.prompt}`);
-      if (MODELS[options.model].negatives) console.log(`   avoid: ${job.negative}`);
+      if (spec.negatives) console.log(`   avoid: ${job.negative}`);
       console.log();
     }
     console.log("Dry run: nothing was generated and no request was made.");
@@ -317,7 +370,7 @@ async function main(): Promise<void> {
   }
 
   for (const [packId, packJobs] of Object.entries(done)) {
-    await writeManifest(packId, packJobs, MODELS[options.model].id);
+    await writeManifest(packId, packJobs, spec.id);
   }
 
   console.log(`\n${made} generated, ${skipped} already present.`);

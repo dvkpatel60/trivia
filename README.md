@@ -32,6 +32,12 @@ npm run test:e2e     # builds, then plays a live game in two real browsers
 npm run art -- --dry-run   # show the image prompts; add a key to generate
 ```
 
+Pulled new commits and a script says `not found`? Run `npm install` — the
+workspace picked up a dependency your `node_modules` hasn't got yet.
+
+```sh
+```
+
 Deploy by pushing to the connected Netlify site. `netlify.toml` builds the app
 to `apps/web/dist` and picks up `netlify/functions`.
 

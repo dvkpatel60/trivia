@@ -1,4 +1,4 @@
-import { OptionList } from "../design/index.js";
+import { OptionList, Plate } from "../design/index.js";
 import type { PuzzleProps } from "./types.js";
 
 export function ImageChoice({ question, locked, onCommit, morphId }: PuzzleProps<"imageChoice">) {
@@ -6,14 +6,7 @@ export function ImageChoice({ question, locked, onCommit, morphId }: PuzzleProps
 
   return (
     <div className="stack--loose">
-      {media ? (
-        <img
-          className="figure"
-          src={media.src}
-          alt={media.alt}
-          style={media.aspect ? { aspectRatio: String(media.aspect) } : undefined}
-        />
-      ) : null}
+      {media ? <Plate media={media} /> : null}
       <p className="prompt center">{question.prompt}</p>
       <OptionList
         options={question.view.options}

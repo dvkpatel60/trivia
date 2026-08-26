@@ -463,36 +463,24 @@
   display: flex;
   flex-direction: column;
   gap: var(--s2);
-  border-radius: var(--r-md);
-  border: var(--hairline) solid var(--outline-variant);
-  background: color-mix(in oklab, var(--surface-container) 70%, transparent);
-  overflow: hidden;
-}
-
-.plate__image,
-.plate__pending {
-  width: 100%;
-  aspect-ratio: 3 / 2;
-  object-fit: cover;
-  display: block;
-  background: color-mix(in oklab, var(--surface-lowest) 80%, transparent);
 }
 
 /* A subject with no picture yet reads as a waiting slot, not a broken image. */
 .plate__pending {
+  position: absolute;
+  inset: 0;
   display: grid;
   align-content: center;
   gap: var(--s2);
   padding: var(--s3);
   text-align: center;
-  border-bottom: var(--hairline) dashed var(--outline-variant);
 }
 
 .plate__caption {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 0 var(--s3) var(--s3);
+  padding: 0 2px;
 }
 
 .plate__answer { font-weight: 600; font-size: var(--text-sm); }
