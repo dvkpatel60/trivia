@@ -1,0 +1,95 @@
+/* Reset and the typographic baseline. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--surface, #0d0f14);
+  color: var(--on-surface, #f4f1ea);
+  font-family: var(--font-ui);
+  font-variation-settings: var(--ui-settings, normal);
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
+  /* A tap should never zoom; every target here is already thumb-sized. */
+  touch-action: manipulation;
+}
+
+h1,
+h2,
+h3,
+.display {
+  margin: 0;
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-settings, normal);
+  font-weight: var(--display-weight, 600);
+  letter-spacing: var(--display-tracking, -0.018em);
+  line-height: var(--leading-tight);
+  text-wrap: balance;
+}
+
+h1 { font-size: var(--text-2xl); }
+h2 { font-size: var(--text-xl); }
+h3 { font-size: var(--text-lg); }
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+  margin: 0;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(button, input, select, a, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+/* Numbers that change in place must not make the layout twitch. */
+.num,
+.tabular {
+  font-family: var(--font-num);
+  font-variation-settings: normal;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

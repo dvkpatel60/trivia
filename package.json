@@ -1,8 +1,41 @@
 {
-  "name": "candlelight",
+  "name": "curio",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @curio/web",
+    "dev:netlify": "netlify dev",
+    "build": "npm run build --workspaces --if-present",
+    "preview": "npm run preview --workspace @curio/web",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --build --force",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test:e2e": "npm run build --workspace @curio/web && vitest run --config vitest.e2e.config.ts",
+    "check": "npm run typecheck && npm run lint && npm run test",
+    "art": "vite-node tools/generate-art.mts --"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.0",
+    "@types/node": "^22.10.2",
+    "eslint": "^10.0.0",
+    "globals": "^17.11.0",
+    "playwright": "^1.62.1",
+    "prettier": "^3.4.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.68.0",
+    "vite-node": "^6.0.0",
+    "vitest": "^4.1.11"
+  },
   "dependencies": {
     "@netlify/blobs": "^8.1.0"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

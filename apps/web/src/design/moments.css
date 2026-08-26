@@ -1,0 +1,621 @@
+/*
+ * The social beats: the code you share, the verdict, the scoreboard, the
+ * podium. These carry the emotion, so they get the most motion.
+ */
+
+/* ── the game code ────────────────────────────────────────────────────── */
+
+.code-display {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-settings, normal);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.code-display span {
+  animation: char-in var(--dur-base) var(--ease-spring) both;
+}
+
+@keyframes char-in {
+  from { opacity: 0; transform: translate3d(0, 10px, 0) rotate(-6deg); }
+  to { opacity: 1; transform: none; }
+}
+
+.qr {
+  width: 168px;
+  height: 168px;
+  margin-inline: auto;
+  display: block;
+  padding: var(--s3);
+  border-radius: var(--r-md);
+  background: var(--on-surface);
+  animation: pop-in var(--dur-slow) var(--ease-spring) both;
+}
+
+/* ── verdict ──────────────────────────────────────────────────────────── */
+
+.verdict {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s2);
+  text-align: center;
+}
+
+.verdict__headline {
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-settings, normal);
+  font-size: var(--text-2xl);
+  font-weight: var(--display-weight, 600);
+  letter-spacing: var(--display-tracking);
+  animation: verdict-in var(--dur-base) var(--ease-spring) both;
+}
+
+@keyframes verdict-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: none; }
+}
+
+.verdict[data-tone="good"] .verdict__headline { color: var(--support); }
+.verdict[data-tone="part"] .verdict__headline { color: var(--accent); }
+.verdict[data-tone="bad"] .verdict__headline { color: var(--warn); }
+.verdict[data-tone="none"] .verdict__headline { color: var(--outline); }
+
+.ledger {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  max-width: 260px;
+  font-family: var(--font-num);
+  font-size: var(--text-sm);
+  font-variation-settings: normal;
+  font-variant-numeric: tabular-nums;
+  color: var(--on-surface-variant);
+}
+
+.ledger__line {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s5);
+  animation: rise-in var(--dur-fast) var(--ease-out) both;
+}
+
+.ledger__line:nth-child(2) { animation-delay: 90ms; }
+.ledger__line:nth-child(3) { animation-delay: 160ms; }
+
+.ledger__line--total {
+  color: var(--on-surface);
+  font-weight: 650;
+  padding-top: var(--s2);
+  margin-top: var(--s1);
+  border-top: var(--hairline) solid var(--outline-variant);
+  animation-delay: 230ms;
+}
+
+/* ── scoreboard ───────────────────────────────────────────────────────── */
+
+.board { display: flex; flex-direction: column; gap: var(--s2); }
+
+.board__row {
+  display: grid;
+  grid-template-columns: 1.4rem 9px 1fr auto;
+  align-items: center;
+  gap: var(--s3);
+  min-height: 50px;
+  padding: var(--s2) var(--s3);
+  border-radius: var(--r-sm);
+  border: var(--hairline) solid transparent;
+  background: color-mix(in oklab, var(--surface-low) 55%, transparent);
+  /* Rank changes animate rather than snap, which is most of the drama. */
+  transition: background var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
+  animation: rise-in var(--dur-base) var(--ease-out) both;
+}
+
+.board__row[data-me="true"] {
+  border-color: color-mix(in oklab, var(--accent) 40%, transparent);
+  background: color-mix(in oklab, var(--accent) 10%, transparent);
+}
+
+.board__row:nth-child(1) { animation-delay: 40ms; }
+.board__row:nth-child(2) { animation-delay: 90ms; }
+.board__row:nth-child(3) { animation-delay: 140ms; }
+.board__row:nth-child(4) { animation-delay: 190ms; }
+.board__row:nth-child(n + 5) { animation-delay: 240ms; }
+
+.board__rank {
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-settings, normal);
+  color: var(--outline);
+  text-align: center;
+  font-size: var(--text-sm);
+}
+
+.board__row[data-rank="1"] .board__rank { color: var(--accent); }
+
+.board__points {
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-variation-settings: normal;
+  font-variant-numeric: tabular-nums;
+}
+.board__delta { font-size: var(--text-xs); color: var(--support); margin-left: var(--s2); }
+
+.streak {
+  font-size: var(--text-2xs);
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+/* ── podium ───────────────────────────────────────────────────────────── */
+
+.podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: var(--s2);
+  padding-inline: var(--s2);
+  min-height: 150px;
+  border-bottom: 2px solid color-mix(in oklab, var(--accent) 42%, var(--outline-variant));
+}
+
+.plinth {
+  flex: 1;
+  max-width: 108px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--s1);
+  padding: var(--s3) var(--s2);
+  border: var(--hairline) solid var(--outline-variant);
+  border-bottom: none;
+  border-radius: var(--r-md) var(--r-md) 0 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--accent) 24%, var(--surface-container)),
+    color-mix(in oklab, var(--surface-low) 90%, transparent)
+  );
+  overflow: hidden;
+  /* Third, then second, then a held beat before the winner. */
+  animation: plinth-rise var(--dur-slow) var(--ease-spring) both;
+}
+
+.plinth[data-place="3"] { animation-delay: 120ms; }
+.plinth[data-place="2"] { animation-delay: 380ms; }
+.plinth[data-place="1"] { animation-delay: 780ms; }
+
+.plinth[data-place="1"] {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--accent) 42%, var(--surface-container)),
+    color-mix(in oklab, var(--surface-low) 90%, transparent)
+  );
+}
+
+@keyframes plinth-rise {
+  from { transform: translateY(28px) scaleY(0.4); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+.plinth__name {
+  font-size: var(--text-xs);
+  text-align: center;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.plinth__score {
+  font-family: var(--font-num);
+  font-size: var(--text-2xs);
+  color: var(--on-surface-variant);
+  font-variation-settings: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+.crown {
+  font-size: var(--text-hero);
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-settings, normal);
+  animation: verdict-in var(--dur-slow) var(--ease-spring) 1s both;
+}
+
+/* ── toast ────────────────────────────────────────────────────────────── */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
+  transform: translateX(-50%);
+  z-index: 40;
+  padding: var(--s2) var(--s5);
+  border-radius: var(--r-full);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface-high) 92%, transparent);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--text-sm);
+  animation: toast-in var(--dur-base) var(--ease-spring) both;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translate(-50%, 12px) scale(0.94); }
+  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+/* ── the mark ─────────────────────────────────────────────────────────── */
+
+.wordmark {
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-settings, normal);
+  font-size: var(--text-hero);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.splash {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: var(--s3);
+  min-height: 34dvh;
+  text-align: center;
+}
+
+/* A splash that is the whole scene, rather than sitting above a form. */
+.splash--solo { min-height: 58dvh; }
+
+/* A slow ember, the app's one piece of ornament. */
+.ember {
+  width: 12px;
+  height: 20px;
+  border-radius: 50% 50% 45% 45% / 62% 62% 38% 38%;
+  background: radial-gradient(circle at 50% 74%, color-mix(in oklab, var(--on-surface) 92%, var(--accent)), var(--accent) 54%, transparent 76%);
+  filter: blur(0.3px);
+  animation: flicker 3.4s var(--ease-in-out) infinite;
+}
+
+@keyframes flicker {
+  0%, 100% { transform: scale(1) translateY(0); opacity: 1; }
+  34% { transform: scale(0.93, 1.08) translateY(-1px); opacity: 0.86; }
+  62% { transform: scale(1.05, 0.95) translateY(1px); opacity: 0.97; }
+}
+
+/* ── pack picker ──────────────────────────────────────────────────────── */
+
+.drawer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  width: 100%;
+  min-height: 76px;
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r-md);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface-container) 68%, transparent);
+  color: var(--on-surface);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out);
+}
+
+.drawer:active { transform: scale(0.99); }
+.drawer[aria-pressed="true"] { border-color: var(--accent); }
+
+/* A swatch of the pack's own palette, so you choose by mood not by name. */
+.drawer__swatch {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-sm);
+  border: var(--hairline) solid color-mix(in oklab, var(--on-surface) 12%, transparent);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.drawer__title { font-weight: 620; display: block; }
+.drawer__meta { font-size: var(--text-xs); color: var(--outline); }
+
+/* ── setting rows ─────────────────────────────────────────────────────── */
+
+.setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  min-height: 48px;
+}
+
+.setting__label { font-size: var(--text-sm); }
+.setting__hint { font-size: var(--text-xs); color: var(--outline); }
+
+.switch {
+  flex: none;
+  position: relative;
+  width: 50px;
+  height: 30px;
+  border-radius: var(--r-full);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface) 70%, transparent);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+
+.switch[aria-pressed="true"] {
+  background: color-mix(in oklab, var(--accent) 70%, transparent);
+  border-color: transparent;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-full);
+  background: var(--on-surface);
+  transition: transform var(--dur-fast) var(--ease-spring);
+}
+
+.switch[aria-pressed="true"]::after { transform: translateX(20px); background: var(--on-accent); }
+
+.stepper { display: flex; align-items: center; gap: var(--s1); }
+
+.stepper button {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-sm);
+  border: var(--hairline) solid var(--outline-variant);
+  background: transparent;
+  color: var(--on-surface);
+  cursor: pointer;
+  font-size: var(--text-lg);
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  transition: border-color var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out);
+}
+
+.stepper button:active:not(:disabled) { transform: scale(0.92); }
+.stepper button:disabled { opacity: 0.28; cursor: not-allowed; }
+.stepper__value {
+  min-width: 3.4rem;
+  text-align: center;
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-variation-settings: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── choice chips ─────────────────────────────────────────────────────── */
+
+.chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: var(--s2); }
+
+.chip {
+  padding: var(--s3);
+  border-radius: var(--r-sm);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface-low) 50%, transparent);
+  color: var(--on-surface-variant);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--on-surface);
+  background: color-mix(in oklab, var(--accent) 10%, transparent);
+}
+
+.chip__name { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: var(--text-sm); }
+.chip__desc { font-size: var(--text-xs); color: var(--outline); }
+
+.mode {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: var(--s3) var(--s4);
+  min-height: 68px;
+  justify-content: center;
+  border-radius: var(--r-md);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface-low) 50%, transparent);
+  color: var(--on-surface-variant);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.mode[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--on-surface);
+  background: color-mix(in oklab, var(--accent) 12%, transparent);
+  box-shadow: var(--glow);
+}
+
+.mode__name { font-family: var(--font-display); font-variation-settings: var(--display-settings, normal); font-size: var(--text-lg); font-weight: 600; }
+.mode__desc { font-size: var(--text-xs); color: var(--outline); }
+
+/* ── the picture library ──────────────────────────────────────────────── */
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--s3);
+}
+
+.plate {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  border-radius: var(--r-md);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface-container) 70%, transparent);
+  overflow: hidden;
+}
+
+.plate__image,
+.plate__pending {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  display: block;
+  background: color-mix(in oklab, var(--surface-lowest) 80%, transparent);
+}
+
+/* A subject with no picture yet reads as a waiting slot, not a broken image. */
+.plate__pending {
+  display: grid;
+  align-content: center;
+  gap: var(--s2);
+  padding: var(--s3);
+  text-align: center;
+  border-bottom: var(--hairline) dashed var(--outline-variant);
+}
+
+.plate__caption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 var(--s3) var(--s3);
+}
+
+.plate__answer { font-weight: 600; font-size: var(--text-sm); }
+
+.plate code,
+.scene__dock code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: color-mix(in oklab, var(--on-surface) 10%, transparent);
+}
+
+/* ── the mark ─────────────────────────────────────────────────────────── */
+
+/*
+ * A title card in a severe register: everything centred, everything spaced
+ * out, nothing bold. The restraint is the point — a crest earns its weight
+ * from the space around it, not from the size of the type.
+ */
+.mark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s3);
+  text-align: center;
+  color: var(--accent);
+}
+
+.mark__sigil {
+  display: block;
+  filter: drop-shadow(0 0 18px color-mix(in oklab, var(--accent) 34%, transparent));
+}
+
+.mark__rule {
+  display: block;
+  width: min(74%, 15rem);
+  height: 1px;
+  transform-origin: center;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in oklab, var(--accent) 62%, transparent),
+    transparent
+  );
+}
+
+.mark__name {
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-settings, normal);
+  font-weight: 500;
+  color: var(--on-surface);
+  /* Wide tracking is what separates an inscription from a headline. */
+  letter-spacing: 0.14em;
+  /* The tracking would otherwise push the mark off-centre to the left. */
+  text-indent: 0.14em;
+  line-height: 1;
+}
+
+.mark__name--hero {
+  font-size: clamp(2.4rem, 13vw, 3.6rem);
+}
+
+.mark__tagline {
+  font-family: var(--font-ui);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+
+.mark--compact {
+  flex-direction: row;
+  gap: var(--s2);
+  align-items: center;
+}
+
+.mark--compact .mark__name {
+  font-size: var(--text-lg);
+  letter-spacing: 0.1em;
+  text-indent: 0.1em;
+}
+
+/* ── the leader, after a round closes ─────────────────────────────────── */
+
+/*
+ * Three slow pulses on whoever is ahead, then it settles. Long enough to
+ * find your own name first and feel it land on someone else's.
+ */
+.board__row[data-leader="true"] {
+  border-color: color-mix(in oklab, var(--accent) 62%, transparent);
+  animation: leader-pulse 1.5s var(--ease-out) 3;
+}
+
+@keyframes leader-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 0%, transparent);
+    background: color-mix(in oklab, var(--accent) 10%, transparent);
+  }
+  35% {
+    box-shadow: 0 0 0 6px color-mix(in oklab, var(--accent) 16%, transparent);
+    background: color-mix(in oklab, var(--accent) 22%, transparent);
+  }
+}
+
+.board__crown {
+  flex: none;
+  color: var(--accent);
+  display: inline-flex;
+  animation: crown-in 700ms var(--ease-spring) both;
+}
+
+@keyframes crown-in {
+  from { opacity: 0; transform: scale(0.4) rotate(-20deg); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board__row[data-leader="true"] {
+    animation: none;
+    background: color-mix(in oklab, var(--accent) 16%, transparent);
+  }
+}
