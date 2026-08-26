@@ -3,31 +3,33 @@
 # Run /godmode:setup for interactive configuration.
 
 project:
-  name: "trivia"
+  name: "curio"
   language: "typescript"
 
 commands:
+  # `npm test` is vitest and deliberately excludes the browser suite.
   test: "npm test"
   lint: "npm run lint"
-
-# Optimization config (set via /godmode:setup --optimize)
-# optimization:
-#   goal: ""
-#   metric: ""
-#   verify: ""
-#   target: ""
-#   max_iterations: 25
+  typecheck: "npm run typecheck"
+  # What CI runs: typecheck + lint + tests.
+  check: "npm run check"
+  build: "npm run build"
+  # Two real browsers against a live game; builds first, so it is slow.
+  e2e: "npm run test:e2e"
 
 scope:
   include:
-    - "src/"
-    - "lib/"
-    - "tests/"
+    - "apps/"
+    - "packages/"
+    - "netlify/"
+    - "tools/"
   exclude:
     - "node_modules/"
     - "dist/"
     - "build/"
     - ".git/"
-    - "vendor/"
-    - "__pycache__/"
-    - "target/"
+    - "coverage/"
+    # Generated art, committed on purpose. Regenerate with `npm run art`.
+    - "apps/web/public/packs/"
+    # esbuild output for `npm run dev:netlify`.
+    - "netlify/functions/game.mjs"

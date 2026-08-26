@@ -9,6 +9,11 @@ export default tseslint.config(
       "**/dist-types/**",
       "**/node_modules/**",
       "**/*.tsbuildinfo",
+      // esbuild output from `npm run dev:netlify`, and netlify dev's own
+      // serve directory. Both are gitignored; flat config does not read
+      // .gitignore, so they have to be named here too.
+      "netlify/functions/*.mjs",
+      "**/.netlify/**",
     ],
   },
   js.configs.recommended,
