@@ -41,8 +41,13 @@ export interface GeneratedArt {
 /**
  * True of every image, in every pack.
  *
- * "No text" is not a stylistic preference here: a caption or a label baked
- * into a picture-round image can give away the answer, or contradict it.
+ * "No text" is not a stylistic preference: a caption baked into a
+ * picture-round image can give away the answer, or contradict it.
+ *
+ * Note what is *not* asked for here — a size, a rounded corner, a consistent
+ * background. A diffusion model honours none of those reliably, and it does
+ * not need to: every picture is rendered inside a fixed frame that supplies
+ * all three. Ask the model for the subject; let the app do the framing.
  */
 export const UNIVERSAL_CONSTRAINTS = [
   "no text",
@@ -52,6 +57,12 @@ export const UNIVERSAL_CONSTRAINTS = [
   "no border or frame",
   "single subject, centred",
   "plain uncluttered background",
+  /*
+   * Every image is cropped to a fixed frame at render time, so anything
+   * pressed against an edge loses its head. Asking for margin is one of the
+   * few compositional things a model reliably obliges.
+   */
+  "subject fully within frame with even margin",
 ] as const;
 
 /** For the models that accept one. Mirrors the constraints above. */

@@ -2,24 +2,84 @@
 
 /* ── picture round ────────────────────────────────────────────────────── */
 
-.figure {
+/*
+ * The frame every generated picture sits in.
+ *
+ * Everything that has to be identical across images is applied here rather
+ * than asked of the model: one aspect ratio, one radius, one ground, one
+ * vignette. A model cannot be relied on for any of them, and does not need
+ * to be — it only has to supply the subject.
+ */
+.plate-frame {
+  position: relative;
   width: 100%;
-  max-width: 280px;
-  margin-inline: auto;
+  /* One shape for every picture, whatever shape the file turned out to be. */
+  aspect-ratio: 3 / 2;
   border-radius: var(--r-md);
+  overflow: hidden;
+  isolation: isolate;
   border: var(--hairline) solid var(--outline-variant);
+
+  /* The ground: built from the pack's palette, so a picture with a pale
+     background and one with a dark background still sit on the same shelf. */
+  background:
+    radial-gradient(
+      130% 108% at 50% -8%,
+      color-mix(in oklab, var(--accent) 20%, transparent),
+      transparent 62%
+    ),
+    linear-gradient(
+      180deg,
+      var(--surface-high),
+      var(--surface-lowest)
+    );
+}
+
+.plate-frame[data-size="full"] {
+  max-width: 300px;
+  margin-inline: auto;
   box-shadow: var(--shadow-md);
-  display: block;
-  /*
-   * An <img> with aspect-ratio and no object-fit defaults to `fill`, which
-   * stretches. Models do not always return the shape they were asked for, so
-   * a mismatch has to crop rather than distort — a squashed hippogriff is a
-   * worse answer than a cropped one.
-   */
-  object-fit: cover;
-  background: color-mix(in oklab, var(--surface-lowest) 80%, transparent);
   animation: pop-in var(--dur-slow) var(--ease-spring) both;
 }
+
+.plate-frame__image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  /*
+   * Crop, never stretch. An <img> with a fixed box and no object-fit defaults
+   * to `fill` — a squashed hippogriff is a worse answer than a cropped one.
+   */
+  object-fit: cover;
+  /* A light pull toward each other, so one gaudy render and one flat render
+     are not quite so far apart. */
+  filter: saturate(0.94) contrast(1.03);
+}
+
+/*
+ * The glaze: a vignette and an inner ring, over the top of whatever came
+ * back. It is what makes fourteen images from fourteen prompts read as one
+ * set — every edge darkens by the same amount, in the pack's own hue.
+ */
+.plate-frame__glaze {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--on-surface) 8%, transparent);
+  background:
+    radial-gradient(
+      120% 96% at 50% 38%,
+      transparent 44%,
+      color-mix(in oklab, var(--surface) 62%, transparent) 100%
+    ),
+    linear-gradient(
+      180deg,
+      transparent 62%,
+      color-mix(in oklab, var(--surface) 52%, transparent) 100%
+    );
+}
+
 
 /* ── match ────────────────────────────────────────────────────────────── */
 

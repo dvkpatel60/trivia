@@ -238,6 +238,21 @@ Cloudflare.
 - `manifest.json` beside the images records the prompt and seed behind each
   one. Nothing reads it; it exists so a picture can be traced to its words.
 
+**What the prompt can and cannot standardise.** A diffusion model will not
+reliably return a consistent size, background, or anything like a rounded
+corner, so none of that is asked of it. `Plate` supplies the frame instead —
+one aspect ratio, one radius, one ground built from the pack's palette, one
+vignette — and crops rather than stretches whatever shape arrives. Ask the
+model for the subject; let the app do the framing.
+
+What remains genuinely variable is *style*, and no CSS fixes that: the same
+style clause on "a phoenix" and on "a vast banqueting hall" returns different
+lighting and detail. The levers are the pack's `art.style` clause, and keeping
+a pack's subjects in one register rather than mixing objects with interiors.
+A colour overlay would unify them further but is off the table — Atlas asks
+players to identify flags, so the palette of an image is sometimes the
+answer.
+
 ## Testing layers
 
 1. `packages/core/src/__tests__` — the engine alone: kinds, grading, scoring,

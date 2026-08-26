@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { artPath, livingItems, type ContentPack, type ImageChoiceItem } from "@curio/core";
 import { PACKS } from "@curio/content";
 
-import { cascade, rise, Scene } from "../design/index.js";
+import { cascade, Plate, rise, Scene } from "../design/index.js";
 
 interface LibraryProps {
   onBack(): void;
@@ -85,7 +85,7 @@ export function Library({ onBack, onPreview }: LibraryProps) {
 
       <m.div className="gallery" variants={cascade(0.05)} initial="hidden" animate="shown">
         {(current?.images ?? []).map((item, index) => (
-          <Plate key={`${item.art?.id ?? index}`} pack={current!.pack} item={item} />
+          <GalleryItem key={`${item.art?.id ?? index}`} pack={current!.pack} item={item} />
         ))}
       </m.div>
     </Scene>
@@ -93,26 +93,25 @@ export function Library({ onBack, onPreview }: LibraryProps) {
 }
 
 /** One image, or the subject that will become one. */
-function Plate({ pack, item }: { pack: ContentPack; item: ImageChoiceItem }) {
+function GalleryItem({ pack, item }: { pack: ContentPack; item: ImageChoiceItem }) {
   const [missing, setMissing] = useState(false);
   const answer = item.options[item.answer];
 
   return (
     <m.figure className="plate" variants={rise}>
-      {missing ? (
-        <div className="plate__pending">
-          <span className="eyebrow">Not generated</span>
-          <p className="tiny faint">{item.art?.subject}</p>
-        </div>
-      ) : (
-        <img
-          className="plate__image"
-          src={item.media.src}
-          alt={item.media.alt}
-          loading="lazy"
-          onError={() => setMissing(true)}
-        />
-      )}
+      <Plate
+        media={item.media}
+        size="thumb"
+        onMissing={() => setMissing(true)}
+        fallback={
+          missing ? (
+            <div className="plate__pending">
+              <span className="eyebrow">Not generated</span>
+              <p className="tiny faint">{item.art?.subject}</p>
+            </div>
+          ) : undefined
+        }
+      />
 
       <figcaption className="plate__caption">
         <span className="plate__answer">{answer}</span>
