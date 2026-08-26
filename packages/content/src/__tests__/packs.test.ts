@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  artPath,
   availableKinds,
   contrastProblems,
   derivePalette,
@@ -64,6 +65,48 @@ describe("every shipped pack", () => {
       }
     },
   );
+
+  it.each(PACKS.map((pack) => [pack.id, pack] as const))(
+    "%s points every generated item at the file the generator writes",
+    (_id, pack) => {
+      // The one place an item and its art block can drift apart.
+      for (const item of livingItems(pack, "imageChoice")) {
+        if (!item.art) continue;
+        expect(item.media.src, item.art.id).toBe(artPath(pack.id, item.art.id));
+      }
+    },
+  );
+
+  it.each(PACKS.map((pack) => [pack.id, pack] as const))(
+    "%s declares art direction if it ships generated images",
+    (_id, pack) => {
+      const generated = livingItems(pack, "imageChoice").filter((item) => item.art);
+      if (generated.length > 0) expect(pack.art).toBeDefined();
+    },
+  );
+
+  it("gives every generated image a unique art id", () => {
+    const ids = PACKS.flatMap((pack) =>
+      livingItems(pack, "imageChoice")
+        .map((item) => item.art?.id)
+        .filter(Boolean),
+    );
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("keeps art subjects free of style direction", () => {
+    // Style belongs to the pack, not the item — otherwise a picture round
+    // stops looking like a set.
+    const styleWords = ["oil painting", "vector", "photo", "render", "4k", "lighting"];
+    for (const pack of PACKS) {
+      for (const item of livingItems(pack, "imageChoice")) {
+        if (!item.art) continue;
+        for (const word of styleWords) {
+          expect(item.art.subject.toLowerCase(), item.art.id).not.toContain(word);
+        }
+      }
+    }
+  });
 
   it("has unique pack ids", () => {
     expect(new Set(PACKS.map((p) => p.id)).size).toBe(PACKS.length);

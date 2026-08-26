@@ -29,6 +29,7 @@ npm run dev:netlify  # app + functions + a local blob store
 ```sh
 npm run check        # typecheck, lint, and the test suite
 npm run test:e2e     # builds, then plays a live game in two real browsers
+npm run art -- --dry-run   # show the image prompts; add a key to generate
 ```
 
 Deploy by pushing to the connected Netlify site. `netlify.toml` builds the app

@@ -9,6 +9,14 @@ import {
   rgbToOklch,
 } from "../color.js";
 import {
+  artMedia,
+  artPath,
+  composeNegativePrompt,
+  composePrompt,
+  seedForArt,
+  UNIVERSAL_CONSTRAINTS,
+} from "../art.js";
+import {
   AA_CONTRAST,
   contrastProblems,
   derivePalette,
@@ -161,5 +169,48 @@ describe("palette derivation", () => {
     expect(STATE_LAYER.hover).toBeLessThan(STATE_LAYER.focus);
     expect(STATE_LAYER.focus).toBeLessThan(STATE_LAYER.press);
     expect(STATE_LAYER.press).toBeLessThan(STATE_LAYER.drag);
+  });
+});
+
+describe("art prompts", () => {
+  const direction = {
+    style: "candlelit oil painting",
+    palette: "indigo and gold",
+    composition: "three-quarter view",
+    avoid: "neon",
+  };
+  const art = { id: "creature-phoenix", subject: "a crimson firebird" };
+
+  it("puts the subject first and the constraints last", () => {
+    const prompt = composePrompt(art, direction);
+    expect(prompt.startsWith("a crimson firebird")).toBe(true);
+    expect(prompt).toContain("candlelit oil painting");
+    expect(prompt).toContain("indigo and gold");
+    expect(prompt.endsWith(UNIVERSAL_CONSTRAINTS[UNIVERSAL_CONSTRAINTS.length - 1] as string)).toBe(
+      true,
+    );
+  });
+
+  it("always forbids text, whatever the pack asked for", () => {
+    // A label baked into a picture-round image can hand over the answer.
+    expect(composePrompt(art, direction)).toContain("no text");
+    expect(composeNegativePrompt(direction)).toContain("text");
+  });
+
+  it("folds a pack's own exclusions into the negative prompt", () => {
+    expect(composeNegativePrompt(direction)).toContain("neon");
+    expect(composeNegativePrompt({ ...direction, avoid: undefined })).not.toContain("neon");
+  });
+
+  it("gives the same art id the same seed, and different ids different ones", () => {
+    expect(seedForArt("creature-phoenix")).toBe(seedForArt("creature-phoenix"));
+    expect(seedForArt("creature-phoenix")).not.toBe(seedForArt("creature-hippogriff"));
+    expect(Number.isInteger(seedForArt("x"))).toBe(true);
+  });
+
+  it("derives the path the generator writes and the app serves", () => {
+    expect(artPath("hogwarts", "creature-phoenix")).toBe("/packs/hogwarts/creature-phoenix.png");
+    expect(artMedia("hogwarts", art, "A firebird").src).toBe(artPath("hogwarts", art.id));
+    expect(artMedia("hogwarts", art, "A firebird").alt).toBe("A firebird");
   });
 });

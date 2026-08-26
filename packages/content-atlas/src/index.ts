@@ -36,6 +36,16 @@ export const atlasPack: ContentPack = {
     texture: ["grid", "horizonGlow"],
     display: "spaceGrotesk",
   },
+  /**
+   * Atlas is precise where Candlelight is secretive: flat colour, clean
+   * geometry, the look of a plate torn from an atlas.
+   */
+  art: {
+    style: "flat vector illustration, engraved atlas plate, clean geometric shapes, fine linework",
+    palette: "chart navy, paper cream, ocean teal, sun ochre, muted terracotta",
+    composition: "straight-on orthographic view, generous margin, flat even lighting",
+    avoid: "photorealism, gradients, drop shadows, 3d render",
+  },
   categories: continents,
   items: {
     choice,

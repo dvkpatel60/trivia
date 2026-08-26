@@ -1,4 +1,4 @@
-import type { ImageChoiceItem } from "@curio/core";
+import { artMedia, type GeneratedArt, type ImageChoiceItem } from "@curio/core";
 
 /**
  * A picture round drawn as SVG rather than shipped as image files.
@@ -55,6 +55,20 @@ const OPTIONS = {
   germany: ["Germany", "Belgium", "Austria", "Lithuania"],
   austria: ["Austria", "Latvia", "Poland", "Indonesia"],
 } as const;
+
+/** One generated item; the pack's art direction supplies the style. */
+const generated = (
+  art: GeneratedArt,
+  alt: string,
+  prompt: string,
+  options: string[],
+): ImageChoiceItem => ({
+  prompt,
+  art,
+  media: artMedia("atlas", art, alt),
+  options,
+  answer: 0,
+});
 
 export const imageChoice: ImageChoiceItem[] = [
   {
@@ -113,4 +127,47 @@ export const imageChoice: ImageChoiceItem[] = [
     options: [...OPTIONS.austria],
     answer: 0,
   },
+
+  /* ── generated ── */
+
+  generated(
+    {
+      id: "landmark-machu-picchu",
+      subject:
+        "an ancient stone terraced citadel on a high mountain ridge, surrounded by steep green peaks and low cloud",
+    },
+    "An ancient terraced stone citadel on a high mountain ridge among steep green peaks",
+    "Where is this?",
+    ["Machu Picchu", "Petra", "Angkor Wat", "Tikal"],
+  ),
+  generated(
+    {
+      id: "landmark-uluru",
+      subject:
+        "an enormous isolated red sandstone monolith rising from a flat desert plain under a wide sky",
+    },
+    "An enormous isolated red sandstone monolith rising from a flat desert plain",
+    "Where is this?",
+    ["Uluru", "Table Mountain", "Ayers Peak", "Mount Roraima"],
+  ),
+  generated(
+    {
+      id: "biome-fjord",
+      subject:
+        "a deep narrow sea inlet between sheer cliff walls, with waterfalls falling into still dark water",
+    },
+    "A deep narrow sea inlet between sheer cliffs with waterfalls falling into dark water",
+    "What landform is this?",
+    ["A fjord", "A canyon", "A caldera", "A delta"],
+  ),
+  generated(
+    {
+      id: "biome-atoll",
+      subject:
+        "a ring shaped coral island enclosing a pale turquoise lagoon, seen from directly above, open ocean around it",
+    },
+    "A ring-shaped coral island enclosing a turquoise lagoon, seen from above",
+    "What landform is this?",
+    ["An atoll", "A peninsula", "An isthmus", "An archipelago"],
+  ),
 ];

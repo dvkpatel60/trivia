@@ -143,6 +143,14 @@ kind with no screen will not compile.
 **Content to an existing pack.** One file per kind under `src/items/`. There is
 only one copy of the bank; the client and server both read the same package.
 
+**A generated picture round.** Add an `imageChoice` item with an `art` block —
+an id and a plain-language `subject`, nothing about style. The pack's
+`art` direction supplies medium, palette and framing, so every image in a pack
+looks like one set; `composePrompt` joins them and appends constraints that
+hold everywhere, chief among them "no text", since a word baked into a picture
+can hand over the answer. `media.src` must be `artPath(pack.id, art.id)`,
+asserted in a test. Then run `npm run art`.
+
 ## Design system
 
 `apps/web/src/design/` is the whole visual language. Screens compose its
@@ -185,6 +193,24 @@ primitives; they do not hand-roll layout.
 
 Type is Fraunces / Space Grotesk for display (per pack) and Inter for UI, from
 Google Fonts, with real fallback stacks.
+
+## Generated art
+
+`npm run art` (`tools/generate-art.mts`) turns subjects into PNGs under
+`apps/web/public/packs/<pack>/` using Cloudflare Workers AI. It is run by a
+person, offline, with `CLOUDFLARE_API_TOKEN` in a gitignored `.env`. Nothing at
+runtime — not the app, not the functions — ever sees that token or calls
+Cloudflare.
+
+- `--dry-run` prints every composed prompt and calls nothing. Use it when
+  editing art direction.
+- Seeds come from `seedForArt(id)`, so a rerun reproduces the same picture and
+  regenerating one item leaves the pack alone.
+- Existing files are skipped unless `--force`.
+- Images are **committed to git**: builds stay deterministic, Netlify needs no
+  key, and a deploy costs nothing.
+- `manifest.json` beside the images records the prompt and seed behind each
+  one. Nothing reads it; it exists so a picture can be traced to its words.
 
 ## Testing layers
 

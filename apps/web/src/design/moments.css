@@ -429,3 +429,59 @@
 
 .mode__name { font-family: var(--font-display); font-variation-settings: var(--display-settings, normal); font-size: var(--text-lg); font-weight: 600; }
 .mode__desc { font-size: var(--text-xs); color: var(--outline); }
+
+/* ── the picture library ──────────────────────────────────────────────── */
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--s3);
+}
+
+.plate {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  border-radius: var(--r-md);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface-container) 70%, transparent);
+  overflow: hidden;
+}
+
+.plate__image,
+.plate__pending {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  display: block;
+  background: color-mix(in oklab, var(--surface-lowest) 80%, transparent);
+}
+
+/* A subject with no picture yet reads as a waiting slot, not a broken image. */
+.plate__pending {
+  display: grid;
+  align-content: center;
+  gap: var(--s2);
+  padding: var(--s3);
+  text-align: center;
+  border-bottom: var(--hairline) dashed var(--outline-variant);
+}
+
+.plate__caption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 var(--s3) var(--s3);
+}
+
+.plate__answer { font-weight: 600; font-size: var(--text-sm); }
+
+.plate code,
+.scene__dock code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: color-mix(in oklab, var(--on-surface) 10%, transparent);
+}

@@ -8,6 +8,7 @@ interface HomeProps {
   onHost(): void;
   onJoin(): void;
   onLocal(): void;
+  onLibrary(): void;
   online: boolean;
 }
 
@@ -21,6 +22,7 @@ export function Home({
   onHost,
   onJoin,
   onLocal,
+  onLibrary,
   online,
 }: HomeProps) {
   const [touched, setTouched] = useState(false);
@@ -58,6 +60,9 @@ export function Home({
           </button>
           <button type="button" className="button button--quiet state" onClick={guard(onLocal)}>
             Pass one device around
+          </button>
+          <button type="button" className="button button--quiet state" onClick={onLibrary}>
+            Browse the picture rounds
           </button>
           {online ? null : (
             <p className="tiny faint center">

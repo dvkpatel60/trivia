@@ -37,6 +37,18 @@ export const hogwartsPack: ContentPack = {
     texture: ["emberGlow", "grain", "vignette"],
     display: "fraunces",
   },
+  /**
+   * Every generated image in this pack is painted, lit by one warm source,
+   * and darkened at the edges — so a picture round reads as a set of plates
+   * from the same book rather than four unrelated pictures.
+   */
+  art: {
+    style:
+      "candlelit oil painting on aged canvas, chiaroscuro, soft impasto brushwork, museum plate",
+    palette: "deep indigo shadows, antique gold highlights, muted emerald and oxblood accents",
+    composition: "three-quarter view, shallow depth of field, dark vignetted background",
+    avoid: "modern objects, photography, neon, plastic",
+  },
   categories: houses,
   items: {
     choice,

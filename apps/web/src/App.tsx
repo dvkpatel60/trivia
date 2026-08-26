@@ -23,6 +23,7 @@ import { Beat } from "./screens/Beat.js";
 import { Final } from "./screens/Final.js";
 import { Home } from "./screens/Home.js";
 import { Join } from "./screens/Join.js";
+import { Library } from "./screens/Library.js";
 import { Lobby } from "./screens/Lobby.js";
 import { Pass } from "./screens/Pass.js";
 import { Play } from "./screens/Play.js";
@@ -31,7 +32,7 @@ import { Setup } from "./screens/Setup.js";
 import { Standings } from "./screens/Standings.js";
 import { Waiting } from "./screens/Waiting.js";
 
-type Route = "home" | "join" | "host" | "local" | "game";
+type Route = "home" | "join" | "host" | "local" | "library" | "game";
 
 /**
  * `domMax` is the feature set including layout animation and drag, which the
@@ -267,6 +268,7 @@ export function App() {
           onHost={() => setRoute("host")}
           onJoin={() => setRoute("join")}
           onLocal={() => setRoute("local")}
+          onLibrary={() => setRoute("library")}
           online={online}
         />
       );
@@ -281,6 +283,18 @@ export function App() {
           onJoin={join}
           onBack={() => setRoute("home")}
           trouble={session.trouble}
+        />
+      );
+    }
+
+    if (route === "library") {
+      return (
+        <Library
+          onBack={() => {
+            setPreviewPackId(null);
+            setRoute("home");
+          }}
+          onPreview={setPreviewPackId}
         />
       );
     }

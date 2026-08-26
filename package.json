@@ -17,7 +17,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test:e2e": "npm run build --workspace @curio/web && vitest run --config vitest.e2e.config.ts",
-    "check": "npm run typecheck && npm run lint && npm run test"
+    "check": "npm run typecheck && npm run lint && npm run test",
+    "art": "vite-node tools/generate-art.mts --"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.0",
@@ -28,6 +29,7 @@
     "prettier": "^3.4.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.68.0",
+    "vite-node": "^6.0.0",
     "vitest": "^4.1.11"
   },
   "dependencies": {

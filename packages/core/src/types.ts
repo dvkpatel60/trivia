@@ -1,4 +1,5 @@
 import type { Atmosphere } from "./atmosphere.js";
+import type { ArtDirection, GeneratedArt } from "./art.js";
 
 /**
  * The vocabulary every other package speaks.
@@ -103,6 +104,13 @@ export interface ImageChoiceItem {
   answer: number;
   note?: string;
   retired?: boolean;
+  /**
+   * Present when the picture is generated rather than drawn by hand.
+   *
+   * `media.src` must then be `artPath(pack.id, art.id)` — asserted in a test,
+   * so an item cannot drift away from the file the generator writes for it.
+   */
+  art?: GeneratedArt;
 }
 
 export interface ItemFor {
@@ -301,6 +309,8 @@ export interface ContentPack {
   blurb: string;
   /** The mood the app derives this pack's whole palette and type from. */
   atmosphere: Atmosphere;
+  /** Shared art direction for this pack's generated picture rounds. */
+  art?: ArtDirection;
   /** Required if the pack ships `categorize` items. */
   categories?: Category[];
   items: { [K in PuzzleKindId]?: Array<ItemFor[K]> };
