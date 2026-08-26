@@ -27,7 +27,10 @@ export default async (req) => {
   // Personal data never reaches the server — the browser keeps that itself.
   if (shared === false) return json({ error: "Personal scope is client-side only" }, 400);
 
-  const store = getStore("candlelight");
+  const store = getStore({
+    name: "candlelight",
+    consistency: "strong",
+  });
 
   try {
     switch (op) {
