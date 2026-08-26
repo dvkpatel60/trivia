@@ -18,7 +18,7 @@ import { useSession } from "./state/session.js";
 import { useToast } from "./state/useToast.js";
 import { domMax, LazyMotion } from "motion/react";
 
-import { applyPack, Atmosphere, Scene, Wordmark, type AtmosphereMood } from "./design/index.js";
+import { applyPack, Atmosphere, KindIcon, Scene, Wordmark, type AtmosphereMood } from "./design/index.js";
 
 import { Beat } from "./screens/Beat.js";
 import { Final } from "./screens/Final.js";
@@ -500,6 +500,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
     return (
       <Play
         game={game}
+        meId={identity.id}
         question={question}
         round={phase.round}
         index={phase.index}
@@ -565,6 +566,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
     return (
       <OwnPaceQuestion
         game={game}
+        meId={identity.id}
         question={question}
         round={round}
         index={cursor}
@@ -600,6 +602,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
   return (
     <OwnPaceQuestion
       game={game}
+      meId={identity.id}
       question={question}
       round={round}
       index={cursor}
@@ -614,36 +617,55 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
   );
 }
 
-interface OwnPaceQuestionProps extends Omit<ComponentProps<typeof Play>, "answered"> {
+interface OwnPaceQuestionProps extends Omit<ComponentProps<typeof Play>, "answered" | "meId"> {
+  meId: string;
   onBegin(round: number, index: number): void;
 }
 
 /**
  * A question in a round-paced game, with its window opened server-side.
  *
- * The `begin` call lives in an effect rather than in the render that needs
- * the deadline, because starting a clock is a write and a render must not
- * make one. The deadline arrives on the next state update; until then the
- * question simply shows no timer, which is a far better failure than the old
- * behaviour of showing one that quietly reset itself.
+ * Shows a pre-play reveal screen first: the kind, position, and prompt are
+ * visible but the clock is not running. The player taps "Begin" to start
+ * the timer, which fires `onBegin` to anchor the window server-side.
  */
-function OwnPaceQuestion({ onBegin, round, index, ...rest }: OwnPaceQuestionProps) {
-  /**
-   * Fire once per question, not once per render of it.
-   *
-   * `onBegin` closes over the session, which is rebuilt on every state
-   * update — so depending on its identity would re-open the question on each
-   * poll, and since opening is itself a write, that is an infinite loop.
-   * Keying on the question is also just what "open this question" means.
-   */
+function OwnPaceQuestion({ onBegin, meId, round, index, ...rest }: OwnPaceQuestionProps) {
+  const [ready, setReady] = useState(false);
   const begun = useRef<string | null>(null);
+  const kind = getKind(rest.question.kind);
 
   useEffect(() => {
     const key = `${round}:${index}`;
-    if (begun.current === key) return;
+    if (!ready || begun.current === key) return;
     begun.current = key;
     onBegin(round, index);
-  }, [onBegin, round, index]);
+  }, [onBegin, round, index, ready]);
 
-  return <Play {...rest} round={round} index={index} answered={false} />;
+  if (!ready) {
+    return (
+      <Scene
+        id={`play-${round}-${index}`}
+        flow="end"
+        rail={
+          <span className="eyebrow">
+            <KindIcon icon={kind.icon} size={13} />
+            {kind.name}
+          </span>
+        }
+        dock={
+          <button type="button" className="button state" onClick={() => setReady(true)}>
+            Begin
+          </button>
+        }
+      >
+        <div className="stack--loose">
+          <p className={rest.question.prompt.length > 74 ? "prompt prompt--long" : "prompt"}>
+            {rest.question.prompt}
+          </p>
+        </div>
+      </Scene>
+    );
+  }
+
+  return <Play meId={meId} {...rest} round={round} index={index} answered={false} />;
 }
