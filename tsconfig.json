@@ -1,10 +1,15 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./packages/core" },
-    { "path": "./packages/content-hogwarts" },
-    { "path": "./packages/content-atlas" },
-    { "path": "./packages/content" },
-    { "path": "./apps/web" }
-  ]
+  "//": [
+    "Nothing is built from TypeScript here — the app is bundled by Vite and the",
+    "workspace packages are consumed from source through their package.json",
+    "`types` entry. So there is no project graph and no composite build: each",
+    "project below checks itself, and `npm run typecheck` runs them all.",
+    "",
+    "This file exists so an editor opening a stray file at the root has",
+    "somewhere sensible to land."
+  ],
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": { "noEmit": true },
+  "include": [],
+  "exclude": ["**/dist", "**/node_modules"]
 }
