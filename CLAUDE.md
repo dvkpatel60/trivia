@@ -228,6 +228,8 @@ Cloudflare.
 
 - `--dry-run` prints every composed prompt and calls nothing. Use it when
   editing art direction.
+- It needs `CLOUDFLARE_ACCOUNT_ID` unless the token can list accounts; the
+  script says so rather than returning a bare 403.
 - Seeds come from `seedForArt(id)`, so a rerun reproduces the same picture and
   regenerating one item leaves the pack alone.
 - Existing files are skipped unless `--force`.
