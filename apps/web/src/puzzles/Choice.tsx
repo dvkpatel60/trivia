@@ -1,7 +1,7 @@
 import { OptionList } from "../design/index.js";
 import type { PuzzleProps } from "./types.js";
 
-export function Choice({ question, locked, onCommit, morphId }: PuzzleProps<"choice">) {
+export function Choice({ question, locked, onStage, morphId }: PuzzleProps<"choice">) {
   return (
     <div className="stack--loose">
       <p className={question.prompt.length > 74 ? "prompt prompt--long" : "prompt"}>
@@ -12,7 +12,7 @@ export function Choice({ question, locked, onCommit, morphId }: PuzzleProps<"cho
         locked={locked}
         label={question.prompt}
         morphId={morphId}
-        onPick={(choice) => onCommit({ choice })}
+        onPick={(choice) => onStage({ choice })}
       />
     </div>
   );

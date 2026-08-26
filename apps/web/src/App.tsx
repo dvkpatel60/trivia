@@ -565,6 +565,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
 
     return (
       <OwnPaceQuestion
+        key={`${turn.playerIndex}:${round}:${cursor}`}
         game={game}
         meId={identity.id}
         question={question}
@@ -601,6 +602,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
 
   return (
     <OwnPaceQuestion
+      key={`${round}:${cursor}`}
       game={game}
       meId={identity.id}
       question={question}
@@ -623,29 +625,48 @@ interface OwnPaceQuestionProps extends Omit<ComponentProps<typeof Play>, "answer
 }
 
 /**
- * A question in a round-paced game, with its window opened server-side.
+ * A question in a round-paced game, behind a gate.
  *
- * Shows a pre-play reveal screen first: the kind, position, and prompt are
- * visible but the clock is not running. The player taps "Begin" to start
- * the timer, which fires `onBegin` to anchor the window server-side.
+ * Round-paced play has no shared deadline, so a question's window opens the
+ * moment the player first sees it — which means simply arriving on the
+ * screen used to start a clock they had not agreed to. The gate makes that
+ * an explicit act: it names the kind and where you are in the round, and
+ * nothing more.
+ *
+ * The prompt in particular is withheld. A prompt visible before the clock
+ * starts is a free reading of the question, and the window is the whole
+ * challenge — showing it would hand back exactly what the gate protects.
+ *
+ * The caller keys this component per question (and per player, when the
+ * device is being passed around), so the gate resets rather than opening
+ * once and letting every later question through.
  */
 function OwnPaceQuestion({ onBegin, meId, round, index, ...rest }: OwnPaceQuestionProps) {
   const [ready, setReady] = useState(false);
-  const begun = useRef<string | null>(null);
+  const begun = useRef(false);
   const kind = getKind(rest.question.kind);
 
+  /**
+   * Fire once, not once per render.
+   *
+   * `onBegin` closes over the session, which is rebuilt on every state
+   * update — so depending on its identity would re-open the question on each
+   * poll, and since opening is itself a write, that is an infinite loop.
+   */
   useEffect(() => {
-    const key = `${round}:${index}`;
-    if (!ready || begun.current === key) return;
-    begun.current = key;
+    if (!ready || begun.current) return;
+    begun.current = true;
     onBegin(round, index);
   }, [onBegin, round, index, ready]);
 
   if (!ready) {
+    const window = rest.game.config.timerOn
+      ? Math.round(questionDurationMs(rest.game.config, kind.timeMultiplier) / 1000)
+      : null;
+
     return (
       <Scene
-        id={`play-${round}-${index}`}
-        flow="end"
+        id={`gate-${round}-${index}`}
         rail={
           <span className="eyebrow">
             <KindIcon icon={kind.icon} size={13} />
@@ -654,13 +675,20 @@ function OwnPaceQuestion({ onBegin, meId, round, index, ...rest }: OwnPaceQuesti
         }
         dock={
           <button type="button" className="button state" onClick={() => setReady(true)}>
-            Begin
+            Show me the question
           </button>
         }
       >
-        <div className="stack--loose">
-          <p className={rest.question.prompt.length > 74 ? "prompt prompt--long" : "prompt"}>
-            {rest.question.prompt}
+        <div className="center stack--tight">
+          <span className="eyebrow">
+            Question {index + 1} of {rest.total}
+          </span>
+          <h1>{kind.name}</h1>
+          <p className="lede">{kind.description}.</p>
+          <p className="tiny faint">
+            {window == null
+              ? "No clock on this one — take as long as you like."
+              : `The clock starts when you tap, and runs for ${window} seconds.`}
           </p>
         </div>
       </Scene>

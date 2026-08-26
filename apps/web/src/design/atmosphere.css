@@ -227,23 +227,6 @@
   background-size: 56px 56px;
 }
 
-/*
- * No floor bands. The previous tex-ember and tex-horizon created a visible
- * seam between the atmosphere and the stage — the bottom 18-26% was a
- * different colour from the rest. Removing them keeps the background uniform
- * so the scenery pieces (candles, peaks) float in the same space as the
- * content above.
- */
-.tex-ember,
-.tex-horizon { display: none; }
-
-/*
- * Grain existed to hide gradient banding. There are no gradients left to
- * band, so it draws nothing — kept as a no-op because the vocabulary is a
- * published type and a pack may still name it.
- */
-.tex-grain { display: none; }
-
 /* A flat inset frame rather than a radial darkening. */
 .tex-vignette {
   box-shadow: inset 0 0 0 100vmax color-mix(in oklab, var(--surface) 22%, transparent);

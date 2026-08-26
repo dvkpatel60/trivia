@@ -89,7 +89,7 @@ interface RosterProps {
   players: PlayerState[];
   meId: string;
   /** Who has finished whatever we're waiting on. */
-  doneIds?: Set<string>;
+  doneIds?: ReadonlySet<string>;
   now?: number;
   empty?: string;
 }

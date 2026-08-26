@@ -15,19 +15,20 @@ import type { PuzzleProps } from "./types.js";
  * Nothing here knows whether a guess was correct: the server grades. The row
  * only shows what was committed.
  */
-export function Connections({ question, locked, onCommit }: PuzzleProps<"connections">) {
+export function Connections({ question, locked, onStage }: PuzzleProps<"connections">) {
   const { tiles, groupSize, groupCount } = question.view;
 
   const [selected, setSelected] = useState<string[]>([]);
   const [committed, setCommitted] = useState<string[][]>([]);
-  const [sent, setSent] = useState(false);
 
   const spent = new Set(committed.flat());
   const remaining = tiles.filter((tile) => !spent.has(tile));
   const full = selected.length === groupSize;
 
+  const done = committed.length >= groupCount - 1;
+
   const toggle = (tile: string) => {
-    if (locked || sent || spent.has(tile)) return;
+    if (locked || done || spent.has(tile)) return;
     navigator.vibrate?.(6);
     setSelected((current) =>
       current.includes(tile)
@@ -38,26 +39,28 @@ export function Connections({ question, locked, onCommit }: PuzzleProps<"connect
     );
   };
 
+  /**
+   * Grouping is not submitting.
+   *
+   * Every locked group re-stages what the player has so far, so somebody who
+   * finds two groups and runs out of ideas simply taps Submit — the old
+   * "Stop here with N" button was a second way of doing the same thing, and
+   * a puzzle with two submit gestures is one too many.
+   */
   const lockGroup = () => {
-    if (!full || locked || sent) return;
+    if (!full || locked || done) return;
     navigator.vibrate?.(12);
     const next = [...committed, selected];
     setCommitted(next);
     setSelected([]);
 
-    // The last group is forced, so committing it ends the puzzle.
+    // The last group is forced, so locking the penultimate one fills it in.
     if (next.length >= groupCount - 1) {
       const last = tiles.filter((tile) => !next.flat().includes(tile));
-      const groups = last.length === groupSize ? [...next, last] : next;
-      setSent(true);
-      onCommit({ groups });
+      onStage({ groups: last.length === groupSize ? [...next, last] : next });
+      return;
     }
-  };
-
-  const giveUp = () => {
-    if (locked || sent) return;
-    setSent(true);
-    onCommit({ groups: committed });
+    onStage({ groups: next });
   };
 
   return (
@@ -104,7 +107,7 @@ export function Connections({ question, locked, onCommit }: PuzzleProps<"connect
               exit={{ opacity: 0, scale: 0.8 }}
               whileTap={{ scale: 0.94 }}
               transition={settle}
-              disabled={locked || sent}
+              disabled={locked || done}
               onClick={() => toggle(tile)}
             >
               {tile}
@@ -113,28 +116,20 @@ export function Connections({ question, locked, onCommit }: PuzzleProps<"connect
         </AnimatePresence>
       </m.div>
 
-      <div className="stack--tight">
-        <m.button
-          type="button"
-          className="button state"
-          disabled={locked || sent || !full}
-          animate={{ scale: full && !sent ? 1 : 0.995 }}
-          transition={snap}
-          onClick={lockGroup}
-        >
-          {sent
-            ? "Locked in"
-            : full
-              ? "Lock this group in"
-              : `Pick ${groupSize - selected.length} more`}
-        </m.button>
-
-        {!sent && committed.length > 0 ? (
-          <button type="button" className="button button--quiet state" onClick={giveUp}>
-            Stop here with {committed.length}
-          </button>
-        ) : null}
-      </div>
+      <m.button
+        type="button"
+        className="button button--quiet state"
+        disabled={locked || done || !full}
+        animate={{ scale: full && !done ? 1 : 0.995 }}
+        transition={snap}
+        onClick={lockGroup}
+      >
+        {done
+          ? "Every group placed"
+          : full
+            ? `Group these ${groupSize}`
+            : `Pick ${groupSize - selected.length} more`}
+      </m.button>
     </div>
   );
 }

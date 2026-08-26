@@ -5,10 +5,7 @@ import type { Scenery as SceneryId, Texture } from "@curio/core";
 import { SCENERY } from "./Scenery.js";
 
 const LAYERS: Record<Texture, string> = {
-  emberGlow: "tex-ember",
   grid: "tex-grid",
-  horizonGlow: "tex-horizon",
-  grain: "tex-grain",
   vignette: "tex-vignette",
 };
 

@@ -1,16 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   getKind,
   questionDurationMs,
-  type AnswerFor,
   type AnyPublicQuestion,
   type PublicGameState,
-  type PuzzleKindId,
 } from "@curio/core";
 import type { ComponentType } from "react";
 
 import { KindIcon, PackProgress, Roster, Scene, TimerRing } from "../design/index.js";
 import { PUZZLES, type PuzzleProps } from "../puzzles/index.js";
+
+/** Nobody in this list has answered, so every row reads the same way. */
+const NOBODY_IN: ReadonlySet<string> = new Set();
 
 interface PlayProps {
   game: PublicGameState;
@@ -35,7 +36,10 @@ interface PlayProps {
  * The renderer comes from the kind registry, so this file never grows a
  * switch: a new puzzle kind is a new component, not an edit here.
  *
- * After answering, the dock shows who else is still thinking.
+ * Answering is two steps, and the split is deliberate. A puzzle only ever
+ * *stages* what the player has built; the dock's Submit is the one thing
+ * that sends it. So the confirming gesture is in the same place for every
+ * kind, in the thumb zone, and a mis-tap costs nothing until it is taken.
  */
 export function Play({
   game,
@@ -53,39 +57,77 @@ export function Play({
   onAnswer,
 }: PlayProps) {
   const [locked, setLocked] = useState(answered);
-  const [pending, setPending] = useState<unknown>(null);
+  const [staged, setStaged] = useState<unknown>(null);
   const openedAt = useRef(now());
   const kind = getKind(question.kind);
-  const roster = useMemo(
-    () => Object.values(game.players).sort((a, b) => a.joinedAt - b.joinedAt),
-    [game.players],
-  );
 
-  // Held in a ref so the expiry timer depends on the deadline alone, rather
-  // than re-arming on every render of the parent.
+  // Held in refs so the expiry timer and the staging callback depend on the
+  // deadline alone, rather than re-arming on every render of the parent.
   const answerRef = useRef(onAnswer);
   answerRef.current = onAnswer;
+  const lockedRef = useRef(locked);
+  lockedRef.current = locked;
 
-  useEffect(() => {
+  /**
+   * Stable for the life of the screen, so a puzzle may list it as an effect
+   * dependency without the effect re-firing on every poll. `session` is
+   * rebuilt on each state update, and an effect that re-fires on that is how
+   * an unbounded render loop starts.
+   */
+  const stage = useCallback((answer: unknown) => {
+    if (lockedRef.current) return;
+    setStaged(answer ?? null);
+  }, []);
+
+  /**
+   * Start of a new question, done during render rather than in an effect.
+   *
+   * A child's mount effect runs *before* the parent's, so a kind that stages
+   * as soon as it appears — Sequence, whose dealt order is already a
+   * complete answer — would have that staging wiped by a reset effect here
+   * and could never be submitted. Adjusting state while rendering on a
+   * changed key is the pattern that has no such ordering to lose.
+   */
+  const key = `${round}:${index}`;
+  const [current, setCurrent] = useState(key);
+  if (current !== key) {
+    setCurrent(key);
     setLocked(answered);
-    setPending(null);
+    setStaged(null);
     openedAt.current = now();
-  }, [round, index, answered, now]);
+  }
+
+  // The server confirming an answer locks the screen. It never unlocks one:
+  // that only happens on a new question, above.
+  useEffect(() => {
+    if (answered) setLocked(true);
+  }, [answered]);
+
+  const submit = useCallback(() => {
+    if (staged == null || lockedRef.current) return;
+    setLocked(true);
+    answerRef.current(index, staged, Math.max(0, now() - openedAt.current));
+  }, [staged, index, now]);
 
   /**
    * Out of time.
    *
-   * The empty answer is still submitted rather than the screen simply
-   * locking: it is what moves a round-paced game on, and it records "no
-   * answer" instead of leaving a hole nobody can explain later.
+   * Whatever is staged goes in rather than being thrown away — a player who
+   * picked and then ran the clock down deciding should not be punished for
+   * the deliberation they were invited to do. An empty answer is still
+   * submitted when nothing is staged: it is what moves a round-paced game
+   * on, and it records "no answer" instead of leaving a hole nobody can
+   * explain later.
    */
+  const stagedRef = useRef(staged);
+  stagedRef.current = staged;
+
   useEffect(() => {
     if (endsAt == null || locked) return;
 
     const expire = () => {
       setLocked(true);
-      setPending(null);
-      answerRef.current(index, null, Math.max(0, now() - openedAt.current));
+      answerRef.current(index, stagedRef.current ?? null, Math.max(0, now() - openedAt.current));
     };
 
     const remaining = endsAt - now();
@@ -102,29 +144,28 @@ export function Play({
     [game.config, kind.timeMultiplier],
   );
 
-  /**
-   * Stage an answer for explicit submission.
-   *
-   * Kinds that need a lock-in button (match, sequence, etc.) call this
-   * directly. Kinds that auto-commit on selection also call this — the
-   * player then taps "Submit" in the dock to actually send it.
-   */
-  const commit = (answer: AnswerFor[PuzzleKindId]) => {
-    if (locked) return;
-    setPending(answer);
-  };
+  const roster = useMemo(
+    () => Object.values(game.players).sort((a, b) => a.joinedAt - b.joinedAt),
+    [game.players],
+  );
 
-  /** Send the staged answer to the server. */
-  const submitPending = () => {
-    if (pending == null || locked) return;
-    setLocked(true);
-    onAnswer(index, pending, Math.max(0, now() - openedAt.current));
-    setPending(null);
-  };
+  /**
+   * Who is still thinking, by name.
+   *
+   * A count alone tells you the round is stuck but not on whom, which in a
+   * room of friends is the only part anybody cares about. Only the
+   * outstanding players are listed: the dock is the thumb zone, not a
+   * scoreboard, and the people already in are not what anyone is waiting to
+   * read. Live play only — round-paced play has its own waiting screen.
+   */
+  const outstanding = useMemo(
+    () => roster.filter((player) => !player.rounds[round]?.answers[index]),
+    [roster, round, index],
+  );
 
   const Renderer = PUZZLES[question.kind] as ComponentType<PuzzleProps>;
-
-  const waitingOn = roster.length - answeredCount;
+  const live = game.config.pacing === "live";
+  const waitingOn = playerCount - answeredCount;
 
   return (
     <Scene
@@ -144,32 +185,32 @@ export function Play({
       }
       dock={
         <>
-          {pending != null && !locked ? (
-            <button
-              type="button"
-              className="button state"
-              onClick={submitPending}
-            >
-              Submit
-            </button>
-          ) : locked && !answered ? (
+          {/*
+            Rendered whether or not anything is staged, so the dock does not
+            grow a button under the player's thumb the moment they pick.
+          */}
+          <button
+            type="button"
+            className="button state"
+            disabled={locked || staged == null}
+            onClick={submit}
+          >
+            {locked ? "Answer in" : "Submit"}
+          </button>
+
+          {locked ? (
             <div className="stack--tight">
               <p className="tiny faint center">
-                {game.config.pacing === "live"
-                  ? `${answeredCount} of ${playerCount} in · ${waitingOn} left`
+                {live
+                  ? waitingOn > 0
+                    ? `Waiting on ${waitingOn} of ${playerCount}`
+                    : "Everyone's in"
                   : "Locked until the round closes."}
               </p>
-              {game.config.pacing === "live" && waitingOn > 0 ? (
-                <Roster
-                  players={roster}
-                  meId={meId}
-                  doneIds={new Set(
-                    roster
-                      .filter((p) => game.players[p.id]?.rounds[round]?.answers[index])
-                      .map((p) => p.id),
-                  )}
-                  now={now()}
-                />
+              {live && outstanding.length > 0 ? (
+                <div className="dock-roster">
+                  <Roster players={outstanding} meId={meId} doneIds={NOBODY_IN} now={now()} />
+                </div>
               ) : null}
             </div>
           ) : whoseTurn ? (
@@ -181,7 +222,8 @@ export function Play({
       <Renderer
         question={question}
         locked={locked}
-        onCommit={commit}
+        onStage={stage}
+        onSubmit={submit}
         morphId={`answer-${round}-${index}`}
       />
     </Scene>

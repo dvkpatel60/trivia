@@ -24,8 +24,15 @@ import { contrastRatio, css, ensureContrast, hexToOklch, type Oklch } from "./co
  */
 export type Mood = "enigmatic" | "deep" | "warm" | "stark";
 
-/** Background treatments, drawn by the app from this vocabulary. */
-export type Texture = "grain" | "emberGlow" | "horizonGlow" | "grid" | "vignette";
+/**
+ * Background treatments, drawn by the app from this vocabulary.
+ *
+ * Deliberately short. The glow layers that used to live here were flat bands
+ * pinned to the bottom of the screen, and a band that stops partway up reads
+ * as a seam between the background and the content rather than as ground.
+ * What a pack's world is made of belongs in `scenery`, which moves.
+ */
+export type Texture = "grid" | "vignette";
 
 /**
  * Objects that drift through a pack's background.

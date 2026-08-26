@@ -16,7 +16,7 @@ import type { PuzzleProps } from "./types.js";
  * The component never names a category itself: houses and continents render
  * through the same screen.
  */
-export function Categorize({ question, locked, onCommit }: PuzzleProps<"categorize">) {
+export function Categorize({ question, locked, onStage }: PuzzleProps<"categorize">) {
   const [assignments, setAssignments] = useState<string[]>([]);
   const [over, setOver] = useState<string | null>(null);
   const buckets = useRef(new Map<string, HTMLButtonElement>());
@@ -32,7 +32,9 @@ export function Categorize({ question, locked, onCommit }: PuzzleProps<"categori
     setOver(null);
     const next = [...assignments, categoryId];
     setAssignments(next);
-    if (next.length === labels.length) onCommit({ assignments: next });
+    // Half a stack sorted is not an answer, so nothing is staged until the
+    // last card lands and Submit stays inert until then.
+    onStage(next.length === labels.length ? { assignments: next } : null);
   };
 
   /**

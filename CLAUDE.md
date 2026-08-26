@@ -137,6 +137,15 @@ A client-reported `elapsedMs` survives only as the fallback for a round-paced
 answer to a question that was never opened, and even then it can only *add* a
 bonus clamped to the window.
 
+Because the window opens on sight, round-paced play puts a gate in front of
+every question: it names the kind and the position and says how long the
+clock will run, and `begin` fires only when the player taps through it.
+Arriving on a screen must not start a clock nobody agreed to. The gate
+withholds the prompt in particular — a prompt read before the clock starts is
+the whole challenge given away — and the caller keys it per question (and per
+player, where the device is passed around) so it resets rather than opening
+once and letting the rest of the round through.
+
 Two consequences. A deadline must never be computed at render time — that was
 the old client-side `ownPaceDeadline`, and because every re-render handed out
 a fresh full window, the async timer never actually expired. And opening a
@@ -251,6 +260,19 @@ primitives; they do not hand-roll layout.
   radial mask that cut it into a ring stair-stepped the rim. The digit runs
   for the whole question and ticks once a second — only that leaf re-renders,
   never the ring.
+- **A puzzle stages; the dock submits.** `onStage` reports the answer as it
+  currently stands — or `null` while it isn't one yet — and the dock's single
+  Submit button is the only thing that sends it. So every kind confirms in
+  the same place with the same gesture, in the thumb zone, and a mis-tap
+  costs nothing until it is taken. The button renders whether or not anything
+  is staged, disabled until something is, because a dock that grows a button
+  under the player's thumb is worse than one that greys one out. A kind must
+  therefore let a player change their mind: `OptionList` allows re-picking
+  right up to the lock. `onStage` is stable across renders, so a kind whose
+  answer is complete the moment it appears — `Sequence`, whose dealt order is
+  already an answer — can stage from an effect. `Play` resets for a new
+  question *during render*, not in an effect, because a child's mount effect
+  runs first and a reset effect here would wipe that staging.
 - **Gestures always have a tap fallback.** The sorter takes a drag *or* a tap
   on the bucket; a gesture nobody discovers is worse than no gesture.
 
