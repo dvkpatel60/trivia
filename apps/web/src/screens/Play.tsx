@@ -9,11 +9,12 @@ import {
 } from "@curio/core";
 import type { ComponentType } from "react";
 
-import { KindIcon, PackProgress, Scene, TimerRing } from "../design/index.js";
+import { KindIcon, PackProgress, Roster, Scene, TimerRing } from "../design/index.js";
 import { PUZZLES, type PuzzleProps } from "../puzzles/index.js";
 
 interface PlayProps {
   game: PublicGameState;
+  meId: string;
   question: AnyPublicQuestion;
   round: number;
   index: number;
@@ -33,9 +34,12 @@ interface PlayProps {
  *
  * The renderer comes from the kind registry, so this file never grows a
  * switch: a new puzzle kind is a new component, not an edit here.
+ *
+ * After answering, the dock shows who else is still thinking.
  */
 export function Play({
   game,
+  meId,
   question,
   round,
   index,
@@ -49,8 +53,13 @@ export function Play({
   onAnswer,
 }: PlayProps) {
   const [locked, setLocked] = useState(answered);
+  const [pending, setPending] = useState<unknown>(null);
   const openedAt = useRef(now());
   const kind = getKind(question.kind);
+  const roster = useMemo(
+    () => Object.values(game.players).sort((a, b) => a.joinedAt - b.joinedAt),
+    [game.players],
+  );
 
   // Held in a ref so the expiry timer depends on the deadline alone, rather
   // than re-arming on every render of the parent.
@@ -59,6 +68,7 @@ export function Play({
 
   useEffect(() => {
     setLocked(answered);
+    setPending(null);
     openedAt.current = now();
   }, [round, index, answered, now]);
 
@@ -74,6 +84,7 @@ export function Play({
 
     const expire = () => {
       setLocked(true);
+      setPending(null);
       answerRef.current(index, null, Math.max(0, now() - openedAt.current));
     };
 
@@ -91,13 +102,29 @@ export function Play({
     [game.config, kind.timeMultiplier],
   );
 
+  /**
+   * Stage an answer for explicit submission.
+   *
+   * Kinds that need a lock-in button (match, sequence, etc.) call this
+   * directly. Kinds that auto-commit on selection also call this — the
+   * player then taps "Submit" in the dock to actually send it.
+   */
   const commit = (answer: AnswerFor[PuzzleKindId]) => {
     if (locked) return;
+    setPending(answer);
+  };
+
+  /** Send the staged answer to the server. */
+  const submitPending = () => {
+    if (pending == null || locked) return;
     setLocked(true);
-    onAnswer(index, answer, Math.max(0, now() - openedAt.current));
+    onAnswer(index, pending, Math.max(0, now() - openedAt.current));
+    setPending(null);
   };
 
   const Renderer = PUZZLES[question.kind] as ComponentType<PuzzleProps>;
+
+  const waitingOn = roster.length - answeredCount;
 
   return (
     <Scene
@@ -116,15 +143,39 @@ export function Play({
         </>
       }
       dock={
-        locked ? (
-          <p className="tiny faint center">
-            {game.config.pacing === "live"
-              ? `${answeredCount} of ${playerCount} in`
-              : "Locked until the round closes."}
-          </p>
-        ) : whoseTurn ? (
-          <p className="tiny faint center">{whoseTurn}'s turn</p>
-        ) : null
+        <>
+          {pending != null && !locked ? (
+            <button
+              type="button"
+              className="button state"
+              onClick={submitPending}
+            >
+              Submit
+            </button>
+          ) : locked && !answered ? (
+            <div className="stack--tight">
+              <p className="tiny faint center">
+                {game.config.pacing === "live"
+                  ? `${answeredCount} of ${playerCount} in · ${waitingOn} left`
+                  : "Locked until the round closes."}
+              </p>
+              {game.config.pacing === "live" && waitingOn > 0 ? (
+                <Roster
+                  players={roster}
+                  meId={meId}
+                  doneIds={new Set(
+                    roster
+                      .filter((p) => game.players[p.id]?.rounds[round]?.answers[index])
+                      .map((p) => p.id),
+                  )}
+                  now={now()}
+                />
+              ) : null}
+            </div>
+          ) : whoseTurn ? (
+            <p className="tiny faint center">{whoseTurn}'s turn</p>
+          ) : null}
+        </>
       }
     >
       <Renderer
