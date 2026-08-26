@@ -43,7 +43,7 @@ export function Unscramble({ question, locked, onCommit }: PuzzleProps<"unscramb
         />
         <button
           type="button"
-          className="button"
+          className="button state"
           disabled={locked || sent || !value.trim()}
           onClick={commit}
         >

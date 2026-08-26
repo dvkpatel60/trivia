@@ -41,22 +41,22 @@ export function Home({
       dock={
         <>
           {resumeCode ? (
-            <button type="button" className="button button--ghost" onClick={onResume}>
+            <button type="button" className="button button--ghost state" onClick={onResume}>
               Back to {resumeCode}
             </button>
           ) : null}
-          <button type="button" className="button" onClick={guard(onHost)} disabled={!online}>
+          <button type="button" className="button state" onClick={guard(onHost)} disabled={!online}>
             Host a game
           </button>
           <button
             type="button"
-            className="button button--ghost"
+            className="button button--ghost state"
             onClick={guard(onJoin)}
             disabled={!online}
           >
             Join with a code
           </button>
-          <button type="button" className="button button--quiet" onClick={guard(onLocal)}>
+          <button type="button" className="button button--quiet state" onClick={guard(onLocal)}>
             Pass one device around
           </button>
           {online ? null : (

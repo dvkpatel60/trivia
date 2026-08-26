@@ -1,8 +1,12 @@
 /*
- * Per-pack background treatments.
+ * The pack's world, behind everything.
  *
- * A pack picks textures from a fixed vocabulary rather than shipping CSS,
- * which is what stops twelve topics becoming twelve stylesheets.
+ * A mesh of blurred orbs on independent orbits, plus whatever textures the
+ * pack asked for. What makes it feel alive is that its speed, scale and
+ * saturation are custom properties the app rewrites as the game moves —
+ * so the background *knows* whether you are waiting in a lobby or three
+ * seconds from the end of a question, and it gets there by transitioning a
+ * property rather than by running anything per frame.
  */
 
 .atmosphere {
@@ -10,7 +14,16 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: var(--surface-0);
+  overflow: hidden;
+  background: var(--surface);
+
+  --orb-speed: 26s;
+  --orb-scale: 1;
+  --orb-glow: 0.18;
+
+  transition:
+    --orb-scale var(--dur-slow) var(--ease-out),
+    --orb-glow var(--dur-slow) var(--ease-out);
 }
 
 .atmosphere > * {
@@ -18,47 +31,94 @@
   inset: 0;
 }
 
-/* Candlelight: two slow embers drifting behind everything. */
-.tex-ember {
-  background:
-    radial-gradient(
-      42vmax 34vmax at 22% 8%,
-      color-mix(in oklab, var(--accent) 20%, transparent),
-      transparent 68%
-    ),
-    radial-gradient(
-      34vmax 30vmax at 84% 78%,
-      color-mix(in oklab, var(--extra) 15%, transparent),
-      transparent 66%
-    );
-  animation: drift 26s var(--ease-in-out) infinite alternate;
+/* ── the mesh ─────────────────────────────────────────────────────────── */
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(58px);
+  opacity: var(--orb-glow);
+  will-change: transform;
+  transition:
+    opacity var(--dur-slow) var(--ease-out),
+    background var(--dur-slow) var(--ease-out);
+  animation: orbit var(--orb-speed) var(--ease-in-out) infinite alternate;
 }
 
-@keyframes drift {
-  from { transform: translate3d(-2%, -1%, 0) scale(1); }
-  to { transform: translate3d(2%, 2%, 0) scale(1.07); }
+.orb--a {
+  inset: -14% auto auto -12%;
+  width: 62vmax;
+  height: 62vmax;
+  background: radial-gradient(circle, var(--accent), transparent 66%);
+  animation-duration: var(--orb-speed);
 }
+
+.orb--b {
+  inset: auto -18% -20% auto;
+  width: 54vmax;
+  height: 54vmax;
+  background: radial-gradient(circle, var(--extra), transparent 64%);
+  animation-duration: calc(var(--orb-speed) * 1.42);
+  animation-direction: alternate-reverse;
+}
+
+.orb--c {
+  inset: 28% auto auto 44%;
+  width: 40vmax;
+  height: 40vmax;
+  background: radial-gradient(circle, var(--support), transparent 62%);
+  animation-duration: calc(var(--orb-speed) * 1.86);
+  opacity: calc(var(--orb-glow) * 0.62);
+}
+
+@keyframes orbit {
+  from {
+    transform: translate3d(-3%, -2%, 0) scale(calc(var(--orb-scale) * 0.94));
+  }
+  to {
+    transform: translate3d(4%, 5%, 0) scale(calc(var(--orb-scale) * 1.12));
+  }
+}
+
+/*
+ * A single pulse when an answer lands right. One shot, keyed on the question
+ * so it re-fires — the only celebratory thing the background ever does, which
+ * is what keeps it worth noticing.
+ */
+.bloom {
+  background: radial-gradient(
+    circle at 50% 58%,
+    color-mix(in oklab, var(--support) 55%, transparent),
+    transparent 58%
+  );
+  opacity: 0;
+  animation: bloom 1100ms var(--ease-out) forwards;
+}
+
+@keyframes bloom {
+  0% { opacity: 0; transform: scale(0.7); }
+  22% { opacity: 0.5; }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+
+/* ── pack textures ────────────────────────────────────────────────────── */
 
 /* Atlas: a graticule, and a lit horizon at the foot of the screen. */
 .tex-grid {
   background-image:
-    linear-gradient(color-mix(in oklab, var(--ink) 6%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in oklab, var(--ink) 6%, transparent) 1px, transparent 1px);
+    linear-gradient(color-mix(in oklab, var(--on-surface) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--on-surface) 6%, transparent) 1px, transparent 1px);
   background-size: 56px 56px;
   mask-image: radial-gradient(120vmax 90vmax at 50% 18%, black, transparent 78%);
 }
 
 .tex-horizon {
-  background: linear-gradient(
-    to top,
-    color-mix(in oklab, var(--accent) 22%, transparent),
-    transparent 34%
-  );
+  background: linear-gradient(to top, color-mix(in oklab, var(--accent) 20%, transparent), transparent 32%);
 }
 
 /* Film grain, so flat dark surfaces don't band on cheap panels. */
 .tex-grain {
-  opacity: 0.32;
+  opacity: 0.3;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
 }
@@ -66,21 +126,30 @@
 .tex-vignette {
   background: radial-gradient(
     120vmax 96vmax at 50% 30%,
-    transparent 42%,
-    color-mix(in oklab, var(--surface-0) 88%, black) 100%
+    transparent 40%,
+    color-mix(in oklab, var(--surface) 92%, black) 100%
+  );
+}
+
+/* Candlelight's embers ride the mesh rather than replacing it. */
+.tex-ember {
+  background: radial-gradient(
+    38vmax 30vmax at 26% 12%,
+    color-mix(in oklab, var(--accent) 14%, transparent),
+    transparent 66%
   );
 }
 
 /*
- * The time pressure layer: a warm bloom at the screen edge that grows as a
- * question runs out. Peripheral, so nobody has to watch a number.
+ * Time pressure: a warm bloom at the screen edge that grows as a question
+ * runs out. Peripheral, so nobody has to watch a number.
  */
 .tex-pressure {
   opacity: 0;
   background: radial-gradient(
     130vmax 100vmax at 50% 50%,
-    transparent 52%,
-    color-mix(in oklab, var(--warn) 46%, transparent) 100%
+    transparent 50%,
+    color-mix(in oklab, var(--warn) 48%, transparent) 100%
   );
   animation-name: pressure;
   animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
@@ -88,6 +157,11 @@
 }
 
 @keyframes pressure {
-  0%, 62% { opacity: 0; }
-  100% { opacity: 0.85; }
+  0%, 60% { opacity: 0; }
+  100% { opacity: 0.9; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb { animation: none; }
+  .bloom { display: none; }
 }

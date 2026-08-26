@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import type { CSSProperties } from "react";
 import type { Texture } from "@curio/core";
 
 const LAYERS: Record<Texture, string> = {
@@ -9,24 +10,35 @@ const LAYERS: Record<Texture, string> = {
   vignette: "tex-vignette",
 };
 
+/** What the background should be doing right now. */
+export type AtmosphereMood = "idle" | "playing" | "beat" | "final";
+
 interface AtmosphereProps {
   textures: Texture[];
-  /**
-   * The current question's deadline, in corrected server time. Drives the
-   * pressure bloom at the screen edge.
-   */
+  mood: AtmosphereMood;
+  /** A live question's deadline, in corrected server time. */
   pressure?: { endsAt: number; totalMs: number; now: number } | null;
+  /** Changes when the player gets one right, firing a single bloom. */
+  bloomKey?: string | null;
 }
 
 /**
- * The pack's world, behind everything.
- *
- * Fixed and inert, so nothing here can intercept a tap. The pressure layer
- * is a CSS animation offset by however much of the question has already
- * elapsed, which means it stays in step with the server's clock without
- * React rendering a single extra frame.
+ * Each mood is three numbers. Transitions between them are CSS property
+ * animations, so the background changes character without React rendering a
+ * single extra frame.
  */
-export function Atmosphere({ textures, pressure }: AtmosphereProps) {
+const MOODS: Record<AtmosphereMood, CSSProperties> = {
+  // Waiting: wide, slow, cool. Breathing.
+  idle: { "--orb-speed": "30s", "--orb-scale": "1", "--orb-glow": "0.16" } as CSSProperties,
+  // A question is open: tighter and brighter, leaning in.
+  playing: { "--orb-speed": "17s", "--orb-scale": "1.1", "--orb-glow": "0.24" } as CSSProperties,
+  // Answer on screen: settles back out.
+  beat: { "--orb-speed": "24s", "--orb-scale": "1.03", "--orb-glow": "0.2" } as CSSProperties,
+  // The podium: everything converges and brightens.
+  final: { "--orb-speed": "13s", "--orb-scale": "1.3", "--orb-glow": "0.34" } as CSSProperties,
+};
+
+export function Atmosphere({ textures, mood, pressure, bloomKey }: AtmosphereProps) {
   const pressureStyle = useMemo(() => {
     if (!pressure || pressure.totalMs <= 0) return null;
     const elapsed = Math.max(0, pressure.totalMs - (pressure.endsAt - pressure.now));
@@ -37,11 +49,17 @@ export function Atmosphere({ textures, pressure }: AtmosphereProps) {
   }, [pressure]);
 
   return (
-    <div className="atmosphere" aria-hidden="true">
+    <div className="atmosphere" style={MOODS[mood]} aria-hidden="true">
+      <div className="orb orb--a" />
+      <div className="orb orb--b" />
+      <div className="orb orb--c" />
+
       {textures.map((texture) => (
         <div key={texture} className={LAYERS[texture]} />
       ))}
+
       {pressureStyle ? <div className="tex-pressure" style={pressureStyle} /> : null}
+      {bloomKey ? <div className="bloom" key={bloomKey} /> : null}
     </div>
   );
 }

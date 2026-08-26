@@ -22,6 +22,6 @@ export function applyPack(pack: ContentPack): void {
   // Keeps the browser's own chrome — address bar, overscroll — in the
   // pack's world rather than flashing white at the edges.
   const meta = document.querySelector('meta[name="theme-color"]');
-  const backdrop = variables["--surface-0"];
+  const backdrop = variables["--surface"];
   if (meta && backdrop) meta.setAttribute("content", backdrop);
 }

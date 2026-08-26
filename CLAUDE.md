@@ -150,18 +150,38 @@ primitives; they do not hand-roll layout.
 
 - **Colour is derived, never authored.** A pack declares an `Atmosphere` — hue,
   mood, four signature colours, textures, display face — and `derivePalette`
-  produces an OKLCH ramp from it. `contrastProblems` is asserted empty for
-  every pack, at every mood, across the hue circle, so a pack cannot ship an
-  unreadable palette. Do not add raw hex to a component; use the tokens.
+  builds a Material 3 tonal ladder from it in OKLCH: surfaces, a five-step
+  container ramp, and role/on/container triples that keep the author's hue but
+  take their lightness from fixed tone stops. `contrastProblems` is asserted
+  empty for every pack, at every mood, every 15° around the hue circle, so a
+  pack cannot ship an unreadable palette. Never put raw hex in a component.
+- **Elevation is tonal, not a shadow.** A raised surface steps up the container
+  ladder first; the shadow is secondary. On a dark ground that reads as lit
+  rather than as a cut-out.
+- **One interaction model.** Anything tappable carries `.state`, which
+  composites the foreground colour over the surface at a fixed opacity on
+  hover, focus, and press. Do not write per-component hover colours.
 - **`Scene` is the layout.** Three zones: `rail` (context, timer), stage (the
   only scrolling region), `dock` (actions, in the thumb zone). The dock not
   moving between questions is the point.
-- **Motion is four names** — `enter`, `rise`, `pop`, `sweep` — on one set of
-  easing curves in `tokens.css`. Everything collapses under
-  `prefers-reduced-motion`.
+- **Motion is springs, in four names** — `glide`, `snap`, `pounce`, `settle` in
+  `design/motion.ts`. Springs because they are interruptible: a tap during an
+  exit redirects rather than queueing. Everything collapses under
+  `prefers-reduced-motion` via the `reduced` flag.
+- **Use `m`, never `motion`.** `LazyMotion` runs in `strict` mode, so
+  `motion.div` throws — it would drag the full feature bundle back into the
+  first chunk. Rollup splits react / motion / app into three chunks.
+- **Shared elements do the phase changes.** The option a player taps carries a
+  `layoutId`, and the next screen's verdict carries the same one, so the thing
+  they touched travels into the answer. That is `morphId` on `PuzzleProps`.
+- **The background reacts.** `Atmosphere` takes a mood read straight off the
+  phase and rewrites three custom properties; the orbs transition between
+  them. No per-frame JS, so it stays cheap on a mid-range Android.
 - **The timer is a CSS animation**, offset by elapsed time so it stays locked
   to the server's deadline. It renders once per question. Do not reintroduce a
   per-tick React countdown; only the last five seconds mount a digit.
+- **Gestures always have a tap fallback.** The sorter takes a drag *or* a tap
+  on the bucket; a gesture nobody discovers is worse than no gesture.
 
 Type is Fraunces / Space Grotesk for display (per pack) and Inter for UI, from
 Google Fonts, with real fallback stacks.

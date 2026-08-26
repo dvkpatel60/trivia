@@ -1,4 +1,8 @@
+import { m } from "motion/react";
 import type { AnswerResult } from "@curio/core";
+
+import { Count } from "./Count.js";
+import { cascade, pounce, rise } from "./motion.js";
 
 interface VerdictProps {
   result: AnswerResult | undefined;
@@ -6,6 +10,8 @@ interface VerdictProps {
   solution?: string | null;
   /** Live play can keep points back until the round closes. */
   sealed?: boolean;
+  /** Matches the option the player tapped, so it travels into this card. */
+  morphId?: string;
 }
 
 function headline(fraction: number): string {
@@ -15,11 +21,13 @@ function headline(fraction: number): string {
 }
 
 /** The moment after an answer: how you did, and what it was worth. */
-export function Verdict({ result, solution, sealed }: VerdictProps) {
+export function Verdict({ result, solution, sealed, morphId }: VerdictProps) {
   if (!result) {
     return (
       <div className="verdict" data-tone="none">
-        <p className="verdict__headline">No answer</p>
+        <m.p className="verdict__headline" {...(morphId ? { layoutId: morphId } : {})}>
+          No answer
+        </m.p>
         {solution ? <p className="lede">{solution}</p> : null}
       </div>
     );
@@ -29,25 +37,34 @@ export function Verdict({ result, solution, sealed }: VerdictProps) {
 
   return (
     <div className="verdict" data-tone={tone}>
-      <p className="verdict__headline">{headline(result.fraction)}</p>
+      <m.p
+        className="verdict__headline"
+        {...(morphId ? { layoutId: morphId } : {})}
+        initial={morphId ? false : { opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={pounce}
+      >
+        {headline(result.fraction)}
+      </m.p>
+
       {result.message ? <p className="lede">{result.message}</p> : null}
       {solution ? <p className="tiny faint">{solution}</p> : null}
 
       {sealed ? (
         <p className="tiny faint">Points are sealed until the round closes.</p>
       ) : (
-        <div className="ledger">
+        <m.div className="ledger" variants={cascade(0.07)} initial="hidden" animate="shown">
           {result.lines.map((line) => (
-            <span className="ledger__line" key={line.label}>
+            <m.span className="ledger__line" variants={rise} key={line.label}>
               <span>{line.label}</span>
               <span>+{line.points}</span>
-            </span>
+            </m.span>
           ))}
-          <span className="ledger__line ledger__line--total">
+          <m.span className="ledger__line ledger__line--total" variants={rise}>
             <span>total</span>
-            <span>+{result.points.toLocaleString()}</span>
-          </span>
-        </div>
+            <Count value={result.points} />
+          </m.span>
+        </m.div>
       )}
     </div>
   );

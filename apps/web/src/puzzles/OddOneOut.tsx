@@ -1,7 +1,7 @@
 import { OptionList } from "../design/index.js";
 import type { PuzzleProps } from "./types.js";
 
-export function OddOneOut({ question, locked, onCommit }: PuzzleProps<"oddOneOut">) {
+export function OddOneOut({ question, locked, onCommit, morphId }: PuzzleProps<"oddOneOut">) {
   return (
     <div className="stack--loose">
       <p className="prompt">{question.prompt}</p>
@@ -9,6 +9,7 @@ export function OddOneOut({ question, locked, onCommit }: PuzzleProps<"oddOneOut
         options={question.view.options}
         locked={locked}
         label={question.prompt}
+        morphId={morphId}
         onPick={(choice) => onCommit({ choice })}
       />
     </div>

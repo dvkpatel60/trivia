@@ -57,7 +57,7 @@ export function Match({ question, locked, onCommit }: PuzzleProps<"match">) {
         <button
           key={`${side}-${value}`}
           type="button"
-          className="tile"
+          className="tile state"
           data-linked={linked[side].has(value)}
           data-selected={selected?.side === side && selected.value === value}
           data-dimmed={Boolean(selected) && selected?.side === side && !linked[side].has(value)}
@@ -82,7 +82,7 @@ export function Match({ question, locked, onCommit }: PuzzleProps<"match">) {
 
       <button
         type="button"
-        className="button"
+        className="button state"
         disabled={locked || sent || pairs.length === 0}
         onClick={commit}
       >

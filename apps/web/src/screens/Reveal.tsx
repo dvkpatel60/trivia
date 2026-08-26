@@ -41,7 +41,7 @@ export function Reveal({ game, meId, round, onNext, onLeave }: RevealProps) {
       dock={
         <>
           {isHost ? (
-            <button type="button" className="button" disabled={busy} onClick={() => void next()}>
+            <button type="button" className="button state" disabled={busy} onClick={() => void next()}>
               {busy ? "Dealing…" : last ? "Final scores" : `Open round ${round + 2}`}
             </button>
           ) : (
@@ -49,7 +49,7 @@ export function Reveal({ game, meId, round, onNext, onLeave }: RevealProps) {
               {game.players[game.hostId]?.name ?? "The host"} opens the next round.
             </p>
           )}
-          <button type="button" className="button button--quiet" onClick={onLeave}>
+          <button type="button" className="button button--quiet state" onClick={onLeave}>
             Leave
           </button>
         </>

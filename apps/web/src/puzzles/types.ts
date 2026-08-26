@@ -8,4 +8,10 @@ export interface PuzzleProps<K extends PuzzleKindId = PuzzleKindId> {
   onCommit(answer: AnswerFor[K]): void;
   /** The right answer in prose, available only after the round reveals. */
   solution?: string | null;
+  /**
+   * Shared identity handed to whichever element the player commits with, so
+   * it can travel into the verdict on the next screen. Kinds that have no
+   * single "thing you tapped" simply ignore it.
+   */
+  morphId?: string;
 }

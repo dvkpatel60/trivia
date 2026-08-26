@@ -13,5 +13,20 @@ export default defineConfig({
   build: {
     outDir: "dist",
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        /*
+         * Three chunks that change at different rates: React, the animation
+         * engine, and everything we write. The first two are effectively
+         * permanent, so a content or UI change only invalidates the third.
+         */
+        manualChunks(id: string) {
+          if (!id.includes("node_modules")) return undefined;
+          if (/node_modules[\\/](motion|framer-motion)[\\/]/.test(id)) return "motion";
+          if (/node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) return "react";
+          return undefined;
+        },
+      },
+    },
   },
 });

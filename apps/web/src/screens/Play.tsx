@@ -134,7 +134,12 @@ export function Play({
         ) : null
       }
     >
-      <Renderer question={question} locked={locked} onCommit={commit} />
+      <Renderer
+        question={question}
+        locked={locked}
+        onCommit={commit}
+        morphId={`answer-${round}-${index}`}
+      />
     </Scene>
   );
 }

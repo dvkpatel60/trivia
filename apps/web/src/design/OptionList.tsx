@@ -1,4 +1,7 @@
+import { m } from "motion/react";
 import { useState } from "react";
+
+import { cascade, rise, snap } from "./motion.js";
 
 export interface OptionListProps {
   options: string[];
@@ -8,8 +11,16 @@ export interface OptionListProps {
   correct?: number | null;
   /** Big centred labels for two-way choices. */
   variant?: "list" | "binary";
-  /** Labels the group for screen readers. */
   label?: string;
+  /**
+   * Shared identity for the row the player picks.
+   *
+   * The next screen renders its verdict under the same id, so the option you
+   * tapped physically travels into the answer rather than one screen fading
+   * into another. It is the single most expensive-feeling thing in the app
+   * and it costs one prop.
+   */
+  morphId?: string;
 }
 
 const LETTERS = ["A", "B", "C", "D", "E", "F"];
@@ -17,10 +28,10 @@ const LETTERS = ["A", "B", "C", "D", "E", "F"];
 /**
  * The answer list four kinds share.
  *
- * States are expressed as one `data-state` per row rather than a pile of
- * class names, so the CSS reads as a small state machine: picked sweeps a
- * fill, everything else recedes, and once the answer is known the right and
- * wrong rows get an edge and a glyph — never a flood of colour.
+ * States are one `data-state` per row rather than a pile of class names, so
+ * the CSS reads as a small state machine: picked sweeps a fill, everything
+ * else recedes, and once the answer is known the right and wrong rows get an
+ * edge and a glyph — never a flood of colour.
  */
 export function OptionList({
   options,
@@ -29,6 +40,7 @@ export function OptionList({
   correct,
   variant = "list",
   label,
+  morphId,
 }: OptionListProps) {
   const [picked, setPicked] = useState<number | null>(null);
   const known = correct != null;
@@ -49,15 +61,28 @@ export function OptionList({
   };
 
   return (
-    <div className={variant === "binary" ? "binary" : "options"} role="group" aria-label={label}>
+    <m.div
+      className={variant === "binary" ? "binary" : "options"}
+      role="group"
+      aria-label={label}
+      variants={cascade(0.04)}
+      initial="hidden"
+      animate="shown"
+    >
       {options.map((option, index) => {
         const state = stateOf(index);
+        const isPicked = picked === index;
         return (
-          <button
+          <m.button
             key={option}
             type="button"
-            className="option"
+            className="option state"
             data-state={state}
+            variants={rise}
+            layout
+            {...(morphId && isPicked ? { layoutId: morphId } : {})}
+            whileTap={locked || picked !== null ? undefined : { scale: 0.975 }}
+            transition={snap}
             disabled={locked || picked !== null}
             onClick={() => choose(index)}
           >
@@ -67,18 +92,30 @@ export function OptionList({
             ) : null}
             <span className="option__label">{option}</span>
             {state === "right" ? (
-              <span className="option__mark" aria-label="correct">
+              <m.span
+                className="option__mark"
+                aria-label="correct"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={snap}
+              >
                 ✓
-              </span>
+              </m.span>
             ) : null}
             {state === "wrong" ? (
-              <span className="option__mark" aria-label="incorrect">
+              <m.span
+                className="option__mark"
+                aria-label="incorrect"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={snap}
+              >
                 ✕
-              </span>
+              </m.span>
             ) : null}
-          </button>
+          </m.button>
         );
       })}
-    </div>
+    </m.div>
   );
 }

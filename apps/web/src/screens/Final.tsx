@@ -23,7 +23,7 @@ export function Final({ game, meId, onHome }: FinalProps) {
       flow="top"
       rail={<span className="eyebrow">Final</span>}
       dock={
-        <button type="button" className="button" onClick={onHome}>
+        <button type="button" className="button state" onClick={onHome}>
           Back to the start
         </button>
       }

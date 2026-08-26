@@ -7,7 +7,7 @@ import type { PuzzleProps } from "./types.js";
  * Clues are rationed. Spent ones shrink and grey out rather than vanishing,
  * so you can see the trail you followed — and what it cost you.
  */
-export function WhoAmI({ question, locked, onCommit }: PuzzleProps<"whoAmI">) {
+export function WhoAmI({ question, locked, onCommit, morphId }: PuzzleProps<"whoAmI">) {
   const [shown, setShown] = useState(1);
   const clues = question.view.clues;
   const more = shown < clues.length;
@@ -25,7 +25,7 @@ export function WhoAmI({ question, locked, onCommit }: PuzzleProps<"whoAmI">) {
       {more && !locked ? (
         <button
           type="button"
-          className="button button--ghost button--inline"
+          className="button button--ghost button--inline state"
           style={{ alignSelf: "center" }}
           onClick={() => setShown(shown + 1)}
         >
@@ -37,6 +37,7 @@ export function WhoAmI({ question, locked, onCommit }: PuzzleProps<"whoAmI">) {
         options={question.view.options}
         locked={locked}
         label="Who am I?"
+        morphId={morphId}
         onPick={(choice) => onCommit({ choice, clueIndex: shown - 1 })}
       />
     </div>

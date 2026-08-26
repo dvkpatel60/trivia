@@ -40,7 +40,7 @@ export function QrCode({ value, label }: QrCodeProps) {
       aria-label={label}
       shapeRendering="crispEdges"
     >
-      <path d={path.d} fill="var(--surface-0)" />
+      <path d={path.d} fill="var(--surface)" />
     </svg>
   );
 }

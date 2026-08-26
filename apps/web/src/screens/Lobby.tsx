@@ -53,7 +53,7 @@ export function Lobby({ game, meId, now, onStart, onLeave, onCopied }: LobbyProp
       dock={
         <>
           {isHost ? (
-            <button type="button" className="button" disabled={busy} onClick={() => void start()}>
+            <button type="button" className="button state" disabled={busy} onClick={() => void start()}>
               {busy ? "Dealing…" : `Start · ${game.config.rounds} rounds`}
             </button>
           ) : (
@@ -61,7 +61,7 @@ export function Lobby({ game, meId, now, onStart, onLeave, onCopied }: LobbyProp
               {game.players[game.hostId]?.name ?? "The host"} starts when everyone's in.
             </p>
           )}
-          <button type="button" className="button button--quiet" onClick={onLeave}>
+          <button type="button" className="button button--quiet state" onClick={onLeave}>
             Leave
           </button>
         </>
@@ -81,7 +81,7 @@ export function Lobby({ game, meId, now, onStart, onLeave, onCopied }: LobbyProp
         </p>
         <button
           type="button"
-          className="button button--ghost button--inline"
+          className="button button--ghost button--inline state"
           style={{ alignSelf: "center" }}
           onClick={() => void share()}
         >

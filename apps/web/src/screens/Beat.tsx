@@ -25,7 +25,7 @@ export function Beat({ game, meId, round, index }: BeatProps) {
       rail={<span className="eyebrow">Question {index + 1}</span>}
       dock={<p className="tiny faint center">Next up…</p>}
     >
-      <Verdict result={result} sealed={sealed} />
+      <Verdict result={result} sealed={sealed} morphId={`answer-${round}-${index}`} />
 
       <div className="stack--tight stagger">
         {players.map((player) => {

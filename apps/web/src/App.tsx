@@ -15,7 +15,9 @@ import type { Transport } from "./net/transport.js";
 import { loadIdentity, saveIdentity, type Identity } from "./state/identity.js";
 import { useSession } from "./state/session.js";
 import { useToast } from "./state/useToast.js";
-import { applyPack, Atmosphere, Scene } from "./design/index.js";
+import { domMax, LazyMotion } from "motion/react";
+
+import { applyPack, Atmosphere, Scene, type AtmosphereMood } from "./design/index.js";
 
 import { Beat } from "./screens/Beat.js";
 import { Final } from "./screens/Final.js";
@@ -30,6 +32,13 @@ import { Standings } from "./screens/Standings.js";
 import { Waiting } from "./screens/Waiting.js";
 
 type Route = "home" | "join" | "host" | "local" | "game";
+
+/**
+ * `domMax` is the feature set including layout animation and drag, which the
+ * scoreboard and the sorter card both need. `LazyMotion` with `strict` also
+ * means every component uses `m` rather than `motion`, so nothing silently
+ * pulls the full bundle back in.
+ */
 
 /** Is there a server at all? Pass-and-play works either way. */
 async function probeOnline(): Promise<boolean> {
@@ -108,6 +117,31 @@ export function App() {
   useEffect(() => {
     applyPack(pack);
   }, [pack]);
+
+  /** What the background should be doing, read straight off the phase. */
+  const mood: AtmosphereMood = useMemo(() => {
+    const phase = game?.phase.name;
+    if (!phase || phase === "lobby") return "idle";
+    if (phase === "final") return "final";
+    if (phase === "question" || phase === "open") return "playing";
+    return "beat";
+  }, [game?.phase.name]);
+
+  /**
+   * One bloom when the player's own answer lands right. Keyed on the
+   * question, so it fires once and re-fires on the next one.
+   */
+  const bloomKey = useMemo(() => {
+    if (!game) return null;
+    const round = "round" in game.phase ? game.phase.round : null;
+    if (round == null) return null;
+    const answers = game.players[identity.id]?.rounds[round]?.answers ?? {};
+    const latest = Object.entries(answers)
+      .map(([index, result]) => ({ index: Number(index), result }))
+      .sort((a, b) => b.result.at - a.result.at)[0];
+    if (!latest || latest.result.fraction < 0.999) return null;
+    return `${round}-${latest.index}`;
+  }, [game, identity.id]);
 
   /**
    * The edge bloom during a live question. Only live play has a deadline
@@ -270,7 +304,7 @@ export function App() {
         <Scene
           id="connecting"
           dock={
-            <button type="button" className="button button--quiet" onClick={leave}>
+            <button type="button" className="button button--quiet state" onClick={leave}>
               Back to the start
             </button>
           }
@@ -297,11 +331,16 @@ export function App() {
   })();
 
   return (
-    <>
-      <Atmosphere textures={pack.atmosphere.texture} pressure={pressure} />
+    <LazyMotion features={domMax} strict>
+      <Atmosphere
+        textures={pack.atmosphere.texture}
+        mood={mood}
+        pressure={pressure}
+        bloomKey={bloomKey}
+      />
       {body}
       {toast ? <div className="toast">{toast}</div> : null}
-    </>
+    </LazyMotion>
   );
 }
 

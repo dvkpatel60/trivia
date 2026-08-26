@@ -24,7 +24,7 @@ export function Standings({ game, meId, round, isHost, onSkip }: StandingsProps)
             {last ? "Final scores coming up…" : `Round ${round + 2} starts in a moment…`}
           </p>
           {isHost ? (
-            <button type="button" className="button button--ghost" onClick={onSkip}>
+            <button type="button" className="button button--ghost state" onClick={onSkip}>
               Skip ahead
             </button>
           ) : null}

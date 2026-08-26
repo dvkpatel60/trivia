@@ -32,7 +32,7 @@
   display: block;
   padding: var(--s3);
   border-radius: var(--r-md);
-  background: var(--ink);
+  background: var(--on-surface);
   animation: pop-in var(--dur-slow) var(--ease-spring) both;
 }
 
@@ -63,7 +63,7 @@
 .verdict[data-tone="good"] .verdict__headline { color: var(--support); }
 .verdict[data-tone="part"] .verdict__headline { color: var(--accent); }
 .verdict[data-tone="bad"] .verdict__headline { color: var(--warn); }
-.verdict[data-tone="none"] .verdict__headline { color: var(--ink-faint); }
+.verdict[data-tone="none"] .verdict__headline { color: var(--outline); }
 
 .ledger {
   display: flex;
@@ -73,7 +73,7 @@
   max-width: 260px;
   font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
-  color: var(--ink-dim);
+  color: var(--on-surface-variant);
 }
 
 .ledger__line {
@@ -87,11 +87,11 @@
 .ledger__line:nth-child(3) { animation-delay: 160ms; }
 
 .ledger__line--total {
-  color: var(--ink);
+  color: var(--on-surface);
   font-weight: 650;
   padding-top: var(--s2);
   margin-top: var(--s1);
-  border-top: var(--hairline) solid var(--line);
+  border-top: var(--hairline) solid var(--outline-variant);
   animation-delay: 230ms;
 }
 
@@ -108,7 +108,7 @@
   padding: var(--s2) var(--s3);
   border-radius: var(--r-sm);
   border: var(--hairline) solid transparent;
-  background: color-mix(in oklab, var(--surface-1) 55%, transparent);
+  background: color-mix(in oklab, var(--surface-low) 55%, transparent);
   /* Rank changes animate rather than snap, which is most of the drama. */
   transition: background var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
   animation: rise-in var(--dur-base) var(--ease-out) both;
@@ -128,7 +128,7 @@
 .board__rank {
   font-family: var(--font-display);
   font-variation-settings: var(--display-settings, normal);
-  color: var(--ink-faint);
+  color: var(--outline);
   text-align: center;
   font-size: var(--text-sm);
 }
@@ -154,7 +154,7 @@
   gap: var(--s2);
   padding-inline: var(--s2);
   min-height: 150px;
-  border-bottom: 2px solid color-mix(in oklab, var(--accent) 42%, var(--line));
+  border-bottom: 2px solid color-mix(in oklab, var(--accent) 42%, var(--outline-variant));
 }
 
 .plinth {
@@ -166,13 +166,13 @@
   align-items: center;
   gap: var(--s1);
   padding: var(--s3) var(--s2);
-  border: var(--hairline) solid var(--line);
+  border: var(--hairline) solid var(--outline-variant);
   border-bottom: none;
   border-radius: var(--r-md) var(--r-md) 0 0;
   background: linear-gradient(
     180deg,
-    color-mix(in oklab, var(--accent) 24%, var(--surface-2)),
-    color-mix(in oklab, var(--surface-1) 90%, transparent)
+    color-mix(in oklab, var(--accent) 24%, var(--surface-container)),
+    color-mix(in oklab, var(--surface-low) 90%, transparent)
   );
   overflow: hidden;
   /* Third, then second, then a held beat before the winner. */
@@ -186,8 +186,8 @@
 .plinth[data-place="1"] {
   background: linear-gradient(
     180deg,
-    color-mix(in oklab, var(--accent) 42%, var(--surface-2)),
-    color-mix(in oklab, var(--surface-1) 90%, transparent)
+    color-mix(in oklab, var(--accent) 42%, var(--surface-container)),
+    color-mix(in oklab, var(--surface-low) 90%, transparent)
   );
 }
 
@@ -206,7 +206,7 @@
   max-width: 100%;
 }
 
-.plinth__score { font-size: var(--text-2xs); color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+.plinth__score { font-size: var(--text-2xs); color: var(--on-surface-variant); font-variant-numeric: tabular-nums; }
 
 .crown {
   font-size: var(--text-hero);
@@ -225,8 +225,8 @@
   z-index: 40;
   padding: var(--s2) var(--s5);
   border-radius: var(--r-full);
-  border: var(--hairline) solid var(--line);
-  background: color-mix(in oklab, var(--surface-3) 92%, transparent);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface-high) 92%, transparent);
   backdrop-filter: blur(16px);
   box-shadow: var(--shadow-lg);
   font-size: var(--text-sm);
@@ -265,7 +265,7 @@
   width: 12px;
   height: 20px;
   border-radius: 50% 50% 45% 45% / 62% 62% 38% 38%;
-  background: radial-gradient(circle at 50% 74%, color-mix(in oklab, var(--ink) 92%, var(--accent)), var(--accent) 54%, transparent 76%);
+  background: radial-gradient(circle at 50% 74%, color-mix(in oklab, var(--on-surface) 92%, var(--accent)), var(--accent) 54%, transparent 76%);
   filter: blur(0.3px);
   animation: flicker 3.4s var(--ease-in-out) infinite;
 }
@@ -287,9 +287,9 @@
   min-height: 76px;
   padding: var(--s3) var(--s4);
   border-radius: var(--r-md);
-  border: var(--hairline) solid var(--line);
-  background: color-mix(in oklab, var(--surface-2) 68%, transparent);
-  color: var(--ink);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface-container) 68%, transparent);
+  color: var(--on-surface);
   text-align: left;
   cursor: pointer;
   overflow: hidden;
@@ -305,7 +305,7 @@
   width: 44px;
   height: 44px;
   border-radius: var(--r-sm);
-  border: var(--hairline) solid color-mix(in oklab, var(--ink) 12%, transparent);
+  border: var(--hairline) solid color-mix(in oklab, var(--on-surface) 12%, transparent);
   overflow: hidden;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -313,7 +313,7 @@
 }
 
 .drawer__title { font-weight: 620; display: block; }
-.drawer__meta { font-size: var(--text-xs); color: var(--ink-faint); }
+.drawer__meta { font-size: var(--text-xs); color: var(--outline); }
 
 /* ── setting rows ─────────────────────────────────────────────────────── */
 
@@ -326,7 +326,7 @@
 }
 
 .setting__label { font-size: var(--text-sm); }
-.setting__hint { font-size: var(--text-xs); color: var(--ink-faint); }
+.setting__hint { font-size: var(--text-xs); color: var(--outline); }
 
 .switch {
   flex: none;
@@ -334,8 +334,8 @@
   width: 50px;
   height: 30px;
   border-radius: var(--r-full);
-  border: var(--hairline) solid var(--line);
-  background: color-mix(in oklab, var(--surface-0) 70%, transparent);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface) 70%, transparent);
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
 }
@@ -353,7 +353,7 @@
   width: 22px;
   height: 22px;
   border-radius: var(--r-full);
-  background: var(--ink);
+  background: var(--on-surface);
   transition: transform var(--dur-fast) var(--ease-spring);
 }
 
@@ -365,9 +365,9 @@
   width: 36px;
   height: 36px;
   border-radius: var(--r-sm);
-  border: var(--hairline) solid var(--line);
+  border: var(--hairline) solid var(--outline-variant);
   background: transparent;
-  color: var(--ink);
+  color: var(--on-surface);
   cursor: pointer;
   font-size: var(--text-lg);
   line-height: 1;
@@ -387,9 +387,9 @@
 .chip {
   padding: var(--s3);
   border-radius: var(--r-sm);
-  border: var(--hairline) solid var(--line);
-  background: color-mix(in oklab, var(--surface-1) 50%, transparent);
-  color: var(--ink-dim);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface-low) 50%, transparent);
+  color: var(--on-surface-variant);
   text-align: left;
   cursor: pointer;
   transition: all var(--dur-fast) var(--ease-out);
@@ -397,12 +397,12 @@
 
 .chip[aria-pressed="true"] {
   border-color: var(--accent);
-  color: var(--ink);
+  color: var(--on-surface);
   background: color-mix(in oklab, var(--accent) 10%, transparent);
 }
 
 .chip__name { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: var(--text-sm); }
-.chip__desc { font-size: var(--text-xs); color: var(--ink-faint); }
+.chip__desc { font-size: var(--text-xs); color: var(--outline); }
 
 .mode {
   display: flex;
@@ -412,9 +412,9 @@
   min-height: 68px;
   justify-content: center;
   border-radius: var(--r-md);
-  border: var(--hairline) solid var(--line);
-  background: color-mix(in oklab, var(--surface-1) 50%, transparent);
-  color: var(--ink-dim);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface-low) 50%, transparent);
+  color: var(--on-surface-variant);
   text-align: left;
   cursor: pointer;
   transition: all var(--dur-fast) var(--ease-out);
@@ -422,10 +422,10 @@
 
 .mode[aria-pressed="true"] {
   border-color: var(--accent);
-  color: var(--ink);
+  color: var(--on-surface);
   background: color-mix(in oklab, var(--accent) 12%, transparent);
   box-shadow: var(--glow);
 }
 
 .mode__name { font-family: var(--font-display); font-variation-settings: var(--display-settings, normal); font-size: var(--text-lg); font-weight: 600; }
-.mode__desc { font-size: var(--text-xs); color: var(--ink-faint); }
+.mode__desc { font-size: var(--text-xs); color: var(--outline); }

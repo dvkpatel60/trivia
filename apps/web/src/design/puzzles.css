@@ -7,7 +7,7 @@
   max-width: 280px;
   margin-inline: auto;
   border-radius: var(--r-md);
-  border: var(--hairline) solid var(--line);
+  border: var(--hairline) solid var(--outline-variant);
   box-shadow: var(--shadow-md);
   display: block;
   animation: pop-in var(--dur-slow) var(--ease-spring) both;
@@ -23,9 +23,9 @@
   min-height: 48px;
   padding: var(--s2) var(--s3);
   border-radius: var(--r-sm);
-  border: var(--hairline) solid var(--line);
-  background: color-mix(in oklab, var(--surface-2) 70%, transparent);
-  color: var(--ink);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface-container) 70%, transparent);
+  color: var(--on-surface);
   font-size: var(--text-sm);
   text-align: left;
   cursor: pointer;
@@ -44,7 +44,7 @@
 }
 
 .tile[data-linked="true"] {
-  border-color: color-mix(in oklab, var(--accent) 60%, var(--line));
+  border-color: color-mix(in oklab, var(--accent) 60%, var(--outline-variant));
   background: color-mix(in oklab, var(--accent) 10%, transparent);
 }
 
@@ -82,8 +82,8 @@
   display: grid;
   place-items: center;
   border-radius: var(--r-sm);
-  border: var(--hairline) solid var(--line);
-  background: color-mix(in oklab, var(--surface-2) 76%, transparent);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface-container) 76%, transparent);
   font-family: var(--font-display);
   font-variation-settings: var(--display-settings, normal);
   font-size: var(--text-lg);
@@ -105,7 +105,14 @@
 
 /* ── sequence ─────────────────────────────────────────────────────────── */
 
-.sequence { display: flex; flex-direction: column; gap: var(--s2); }
+.sequence {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 
 .seq {
   display: flex;
@@ -115,16 +122,23 @@
   min-height: 52px;
   padding: var(--s2) var(--s3);
   border-radius: var(--r-sm);
-  border: var(--hairline) solid var(--line);
-  background: color-mix(in oklab, var(--surface-2) 70%, transparent);
-  color: var(--ink);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface-container) 70%, transparent);
+  color: var(--on-surface);
   text-align: left;
   cursor: pointer;
   transition: border-color var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out);
 }
 
-.seq:active:not(:disabled) { transform: scale(0.99); }
-.seq[data-placed="true"] { border-color: color-mix(in oklab, var(--accent) 55%, var(--line)); }
+.seq { list-style: none; touch-action: none; }
+.seq:active { cursor: grabbing; }
+
+.seq__grip {
+  flex: none;
+  color: var(--outline);
+  font-size: var(--text-sm);
+  letter-spacing: -0.1em;
+}
 
 .seq__slot {
   flex: none;
@@ -133,17 +147,17 @@
   display: grid;
   place-items: center;
   border-radius: var(--r-full);
-  border: var(--hairline) solid var(--line);
+  border: var(--hairline) solid var(--outline-variant);
   font-size: var(--text-xs);
   font-weight: 650;
-  color: var(--ink-faint);
+  color: var(--outline);
   transition: all var(--dur-fast) var(--ease-spring);
 }
 
-.seq[data-placed="true"] .seq__slot {
-  background: var(--accent);
-  color: var(--on-accent);
-  border-color: transparent;
+.seq .seq__slot {
+  background: color-mix(in oklab, var(--accent) 20%, transparent);
+  color: var(--accent);
+  border-color: color-mix(in oklab, var(--accent) 40%, transparent);
 }
 
 /* ── categorize ───────────────────────────────────────────────────────── */
@@ -156,30 +170,22 @@
 
 /* The label is a card that flies off toward whichever bucket you pick. */
 .sorter__card {
+  max-width: min(86vw, 30rem);
   font-family: var(--font-display);
   font-variation-settings: var(--display-settings, normal);
-  font-size: var(--text-2xl);
+  font-size: var(--text-xl);
   font-weight: var(--display-weight, 600);
   letter-spacing: var(--display-tracking);
   text-align: center;
+  text-wrap: balance;
   padding: var(--s4) var(--s5);
   border-radius: var(--r-lg);
-  border: var(--hairline) solid var(--line);
-  background: color-mix(in oklab, var(--surface-3) 74%, transparent);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface-high) 74%, transparent);
   box-shadow: var(--shadow-md);
-  animation: card-in var(--dur-base) var(--ease-spring) both;
 }
 
-.sorter__card[data-leaving="true"] { animation: card-out var(--dur-fast) var(--ease-in-out) forwards; }
-
-@keyframes card-in {
-  from { opacity: 0; transform: translate3d(0, 18px, 0) scale(0.94) rotate(-1.5deg); }
-  to { opacity: 1; transform: none; }
-}
-
-@keyframes card-out {
-  to { opacity: 0; transform: translate3d(0, -34px, 0) scale(0.88) rotate(2deg); }
-}
+.sorter__card { cursor: grab; touch-action: none; user-select: none; }
 
 .buckets {
   display: grid;
@@ -191,10 +197,10 @@
   min-height: 58px;
   padding: var(--s2) 6px;
   border-radius: var(--r-sm);
-  border: var(--hairline) solid var(--line);
-  border-top: 2px solid var(--bucket-color, var(--line));
-  background: color-mix(in oklab, var(--surface-2) 70%, transparent);
-  color: var(--ink);
+  border: var(--hairline) solid var(--outline-variant);
+  border-top: 2px solid var(--bucket-color, var(--outline-variant));
+  background: color-mix(in oklab, var(--surface-container) 70%, transparent);
+  color: var(--on-surface);
   font-size: var(--text-xs);
   font-weight: 600;
   line-height: 1.2;
@@ -209,7 +215,13 @@
 }
 
 .bucket:active:not(:disabled) { transform: translateY(1px) scale(0.98); }
-.bucket__sub { font-size: var(--text-2xs); color: var(--ink-faint); }
+
+/* Lit while a card is being dragged over it. */
+.bucket[data-over="true"] {
+  border-color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 18%, transparent);
+}
+.bucket__sub { font-size: var(--text-2xs); color: var(--outline); }
 
 /* ── true / false ─────────────────────────────────────────────────────── */
 
@@ -235,6 +247,6 @@
 
 .clue[data-spent="true"] {
   font-size: var(--text-md);
-  color: var(--ink-faint);
-  border-left-color: var(--line);
+  color: var(--outline);
+  border-left-color: var(--outline-variant);
 }

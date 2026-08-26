@@ -55,7 +55,7 @@ export function Waiting({ game, meId, round, endsAt, now, onClose, onLeave }: Wa
       dock={
         <>
           {isHost ? (
-            <button type="button" className="button" disabled={busy} onClick={() => void close()}>
+            <button type="button" className="button state" disabled={busy} onClick={() => void close()}>
               {busy ? "Closing…" : everyone ? "Show the answers" : "Close without them"}
             </button>
           ) : (
@@ -63,7 +63,7 @@ export function Waiting({ game, meId, round, endsAt, now, onClose, onLeave }: Wa
               {game.players[game.hostId]?.name ?? "The host"} closes the round.
             </p>
           )}
-          <button type="button" className="button button--quiet" onClick={onLeave}>
+          <button type="button" className="button button--quiet state" onClick={onLeave}>
             Leave
           </button>
         </>

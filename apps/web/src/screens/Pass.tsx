@@ -13,7 +13,7 @@ export function Pass({ name, round, onReady }: PassProps) {
       id={`pass-${name}-${round}`}
       rail={<span className="eyebrow">Round {round + 1}</span>}
       dock={
-        <button type="button" className="button" onClick={onReady}>
+        <button type="button" className="button state" onClick={onReady}>
           I'm looking
         </button>
       }

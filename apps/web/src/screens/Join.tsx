@@ -37,7 +37,7 @@ export function Join({ initialCode, name, onName, onJoin, onBack, trouble }: Joi
     <Scene
       id="join"
       rail={
-        <button type="button" className="button button--quiet button--inline" onClick={onBack}>
+        <button type="button" className="button button--quiet button--inline state" onClick={onBack}>
           ← Back
         </button>
       }
@@ -53,7 +53,7 @@ export function Join({ initialCode, name, onName, onJoin, onBack, trouble }: Joi
               {trouble}
             </p>
           ) : null}
-          <button type="button" className="button" disabled={busy} onClick={() => void submit()}>
+          <button type="button" className="button state" disabled={busy} onClick={() => void submit()}>
             {busy ? "Looking…" : "Join"}
           </button>
         </>

@@ -1,18 +1,74 @@
-/* The primitives every screen is built from. */
+/*
+ * The primitives every screen is built from.
+ *
+ * Interactive surfaces share one interaction model: a state layer — the
+ * foreground colour composited over the surface at a fixed opacity — rather
+ * than each component inventing its own hover and press colours. That single
+ * decision is why Material components feel like the same object under a
+ * finger, and it costs one pseudo-element.
+ */
+
+/*
+ * Put this on anything tappable. The layer sits above the background and
+ * below the content, so it tints the surface without touching the label.
+ */
+.state {
+  position: relative;
+  isolation: isolate;
+}
+
+.state > * {
+  position: relative;
+  z-index: 1;
+}
+
+.state::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+  pointer-events: none;
+}
+
+@media (hover: hover) {
+  .state:hover:not(:disabled)::after { opacity: var(--state-hover, 0.08); }
+}
+
+.state:focus-visible::after { opacity: var(--state-focus, 0.1); }
+.state:active:not(:disabled)::after { opacity: var(--state-press, 0.12); }
 
 /* ── surfaces ─────────────────────────────────────────────────────────── */
 
+/*
+ * Elevation is a step up the tonal ladder first and a shadow second. On a
+ * dark ground a raised surface reads as *lit*, not as a cut-out — which is
+ * what stops a stack of panels turning into a stack of black boxes.
+ */
 .panel {
-  background: color-mix(in oklab, var(--surface-2) 82%, transparent);
-  border: var(--hairline) solid var(--line);
+  background: color-mix(in oklab, var(--surface-container) 86%, transparent);
+  border: var(--hairline) solid var(--outline-variant);
   border-radius: var(--r-lg);
   padding: var(--s4);
   box-shadow: var(--shadow-md);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px) saturate(1.1);
 }
 
 .panel--flush { padding: 0; overflow: hidden; }
-.panel--quiet { background: color-mix(in oklab, var(--surface-1) 60%, transparent); box-shadow: none; }
+
+.panel--quiet {
+  background: color-mix(in oklab, var(--surface-low) 70%, transparent);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.panel--raised {
+  background: color-mix(in oklab, var(--surface-high) 90%, transparent);
+  box-shadow: var(--shadow-lg);
+}
 
 /* ── text ─────────────────────────────────────────────────────────────── */
 
@@ -21,7 +77,7 @@
   font-weight: 600;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--outline);
   display: inline-flex;
   align-items: center;
   gap: var(--s2);
@@ -32,12 +88,12 @@
   font-variation-settings: var(--display-settings, normal);
   font-style: italic;
   font-weight: 400;
-  color: var(--ink-dim);
+  color: var(--on-surface-variant);
   font-size: var(--text-md);
 }
 
-.muted { color: var(--ink-dim); }
-.faint { color: var(--ink-faint); }
+.muted { color: var(--on-surface-variant); }
+.faint { color: var(--outline); }
 .small { font-size: var(--text-sm); }
 .tiny { font-size: var(--text-xs); }
 .center { text-align: center; }
@@ -81,24 +137,23 @@
     opacity var(--dur-fast) var(--ease-out);
 }
 
-.button:hover:not(:disabled) { filter: brightness(1.07); }
 .button:active:not(:disabled) { transform: scale(0.982); }
 .button:disabled { opacity: 0.38; cursor: not-allowed; }
 
 .button--ghost {
-  background: color-mix(in oklab, var(--surface-3) 70%, transparent);
-  border-color: var(--line);
-  color: var(--ink);
+  background: color-mix(in oklab, var(--surface-high) 70%, transparent);
+  border-color: var(--outline-variant);
+  color: var(--on-surface);
 }
 
 .button--quiet {
   background: transparent;
-  color: var(--ink-faint);
+  color: var(--outline);
   min-height: 44px;
   font-weight: 500;
 }
 
-.button--quiet:hover:not(:disabled) { color: var(--ink); filter: none; }
+.button--quiet:hover:not(:disabled) { color: var(--on-surface); }
 
 .button--inline { width: auto; padding: 0 var(--s4); min-height: 40px; font-size: var(--text-sm); }
 
@@ -115,13 +170,13 @@
   min-height: var(--tap);
   padding: 0 var(--s4);
   border-radius: var(--r-md);
-  border: var(--hairline) solid var(--line);
-  background: color-mix(in oklab, var(--surface-0) 76%, transparent);
-  color: var(--ink);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface) 76%, transparent);
+  color: var(--on-surface);
   transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
 }
 
-.input::placeholder { color: var(--ink-faint); }
+.input::placeholder { color: var(--outline); }
 
 .input:focus {
   outline: none;
@@ -153,10 +208,10 @@
   width: 100%;
   min-height: 58px;
   padding: var(--s3) var(--s4);
-  border: var(--hairline) solid var(--line);
+  border: var(--hairline) solid var(--outline-variant);
   border-radius: var(--r-md);
-  background: color-mix(in oklab, var(--surface-2) 72%, transparent);
-  color: var(--ink);
+  background: color-mix(in oklab, var(--surface-container) 72%, transparent);
+  color: var(--on-surface);
   text-align: left;
   font-size: var(--text-md);
   cursor: pointer;
@@ -180,10 +235,10 @@
   width: 28px;
   height: 28px;
   border-radius: var(--r-full);
-  border: var(--hairline) solid var(--line);
+  border: var(--hairline) solid var(--outline-variant);
   font-size: var(--text-xs);
   font-weight: 650;
-  color: var(--ink-faint);
+  color: var(--outline);
   transition: all var(--dur-fast) var(--ease-out);
 }
 
@@ -268,7 +323,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: conic-gradient(var(--accent) var(--sweep), color-mix(in oklab, var(--ink) 12%, transparent) 0);
+  background: conic-gradient(var(--accent) var(--sweep), color-mix(in oklab, var(--on-surface) 12%, transparent) 0);
   mask: radial-gradient(circle, transparent 60%, black 61%);
   animation-name: drain;
   animation-timing-function: linear;
@@ -283,7 +338,7 @@
 }
 
 .ring[data-urgent="true"]::before {
-  background: conic-gradient(var(--warn) var(--sweep), color-mix(in oklab, var(--ink) 12%, transparent) 0);
+  background: conic-gradient(var(--warn) var(--sweep), color-mix(in oklab, var(--on-surface) 12%, transparent) 0);
 }
 
 .ring__count {
@@ -298,7 +353,7 @@
   width: 5px;
   height: 5px;
   border-radius: var(--r-full);
-  background: var(--ink-faint);
+  background: var(--outline);
 }
 
 /* ── people ───────────────────────────────────────────────────────────── */
@@ -320,7 +375,7 @@
   padding: var(--s2) var(--s3);
   border-radius: var(--r-sm);
   border: var(--hairline) solid transparent;
-  background: color-mix(in oklab, var(--surface-1) 55%, transparent);
+  background: color-mix(in oklab, var(--surface-low) 55%, transparent);
   transition: border-color var(--dur-base) var(--ease-out), background var(--dur-base) var(--ease-out);
 }
 
@@ -330,7 +385,7 @@
 }
 
 .person__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.person__state { font-size: var(--text-xs); color: var(--ink-faint); }
+.person__state { font-size: var(--text-xs); color: var(--outline); }
 .person[data-done="true"] .person__state { color: var(--support); }
 .person[data-away="true"] .person__name { opacity: 0.5; }
 
@@ -342,12 +397,12 @@
   gap: var(--s2);
   padding: 4px 10px;
   border-radius: var(--r-full);
-  border: var(--hairline) solid var(--line);
+  border: var(--hairline) solid var(--outline-variant);
   font-size: var(--text-2xs);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--outline);
   white-space: nowrap;
 }
 
@@ -380,7 +435,7 @@
   width: 5px;
   height: 5px;
   border-radius: var(--r-full);
-  background: var(--ink-faint);
+  background: var(--outline);
   opacity: 0.32;
   transition: all var(--dur-base) var(--ease-spring);
 }

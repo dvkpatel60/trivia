@@ -100,11 +100,11 @@ async function answerAnything(page: Page): Promise<boolean> {
     await buckets.first().click();
     return true;
   }
-  const seq = page.locator("button.seq:not([disabled])");
-  if (await seq.count()) {
-    const n = await seq.count();
-    for (let i = 0; i < n; i++) await seq.nth(i).click();
-    await page.locator("button.button:has-text('Lock it in')").first().click();
+  // Sequence is drag-to-reorder now; accepting the order as dealt is a
+  // legitimate (usually wrong) answer, which is all this test needs.
+  const order = page.locator("button.button:has-text('Drag them into order')");
+  if (await order.count()) {
+    await order.first().click();
     return true;
   }
   const tiles = page.locator("button.tile:not([disabled])");

@@ -1,7 +1,7 @@
 import { OptionList } from "../design/index.js";
 import type { PuzzleProps } from "./types.js";
 
-export function ImageChoice({ question, locked, onCommit }: PuzzleProps<"imageChoice">) {
+export function ImageChoice({ question, locked, onCommit, morphId }: PuzzleProps<"imageChoice">) {
   const media = question.media?.[0];
 
   return (
@@ -19,6 +19,7 @@ export function ImageChoice({ question, locked, onCommit }: PuzzleProps<"imageCh
         options={question.view.options}
         locked={locked}
         label={question.prompt}
+        morphId={morphId}
         onPick={(choice) => onCommit({ choice })}
       />
     </div>

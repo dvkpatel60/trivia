@@ -2,7 +2,7 @@
  * Design tokens.
  *
  * Colour is not here — a pack's palette is derived at runtime and set on
- * :root as --surface-0..4, --ink*, --accent and friends. What lives here is
+ * :root as --surface..4, --on-surface*, --accent and friends. What lives here is
  * everything that stays constant across topics: type, space, shape, motion.
  */
 

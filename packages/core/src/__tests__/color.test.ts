@@ -13,7 +13,7 @@ import {
   contrastProblems,
   derivePalette,
   paletteVariables,
-  SURFACE_STEPS,
+  STATE_LAYER,
   type Atmosphere,
   type Mood,
 } from "../atmosphere.js";
@@ -88,41 +88,78 @@ describe("palette derivation", () => {
     expect(contrastProblems(derivePalette({ ...base, mood }))).toEqual([]);
   });
 
-  it.each(moods)("%s produces a palette at any hue", (mood) => {
-    for (let hue = 0; hue < 360; hue += 30) {
-      const problems = contrastProblems(derivePalette({ ...base, mood, hue }));
-      expect(problems, `${mood} at ${hue}deg`).toEqual([]);
+  it.each(moods)("%s stays readable at every hue", (mood) => {
+    // The whole point of deriving rather than authoring: a pack cannot pick
+    // a hue that makes its own text unreadable.
+    for (let hue = 0; hue < 360; hue += 15) {
+      expect(contrastProblems(derivePalette({ ...base, mood, hue })), `${mood} at ${hue}deg`).toEqual(
+        [],
+      );
     }
   });
 
-  it("ramps surfaces from dark to light without a flat step", () => {
-    const { surface } = derivePalette(base);
-    expect(surface.length).toBe(SURFACE_STEPS);
-    for (let step = 1; step < surface.length; step++) {
-      expect(surface[step]!.l).toBeGreaterThan(surface[step - 1]!.l);
+  it("climbs the container ladder without a flat step", () => {
+    const { containers } = derivePalette(base);
+    expect(containers.length).toBe(5);
+    for (let step = 1; step < containers.length; step++) {
+      expect(containers[step]!.l).toBeGreaterThan(containers[step - 1]!.l);
     }
+  });
+
+  it("keeps the page darker than anything raised on it", () => {
+    const { surface, containers } = derivePalette(base);
+    expect(surface.l).toBeLessThan(containers[2]!.l);
   });
 
   it("tints surfaces toward the pack's hue", () => {
-    const { surface } = derivePalette({ ...base, hue: 120 });
-    expect(surface.every((swatch) => swatch.h === 120)).toBe(true);
+    const { surface, containers } = derivePalette({ ...base, hue: 120 });
+    expect(surface.h).toBe(120);
+    expect(containers.every((swatch) => swatch.h === 120)).toBe(true);
   });
 
   it("keeps a stark pack nearly colourless", () => {
-    const { surface } = derivePalette({ ...base, mood: "stark" });
-    expect(surface.every((swatch) => swatch.c < 0.015)).toBe(true);
+    const { containers } = derivePalette({ ...base, mood: "stark" });
+    expect(containers.every((swatch) => swatch.c < 0.012)).toBe(true);
   });
 
-  it("gives a filled accent a label that reads on it", () => {
+  it("keeps each role's authored hue while taking its lightness from the ladder", () => {
     const palette = derivePalette(base);
-    expect(contrastRatio(palette.onAccent, palette.accent)).toBeGreaterThanOrEqual(AA_CONTRAST);
+    const authored = hexToOklch(base.signature.support);
+    expect(palette.support.base.h).toBeCloseTo(authored.h, 0);
+    // Tone 80 on the ladder, not whatever lightness the author happened to pick.
+    expect(palette.support.base.l).toBeGreaterThan(0.6);
   });
 
-  it("emits one custom property per surface step", () => {
-    const variables = paletteVariables(derivePalette(base));
-    for (let step = 0; step < SURFACE_STEPS; step++) {
-      expect(variables[`--surface-${step}`]).toMatch(/^oklch\(/);
+  it("pairs every role with a label that reads on it", () => {
+    const palette = derivePalette(base);
+    for (const role of [palette.accent, palette.support, palette.warn, palette.extra]) {
+      expect(contrastRatio(role.on, role.base)).toBeGreaterThanOrEqual(AA_CONTRAST);
+      expect(contrastRatio(role.onContainer, role.container)).toBeGreaterThanOrEqual(AA_CONTRAST);
     }
-    expect(variables["--accent"]).toMatch(/^oklch\(/);
+  });
+
+  it("emits the surface ladder, the roles, and the state layers", () => {
+    const variables = paletteVariables(derivePalette(base));
+    for (const name of [
+      "--surface",
+      "--surface-lowest",
+      "--surface-container",
+      "--surface-highest",
+      "--on-surface",
+      "--outline",
+      "--accent",
+      "--on-accent",
+      "--accent-container",
+      "--support",
+    ]) {
+      expect(variables[name], name).toMatch(/^oklch\(/);
+    }
+    expect(variables["--state-press"]).toBe(String(STATE_LAYER.press));
+  });
+
+  it("orders the state layers from lightest touch to heaviest", () => {
+    expect(STATE_LAYER.hover).toBeLessThan(STATE_LAYER.focus);
+    expect(STATE_LAYER.focus).toBeLessThan(STATE_LAYER.press);
+    expect(STATE_LAYER.press).toBeLessThan(STATE_LAYER.drag);
   });
 });

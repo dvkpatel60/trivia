@@ -98,7 +98,7 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
       flow="top"
       rail={
         <>
-          <button type="button" className="button button--quiet button--inline" onClick={onBack}>
+          <button type="button" className="button button--quiet button--inline state" onClick={onBack}>
             ← Back
           </button>
           <span className="eyebrow">{local ? "Pass and play" : "Host"}</span>
@@ -107,7 +107,7 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
       dock={
         <>
           <p className="tiny faint center">About {minutes} minutes.</p>
-          <button type="button" className="button" disabled={busy} onClick={() => void begin()}>
+          <button type="button" className="button state" disabled={busy} onClick={() => void begin()}>
             {busy ? "Setting up…" : local ? "Start playing" : "Open the lobby"}
           </button>
         </>
@@ -132,7 +132,7 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
             <button
               key={option.id}
               type="button"
-              className="mode"
+              className="mode state"
               aria-pressed={config.pacing === option.id}
               onClick={() => patch({ pacing: option.id })}
             >
@@ -183,7 +183,7 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
               {names.length > 2 ? (
                 <button
                   type="button"
-                  className="button button--quiet button--inline"
+                  className="button button--quiet button--inline state"
                   aria-label={`Remove player ${index + 1}`}
                   onClick={() => setNames(names.filter((_, i) => i !== index))}
                 >
@@ -195,7 +195,7 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
           {names.length < 8 ? (
             <button
               type="button"
-              className="button button--ghost"
+              className="button button--ghost state"
               onClick={() => setNames([...names, `Player ${names.length + 1}`])}
             >
               Add a player
@@ -213,7 +213,7 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
               <button
                 key={id}
                 type="button"
-                className="chip"
+                className="chip state"
                 aria-pressed={config.kinds[id] !== false}
                 onClick={() => toggleKind(id)}
               >
@@ -293,10 +293,12 @@ function PackDrawer({
   onSelect(): void;
 }) {
   const { palette } = pack;
-  const swatch = [palette.accent, palette.support, palette.extra, palette.warn];
+  const swatch = [palette.accent, palette.support, palette.extra, palette.warn].map(
+    (role) => role.base,
+  );
 
   return (
-    <button type="button" className="drawer" aria-pressed={selected} onClick={onSelect}>
+    <button type="button" className="drawer state" aria-pressed={selected} onClick={onSelect}>
       <span className="drawer__swatch" aria-hidden="true">
         {swatch.map((colour, index) => (
           <span key={index} style={{ background: colour ? oklchToHex(colour) : "transparent" }} />
