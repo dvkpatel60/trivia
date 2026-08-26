@@ -26,17 +26,23 @@ npm run build        # every workspace; the app lands in apps/web/dist
 Run a single test file with `npx vitest run packages/core/src/__tests__/flow.test.ts`,
 or one case with `-t "closes the question once everyone has answered"`.
 
-`npm run typecheck` runs three passes, because only one of them is a project
--reference build: `tsc --build` for the workspace graph, then
-`tsc -p netlify/tsconfig.json` and `tsc -p tools/tsconfig.json` for the
-function and the art script, which sit outside it.
+**Nothing here is built from TypeScript.** Vite bundles the app, vite-node
+runs the tools, Netlify bundles the functions, and the workspace packages are
+consumed *from source* through their `package.json` `types` entry. So there
+are no composite projects and no project references — each tsconfig checks
+itself, and `npm run typecheck` runs all seven.
 
-**Anything not inside a tsconfig is not checked, and an editor cannot resolve
-it either.** `tools/` had no tsconfig for a while; `@curio/*` resolves through
-`"main": "./src/index.ts"`, which needs `moduleResolution: bundler`, so
-without one an editor reports "Cannot find module '@curio/content'" and `tsc`
-silently checks nothing. If you add a directory of TypeScript, give it a
-tsconfig and add it to the `typecheck` script in the same commit.
+That is deliberate, and reverting it breaks editors. Project references make
+TypeScript resolve a referenced package through its built `dist/*.d.ts`, so in
+a fresh clone — before anyone runs a build — every import of `@curio/*` fails
+with TS6305 or "Cannot find module". Source-only internal packages should not
+be composite.
+
+Two rules follow. A new directory of TypeScript needs its own tsconfig *and* a
+line in the `typecheck` script, in the same commit; without one it is invisible
+to both the editor and CI. And every tsconfig sets the `lib` it is actually
+entitled to — `packages/core` gets `ES2022` with no DOM, which is what keeps
+the engine honest about running on a server.
 
 ## The shape of it
 
@@ -278,8 +284,7 @@ answer.
 
 - `@netlify/blobs` only works inside Netlify's runtime; the functions cannot
   run under plain `node`.
-- `apps/web` emits declarations only (`emitDeclarationOnly`); the real build is
-  Vite. Don't lint `dist-types`.
+- No tsconfig emits anything; `tsc` is only ever a checker here.
 - The pack registry is bundled into the client, so packs are plain data — never
   put logic or secrets in one.
 - Local pass-and-play uses `pacing: "local"`, which is *round-paced*: it shares
