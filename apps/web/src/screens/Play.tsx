@@ -9,7 +9,7 @@ import {
 } from "@curio/core";
 import type { ComponentType } from "react";
 
-import { KindIcon, Scene, TimerRing } from "../design/index.js";
+import { KindIcon, PackProgress, Scene, TimerRing } from "../design/index.js";
 import { PUZZLES, type PuzzleProps } from "../puzzles/index.js";
 
 interface PlayProps {
@@ -110,14 +110,7 @@ export function Play({
             {kind.name}
           </span>
           <span className="row">
-            <span className="dots" aria-label={`Question ${index + 1} of ${total}`}>
-              {Array.from({ length: total }, (_, position) => (
-                <span
-                  key={position}
-                  data-state={position < index ? "done" : position === index ? "now" : "todo"}
-                />
-              ))}
-            </span>
+            <PackProgress total={total} done={index} size={8} className="play-progress" />
             <TimerRing endsAt={endsAt} totalMs={totalMs} now={now} />
           </span>
         </>
@@ -127,7 +120,7 @@ export function Play({
           <p className="tiny faint center">
             {game.config.pacing === "live"
               ? `${answeredCount} of ${playerCount} in`
-              : "Sealed."}
+              : "Locked until the round closes."}
           </p>
         ) : whoseTurn ? (
           <p className="tiny faint center">{whoseTurn}'s turn</p>

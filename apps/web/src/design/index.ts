@@ -12,3 +12,11 @@ export { cascade, rise, glide, snap, pounce, settle, reduced } from "./motion.js
 export { Sigil } from "./Sigil.js";
 export { Wordmark } from "./Wordmark.js";
 export { Plate } from "./Plate.js";
+export {
+  usePack,
+  PackTimerIcon,
+  PackScoreIcon,
+  PackLeaderIcon,
+  PackProgress,
+} from "./PackArtifacts.js";
+export { ScoreBurst } from "./ScoreBurst.js";

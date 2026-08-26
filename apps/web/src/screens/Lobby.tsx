@@ -54,11 +54,11 @@ export function Lobby({ game, meId, now, onStart, onLeave, onCopied }: LobbyProp
         <>
           {isHost ? (
             <button type="button" className="button state" disabled={busy} onClick={() => void start()}>
-              {busy ? "Dealing…" : `Start · ${game.config.rounds} rounds`}
+              {busy ? "Dealing…" : `Begin · ${game.config.rounds} rounds`}
             </button>
           ) : (
             <p className="lede center">
-              {game.players[game.hostId]?.name ?? "The host"} starts when everyone's in.
+              {game.players[game.hostId]?.name ?? "The host"} begins when everyone's in.
             </p>
           )}
           <button type="button" className="button button--quiet state" onClick={onLeave}>

@@ -14,14 +14,14 @@ export function Pass({ name, round, onReady }: PassProps) {
       rail={<span className="eyebrow">Round {round + 1}</span>}
       dock={
         <button type="button" className="button state" onClick={onReady}>
-          I'm looking
+          I'm ready
         </button>
       }
     >
       <div className="splash splash--solo">
         <span className="ember" />
         <h1>{name}</h1>
-        <p className="lede">Pass the device along, then tap when you have it.</p>
+        <p className="lede">Pass the device along, then claim it when you're ready.</p>
       </div>
     </Scene>
   );

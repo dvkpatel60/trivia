@@ -1,0 +1,85 @@
+{
+  "pack": "hogwarts",
+  "images": {
+    "creature-phoenix": {
+      "subject": "a majestic crimson and gold firebird perched on a stone plinth, wings half spread, embers falling from its feathers",
+      "alt": "A crimson and gold firebird perched on a stone plinth, embers falling from its wings",
+      "prompt": "a majestic crimson and gold firebird perched on a stone plinth, wings half spread, embers falling from its feathers, dark atmospheric fantasy illustration, magical candlelit scene, rich jewel tones, detailed painterly style, dramatic lighting with warm golden highlights against deep shadows, deep indigo shadows, antique gold highlights, muted emerald and oxblood accents, rich purple undertones, three-quarter view, shallow depth of field, dark vignetted background with magical ambient glow, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 2852278754,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-26T14:51:19.547Z"
+    },
+    "creature-hippogriff": {
+      "subject": "a proud beast with the head and front talons of an eagle and the body and hindquarters of a grey horse, standing in a courtyard",
+      "alt": "A beast with an eagle's head and talons and a grey horse's body, standing in a courtyard",
+      "prompt": "a proud beast with the head and front talons of an eagle and the body and hindquarters of a grey horse, standing in a courtyard, dark atmospheric fantasy illustration, magical candlelit scene, rich jewel tones, detailed painterly style, dramatic lighting with warm golden highlights against deep shadows, deep indigo shadows, antique gold highlights, muted emerald and oxblood accents, rich purple undertones, three-quarter view, shallow depth of field, dark vignetted background with magical ambient glow, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 3665821363,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-26T14:51:19.547Z"
+    },
+    "object-pensieve": {
+      "subject": "a wide shallow carved stone basin on a pedestal, filled with a swirling silvery liquid that glows faintly",
+      "alt": "A carved stone basin on a pedestal filled with swirling silver liquid",
+      "prompt": "a wide shallow carved stone basin on a pedestal, filled with a swirling silvery liquid that glows faintly, dark atmospheric fantasy illustration, magical candlelit scene, rich jewel tones, detailed painterly style, dramatic lighting with warm golden highlights against deep shadows, deep indigo shadows, antique gold highlights, muted emerald and oxblood accents, rich purple undertones, three-quarter view, shallow depth of field, dark vignetted background with magical ambient glow, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 4142850954,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-26T14:51:19.547Z"
+    },
+    "object-timeturner": {
+      "subject": "a small golden hourglass suspended inside three nested rotating rings on a fine chain, resting on dark velvet",
+      "alt": "A small golden hourglass inside three nested rings on a chain, on dark velvet",
+      "prompt": "a small golden hourglass suspended inside three nested rotating rings on a fine chain, resting on dark velvet, dark atmospheric fantasy illustration, magical candlelit scene, rich jewel tones, detailed painterly style, dramatic lighting with warm golden highlights against deep shadows, deep indigo shadows, antique gold highlights, muted emerald and oxblood accents, rich purple undertones, three-quarter view, shallow depth of field, dark vignetted background with magical ambient glow, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 3125279976,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-26T14:51:19.547Z"
+    },
+    "place-greathall": {
+      "subject": "a vast medieval banqueting hall with four long wooden tables, hundreds of candles floating in mid air, and an enchanted ceiling showing a starry night sky",
+      "alt": "A vast hall with four long tables, floating candles, and a ceiling showing a starry sky",
+      "prompt": "a vast medieval banqueting hall with four long wooden tables, hundreds of candles floating in mid air, and an enchanted ceiling showing a starry night sky, dark atmospheric fantasy illustration, magical candlelit scene, rich jewel tones, detailed painterly style, dramatic lighting with warm golden highlights against deep shadows, deep indigo shadows, antique gold highlights, muted emerald and oxblood accents, rich purple undertones, three-quarter view, shallow depth of field, dark vignetted background with magical ambient glow, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 1726294859,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-26T14:51:19.547Z"
+    },
+    "creature-dementor": {
+      "subject": "a tall gaunt hooded figure in tattered black robes gliding low over still water, its face hidden, frost spreading beneath it",
+      "alt": "A tall hooded figure in tattered black robes gliding over water, frost spreading beneath it",
+      "prompt": "a tall gaunt hooded figure in tattered black robes gliding low over still water, its face hidden, frost spreading beneath it, dark atmospheric fantasy illustration, magical candlelit scene, rich jewel tones, detailed painterly style, dramatic lighting with warm golden highlights against deep shadows, deep indigo shadows, antique gold highlights, muted emerald and oxblood accents, rich purple undertones, three-quarter view, shallow depth of field, dark vignetted background with magical ambient glow, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 2446244285,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-26T14:51:19.547Z"
+    },
+    "creature-basilisk": {
+      "subject": "an enormous green serpent coiled through a flooded stone chamber lined with carved pillars, only its body visible",
+      "alt": "An enormous green serpent coiled through a flooded stone chamber lined with carved pillars",
+      "prompt": "an enormous green serpent coiled through a flooded stone chamber lined with carved pillars, only its body visible, dark atmospheric fantasy illustration, magical candlelit scene, rich jewel tones, detailed painterly style, dramatic lighting with warm golden highlights against deep shadows, deep indigo shadows, antique gold highlights, muted emerald and oxblood accents, rich purple undertones, three-quarter view, shallow depth of field, dark vignetted background with magical ambient glow, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 509540131,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-26T14:51:19.547Z"
+    },
+    "creature-mandrake": {
+      "subject": "a small ugly root shaped like a screaming infant, being lifted out of a clay plant pot on a potting bench",
+      "alt": "A small root shaped like a screaming infant, lifted from a clay pot on a potting bench",
+      "prompt": "a small ugly root shaped like a screaming infant, being lifted out of a clay plant pot on a potting bench, dark atmospheric fantasy illustration, magical candlelit scene, rich jewel tones, detailed painterly style, dramatic lighting with warm golden highlights against deep shadows, deep indigo shadows, antique gold highlights, muted emerald and oxblood accents, rich purple undertones, three-quarter view, shallow depth of field, dark vignetted background with magical ambient glow, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 4115446202,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-26T14:51:19.547Z"
+    },
+    "place-diagon-alley": {
+      "subject": "a narrow crooked cobbled street of leaning shopfronts with bow windows and hanging trade signs, crowded with robed figures",
+      "alt": "A narrow crooked cobbled street of leaning shopfronts crowded with robed figures",
+      "prompt": "a narrow crooked cobbled street of leaning shopfronts with bow windows and hanging trade signs, crowded with robed figures, dark atmospheric fantasy illustration, magical candlelit scene, rich jewel tones, detailed painterly style, dramatic lighting with warm golden highlights against deep shadows, deep indigo shadows, antique gold highlights, muted emerald and oxblood accents, rich purple undertones, three-quarter view, shallow depth of field, dark vignetted background with magical ambient glow, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 2238128933,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-26T14:51:19.547Z"
+    },
+    "object-snitch": {
+      "subject": "a small golden sphere the size of a walnut with delicate silver filigree wings outstretched, hovering in dark air",
+      "alt": "A small golden sphere with delicate silver wings, hovering in dark air",
+      "prompt": "a small golden sphere the size of a walnut with delicate silver filigree wings outstretched, hovering in dark air, dark atmospheric fantasy illustration, magical candlelit scene, rich jewel tones, detailed painterly style, dramatic lighting with warm golden highlights against deep shadows, deep indigo shadows, antique gold highlights, muted emerald and oxblood accents, rich purple undertones, three-quarter view, shallow depth of field, dark vignetted background with magical ambient glow, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 508097922,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-26T14:51:19.547Z"
+    }
+  }
+}

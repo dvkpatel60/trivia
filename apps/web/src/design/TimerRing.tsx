@@ -1,5 +1,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 
+import { PackTimerIcon } from "./PackArtifacts.js";
+
 interface TimerRingProps {
   /** Deadline on the corrected server clock, or null when untimed. */
   endsAt: number | null;
@@ -46,7 +48,7 @@ export function TimerRing({ endsAt, totalMs, now }: TimerRingProps) {
   if (endsAt == null || !totalMs) {
     return (
       <span className="ring" aria-hidden="true">
-        <span className="ring__dot" />
+        <PackTimerIcon size={14} className="ring__icon" />
       </span>
     );
   }
@@ -67,6 +69,7 @@ export function TimerRing({ endsAt, totalMs, now }: TimerRingProps) {
         } as CSSProperties
       }
     >
+      <PackTimerIcon size={14} className="ring__icon" />
       {seconds != null ? <span className="ring__count">{seconds}</span> : null}
     </span>
   );

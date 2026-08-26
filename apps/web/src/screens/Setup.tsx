@@ -101,20 +101,20 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
           <button type="button" className="button button--quiet button--inline state" onClick={onBack}>
             ← Back
           </button>
-          <span className="eyebrow">{local ? "Pass and play" : "Host"}</span>
+          <span className="eyebrow">{local ? "Around the table" : "The host"}</span>
         </>
       }
       dock={
         <>
-          <p className="tiny faint center">About {minutes} minutes, give or take an argument.</p>
+          <p className="tiny faint center">Roughly {minutes} minutes, depending on the debate.</p>
           <button type="button" className="button state" disabled={busy} onClick={() => void begin()}>
-            {busy ? "Setting up…" : local ? "Start playing" : "Open the lobby"}
+            {busy ? "Preparing…" : local ? "Begin the trials" : "Summon the room"}
           </button>
         </>
       }
     >
       <section className="stack--tight">
-        <span className="eyebrow">Which drawer</span>
+        <span className="eyebrow center" style={{ justifyContent: "center" }}>Choose your curiosity</span>
         {packs.map((entry) => (
           <PackDrawer
             key={entry.id}
@@ -127,7 +127,7 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
 
       {local ? null : (
         <section className="stack--tight">
-          <span className="eyebrow">How you'll play</span>
+          <span className="eyebrow center" style={{ justifyContent: "center" }}>The terms</span>
           {PACING.map((option) => (
             <button
               key={option.id}
@@ -198,14 +198,14 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
               className="button button--ghost state"
               onClick={() => setNames([...names, `Player ${names.length + 1}`])}
             >
-              Add a player
+              Add another
             </button>
           ) : null}
         </section>
       ) : null}
 
       <section className="stack--tight">
-        <span className="eyebrow">What's in the round</span>
+        <span className="eyebrow center" style={{ justifyContent: "center" }}>Shape each round</span>
         <div className="chips">
           {kinds.map((id) => {
             const kind = getKind(id);
@@ -229,7 +229,7 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
       </section>
 
       <section className="stack--tight">
-        <span className="eyebrow">The shape of it</span>
+        <span className="eyebrow center" style={{ justifyContent: "center" }}>The rhythm of play</span>
 
         <Stepper label="Rounds" value={config.rounds} onStep={(d) => step("rounds", d)} />
         <Stepper
@@ -247,32 +247,32 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
 
         <Switch
           label="Timer"
-          hint="Off means nobody is rushed."
+          hint="No rush. Take your time."
           on={config.timerOn}
           onToggle={() => patch({ timerOn: !config.timerOn })}
         />
         <Switch
           label="Speed bonus"
-          hint="Up to half again for answering fast."
+          hint="Quick answers earn a bonus."
           on={config.speedBonus}
           onToggle={() => patch({ speedBonus: !config.speedBonus })}
         />
         <Switch
           label="Streak bonus"
-          hint="Get them right back to back and they stack."
+          hint="Consecutive correct answers build momentum."
           on={config.streakBonus}
           onToggle={() => patch({ streakBonus: !config.streakBonus })}
         />
         <Switch
           label="Themed rounds"
-          hint="Each round sticks to one puzzle type."
+          hint="Each round stays in one world."
           on={config.themedRounds}
           onToggle={() => patch({ themedRounds: !config.themedRounds })}
         />
         {local ? null : (
           <Switch
             label="Seal scores"
-            hint="Nobody sees a thing until the round closes."
+            hint="Scores stay hidden until the round ends."
             on={config.hideAnswers}
             onToggle={() => patch({ hideAnswers: !config.hideAnswers })}
           />

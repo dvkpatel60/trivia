@@ -48,7 +48,7 @@ export function Home({
             </button>
           ) : null}
           <button type="button" className="button state" onClick={guard(onHost)} disabled={!online}>
-            Host a game
+            Open a room
           </button>
           <button
             type="button"
@@ -56,17 +56,17 @@ export function Home({
             onClick={guard(onJoin)}
             disabled={!online}
           >
-            Join with a code
+            Join a room
           </button>
           <button type="button" className="button button--quiet state" onClick={guard(onLocal)}>
-            Pass one device around
+            Pass it hand to hand
           </button>
           <button type="button" className="button button--quiet state" onClick={onLibrary}>
-            Look through the pictures
+            Browse the collection
           </button>
           {online ? null : (
             <p className="tiny faint center">
-              Nothing's answering out there. Pass-and-play doesn't care.
+              The cabinet is quiet. Pass-and-play still works.
             </p>
           )}
         </>
@@ -91,7 +91,7 @@ export function Home({
         />
         {touched && !named ? (
           <p className="tiny" style={{ color: "var(--warn)" }}>
-            Pop a name in first.
+            A name first, please.
           </p>
         ) : null}
       </div>

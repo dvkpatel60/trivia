@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build"
+  command = "npm run build && npx esbuild netlify/functions/game.mts --bundle --platform=node --format=esm --outfile=netlify/functions/game.mjs --external:@netlify/blobs"
   publish = "apps/web/dist"
   functions = "netlify/functions"
 
@@ -8,6 +8,11 @@
 
 [functions]
   node_bundler = "esbuild"
+
+[dev]
+  command = "npm run dev --workspace @curio/web"
+  targetPort = 5173
+  autoLaunch = false
 
 # SPA fallback: every non-function path serves the app shell.
 [[redirects]]

@@ -1,0 +1,37 @@
+{
+  "pack": "atlas",
+  "images": {
+    "landmark-machu-picchu": {
+      "subject": "an ancient stone terraced citadel on a high mountain ridge, surrounded by steep green peaks and low cloud",
+      "alt": "An ancient terraced stone citadel on a high mountain ridge among steep green peaks",
+      "prompt": "an ancient stone terraced citadel on a high mountain ridge, surrounded by steep green peaks and low cloud, flat vector illustration, engraved atlas plate, clean geometric shapes, fine linework, chart navy, paper cream, ocean teal, sun ochre, muted terracotta, straight-on orthographic view, generous margin, flat even lighting, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 3051403709,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-26T14:51:19.553Z"
+    },
+    "landmark-uluru": {
+      "subject": "an enormous isolated red sandstone monolith rising from a flat desert plain under a wide sky",
+      "alt": "An enormous isolated red sandstone monolith rising from a flat desert plain",
+      "prompt": "an enormous isolated red sandstone monolith rising from a flat desert plain under a wide sky, flat vector illustration, engraved atlas plate, clean geometric shapes, fine linework, chart navy, paper cream, ocean teal, sun ochre, muted terracotta, straight-on orthographic view, generous margin, flat even lighting, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 2235395069,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-26T14:51:19.553Z"
+    },
+    "biome-fjord": {
+      "subject": "a deep narrow sea inlet between sheer cliff walls, with waterfalls falling into still dark water",
+      "alt": "A deep narrow sea inlet between sheer cliffs with waterfalls falling into dark water",
+      "prompt": "a deep narrow sea inlet between sheer cliff walls, with waterfalls falling into still dark water, flat vector illustration, engraved atlas plate, clean geometric shapes, fine linework, chart navy, paper cream, ocean teal, sun ochre, muted terracotta, straight-on orthographic view, generous margin, flat even lighting, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 1620110377,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-26T14:51:19.553Z"
+    },
+    "biome-atoll": {
+      "subject": "a ring shaped coral island enclosing a pale turquoise lagoon, seen from directly above, open ocean around it",
+      "alt": "A ring-shaped coral island enclosing a turquoise lagoon, seen from above",
+      "prompt": "a ring shaped coral island enclosing a pale turquoise lagoon, seen from directly above, open ocean around it, flat vector illustration, engraved atlas plate, clean geometric shapes, fine linework, chart navy, paper cream, ocean teal, sun ochre, muted terracotta, straight-on orthographic view, generous margin, flat even lighting, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 1321609640,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-26T14:51:19.553Z"
+    }
+  }
+}

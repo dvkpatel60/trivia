@@ -56,7 +56,7 @@ export function Waiting({ game, meId, round, endsAt, now, onClose, onLeave }: Wa
         <>
           {isHost ? (
             <button type="button" className="button state" disabled={busy} onClick={() => void close()}>
-              {busy ? "Closing…" : everyone ? "Show the answers" : "Close without them"}
+              {busy ? "Closing…" : everyone ? "Unseal the answers" : "Close the round early"}
             </button>
           ) : (
             <p className="tiny faint center">
@@ -75,7 +75,7 @@ export function Waiting({ game, meId, round, endsAt, now, onClose, onLeave }: Wa
           {everyone
             ? "The round closes now."
             : game.config.hideAnswers
-              ? "Scores stay sealed until it closes."
+              ? "Sealed until the round closes."
               : "Waiting on the stragglers."}
         </p>
       </div>

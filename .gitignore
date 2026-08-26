@@ -6,6 +6,7 @@ dist-types/
 
 # Netlify
 .netlify/
+netlify/functions/*.mjs
 
 # Editors
 .vscode/
@@ -19,4 +20,5 @@ npm-debug.log*
 # Secrets
 .env
 .env.local
+.env.example
 .env.*.local

@@ -1,6 +1,6 @@
 import { ranked, type PublicGameState } from "@curio/core";
 
-import { Board, Scene } from "../design/index.js";
+import { Board, PackLeaderIcon, Scene } from "../design/index.js";
 
 interface FinalProps {
   game: PublicGameState;
@@ -24,17 +24,17 @@ export function Final({ game, meId, onHome }: FinalProps) {
       rail={<span className="eyebrow">Final</span>}
       dock={
         <button type="button" className="button state" onClick={onHome}>
-          Back to the cabinet
+          Return to the collection
         </button>
       }
     >
       <div className="center stack--tight">
         <span className="crown" aria-hidden="true">
-          ✦
+          <PackLeaderIcon size={36} />
         </span>
         <h1>{winner ? winner.name : "Nobody"}</h1>
         <p className="lede">
-          {winner ? `${winner.score.toLocaleString()} points` : "An empty game."}
+          {winner ? `${winner.score.toLocaleString()} points` : "The cabinet is empty."}
         </p>
       </div>
 

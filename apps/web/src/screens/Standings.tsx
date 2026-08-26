@@ -21,7 +21,7 @@ export function Standings({ game, meId, round, isHost, onSkip }: StandingsProps)
       dock={
         <>
           <p className="tiny faint center">
-            {last ? "Final scores coming up…" : `Round ${round + 2} starts in a moment…`}
+            {last ? "Final scores coming up…" : `Round ${round + 2} opens in a moment…`}
           </p>
           {isHost ? (
             <button type="button" className="button button--ghost state" onClick={onSkip}>
@@ -32,7 +32,7 @@ export function Standings({ game, meId, round, isHost, onSkip }: StandingsProps)
       }
     >
       <div className="center stack--tight">
-        <h1>{last ? "That's the lot" : "How it stands"}</h1>
+        <h1>{last ? "That's the lot" : "The current order"}</h1>
       </div>
       <Board players={game.players} meId={meId} round={round} markLeader />
     </Scene>

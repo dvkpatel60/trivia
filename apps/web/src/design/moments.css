@@ -222,10 +222,11 @@
 }
 
 .crown {
-  font-size: var(--text-hero);
-  font-family: var(--font-display);
-  font-variation-settings: var(--display-settings, normal);
+  color: var(--accent);
+  display: flex;
+  justify-content: center;
   animation: verdict-in var(--dur-slow) var(--ease-spring) 1s both;
+  filter: drop-shadow(0 0 12px color-mix(in oklab, var(--accent) 36%, transparent));
 }
 
 /* ── toast ────────────────────────────────────────────────────────────── */

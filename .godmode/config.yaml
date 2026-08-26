@@ -1,0 +1,33 @@
+# Godmode Configuration
+# Generated automatically. Edit as needed.
+# Run /godmode:setup for interactive configuration.
+
+project:
+  name: "trivia"
+  language: "typescript"
+
+commands:
+  test: "npm test"
+  lint: "npm run lint"
+
+# Optimization config (set via /godmode:setup --optimize)
+# optimization:
+#   goal: ""
+#   metric: ""
+#   verify: ""
+#   target: ""
+#   max_iterations: 25
+
+scope:
+  include:
+    - "src/"
+    - "lib/"
+    - "tests/"
+  exclude:
+    - "node_modules/"
+    - "dist/"
+    - "build/"
+    - ".git/"
+    - "vendor/"
+    - "__pycache__/"
+    - "target/"

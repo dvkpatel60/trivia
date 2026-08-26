@@ -21,7 +21,7 @@ import { imageChoice } from "./items/imageChoice.js";
  */
 export const hogwartsPack: ContentPack = {
   id: "hogwarts",
-  name: "Candlelight",
+  name: "Harry Potter",
   tagline: "Wizarding world trivia",
   blurb: "Spells, houses, and the people who made a mess of them.",
   atmosphere: {
@@ -45,10 +45,10 @@ export const hogwartsPack: ContentPack = {
    */
   art: {
     style:
-      "candlelit oil painting on aged canvas, chiaroscuro, soft impasto brushwork, museum plate",
-    palette: "deep indigo shadows, antique gold highlights, muted emerald and oxblood accents",
-    composition: "three-quarter view, shallow depth of field, dark vignetted background",
-    avoid: "modern objects, photography, neon, plastic",
+      "dark atmospheric fantasy illustration, magical candlelit scene, rich jewel tones, detailed painterly style, dramatic lighting with warm golden highlights against deep shadows",
+    palette: "deep indigo shadows, antique gold highlights, muted emerald and oxblood accents, rich purple undertones",
+    composition: "three-quarter view, shallow depth of field, dark vignetted background with magical ambient glow",
+    avoid: "modern objects, photography, neon, plastic, cartoon, anime",
   },
   categorySets,
   items: {

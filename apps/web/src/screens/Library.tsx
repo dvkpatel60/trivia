@@ -56,7 +56,7 @@ export function Library({ onBack, onPreview }: LibraryProps) {
       }
     >
       <div className="stack--tight">
-        <h1>Picture rounds</h1>
+        <h1>The picture gallery</h1>
         <p className="lede">Every image the game can ask you about.</p>
       </div>
 

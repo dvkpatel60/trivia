@@ -45,7 +45,7 @@ export function Join({ initialCode, name, onName, onJoin, onBack, trouble }: Joi
         <>
           {touched && !ready ? (
             <p className="tiny center" style={{ color: "var(--warn)" }}>
-              Both fields, please.
+              Name and word, both needed.
             </p>
           ) : null}
           {trouble ? (
@@ -54,19 +54,19 @@ export function Join({ initialCode, name, onName, onJoin, onBack, trouble }: Joi
             </p>
           ) : null}
           <button type="button" className="button state" disabled={busy} onClick={() => void submit()}>
-            {busy ? "Looking…" : "Join"}
+            {busy ? "Turning the lock…" : "Join a room"}
           </button>
         </>
       }
     >
       <div className="center stack--tight">
-        <h1>Join a game</h1>
-        <p className="lede">{initialCode ? "You've been invited." : "Ask the host for the code."}</p>
+        <h1>Enter the cabinet</h1>
+        <p className="lede">{initialCode ? "A door has been opened for you." : "The host holds the key."}</p>
       </div>
 
       <div className="field">
-        <label className="eyebrow" htmlFor="join-code">
-          Game code
+          <label className="eyebrow" htmlFor="join-code">
+          The word
         </label>
         <input
           id="join-code"

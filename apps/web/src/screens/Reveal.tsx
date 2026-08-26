@@ -42,7 +42,7 @@ export function Reveal({ game, meId, round, onNext, onLeave }: RevealProps) {
         <>
           {isHost ? (
             <button type="button" className="button state" disabled={busy} onClick={() => void next()}>
-              {busy ? "Dealing…" : last ? "Final scores" : `Open round ${round + 2}`}
+              {busy ? "Unveiling…" : last ? "Final scores" : `Open round ${round + 2}`}
             </button>
           ) : (
             <p className="tiny faint center">

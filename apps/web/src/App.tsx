@@ -62,7 +62,7 @@ export function App() {
   const [identity, setIdentity] = useState<Identity>(() => loadIdentity());
   const [route, setRoute] = useState<Route>("home");
   const [online, setOnline] = useState(true);
-  const [booted, setBooted] = useState(false);
+  const [booted, setBooted] = useState(true);
   const [prefill, setPrefill] = useState<string | null>(null);
   const [previewPackId, setPreviewPackId] = useState<string | null>(null);
   const [toast, showToast] = useToast();
