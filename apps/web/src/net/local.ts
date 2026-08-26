@@ -16,8 +16,8 @@ import {
   type GameRequest,
   type GameResponse,
   type GameState,
-} from "@candlelight/core";
-import { resolvePack } from "@candlelight/content";
+} from "@curio/core";
+import { resolvePack } from "@curio/content";
 
 import type { Subscriber, Transport } from "./transport.js";
 

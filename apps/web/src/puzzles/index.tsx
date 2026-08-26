@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import type { PuzzleKindId } from "@candlelight/core";
+import type { PuzzleKindId } from "@curio/core";
 
 import { Categorize } from "./Categorize.js";
 import { Choice } from "./Choice.js";

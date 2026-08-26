@@ -1,4 +1,4 @@
-import type { CategorizeItem } from "@candlelight/core";
+import type { CategorizeItem } from "@curio/core";
 
 /** Sort each witch or wizard into their house. */
 export const categorize: CategorizeItem[] = [

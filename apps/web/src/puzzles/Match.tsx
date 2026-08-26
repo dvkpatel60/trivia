@@ -5,33 +5,33 @@ import type { PuzzleProps } from "./types.js";
 type Side = "left" | "right";
 
 /**
- * Tap one side, then the other, to link a pair. Links are numbered rather
- * than drawn, which survives a narrow phone far better than connecting lines.
+ * Tap one side then the other to link a pair.
+ *
+ * Selecting lifts the tile and dims the column that can't accept it, which
+ * is what replaces drawing connector lines — those never survive a phone in
+ * portrait. Tapping a linked tile again breaks the pair, so a misfire costs
+ * nothing.
  */
 export function Match({ question, locked, onCommit }: PuzzleProps<"match">) {
   const [selected, setSelected] = useState<{ side: Side; value: string } | null>(null);
   const [pairs, setPairs] = useState<Array<[string, string]>>([]);
   const [sent, setSent] = useState(false);
 
-  const linkedLeft = new Map(pairs.map(([left], index) => [left, index + 1]));
-  const linkedRight = new Map(pairs.map(([, right], index) => [right, index + 1]));
+  const linked = {
+    left: new Map(pairs.map(([left], index) => [left, index + 1])),
+    right: new Map(pairs.map(([, right], index) => [right, index + 1])),
+  };
 
   const tap = (side: Side, value: string) => {
     if (locked || sent) return;
 
-    // Tapping something already linked unlinks it, so a misfire is fixable.
-    const alreadyLinked = side === "left" ? linkedLeft.has(value) : linkedRight.has(value);
-    if (alreadyLinked) {
+    if (linked[side].has(value)) {
       setPairs(pairs.filter(([left, right]) => (side === "left" ? left !== value : right !== value)));
       setSelected(null);
       return;
     }
 
-    if (!selected) {
-      setSelected({ side, value });
-      return;
-    }
-    if (selected.side === side) {
+    if (!selected || selected.side === side) {
       setSelected({ side, value });
       return;
     }
@@ -40,6 +40,7 @@ export function Match({ question, locked, onCommit }: PuzzleProps<"match">) {
       side === "right" ? [selected.value, value] : [value, selected.value];
     setPairs([...pairs, pair]);
     setSelected(null);
+    navigator.vibrate?.(6);
   };
 
   const complete = pairs.length === question.view.left.length;
@@ -50,35 +51,46 @@ export function Match({ question, locked, onCommit }: PuzzleProps<"match">) {
     onCommit({ pairs });
   };
 
-  const cell = (side: Side, value: string) => {
-    const tag = side === "left" ? linkedLeft.get(value) : linkedRight.get(value);
-    return (
-      <button
-        key={`${side}-${value}`}
-        type="button"
-        className="tile"
-        data-linked={tag != null}
-        data-selected={selected?.side === side && selected.value === value}
-        disabled={locked || sent}
-        onClick={() => tap(side, value)}
-      >
-        {value}
-        {tag != null ? <span className="tag">{tag}</span> : null}
-      </button>
-    );
-  };
+  const column = (side: Side, values: string[]) => (
+    <div className="match__column">
+      {values.map((value) => (
+        <button
+          key={`${side}-${value}`}
+          type="button"
+          className="tile"
+          data-linked={linked[side].has(value)}
+          data-selected={selected?.side === side && selected.value === value}
+          data-dimmed={Boolean(selected) && selected?.side === side && !linked[side].has(value)}
+          disabled={locked || sent}
+          onClick={() => tap(side, value)}
+        >
+          {value}
+          {linked[side].has(value) ? <span className="tile__tag">{linked[side].get(value)}</span> : null}
+        </button>
+      ))}
+    </div>
+  );
 
   return (
-    <div className="stack">
-      <p className="prompt">{question.prompt}</p>
+    <div className="stack--loose">
+      <p className="prompt center">{question.prompt}</p>
 
-      <div className="pair-grid">
-        <div className="stack-s">{question.view.left.map((value) => cell("left", value))}</div>
-        <div className="stack-s">{question.view.right.map((value) => cell("right", value))}</div>
+      <div className="match">
+        {column("left", question.view.left)}
+        {column("right", question.view.right)}
       </div>
 
-      <button type="button" className="btn" disabled={locked || sent || pairs.length === 0} onClick={commit}>
-        {sent ? "Locked in" : complete ? "Lock it in" : `Lock in ${pairs.length} of ${question.view.left.length}`}
+      <button
+        type="button"
+        className="button"
+        disabled={locked || sent || pairs.length === 0}
+        onClick={commit}
+      >
+        {sent
+          ? "Locked in"
+          : complete
+            ? "Lock it in"
+            : `Lock in ${pairs.length} of ${question.view.left.length}`}
       </button>
     </div>
   );

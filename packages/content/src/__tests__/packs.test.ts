@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   availableKinds,
+  contrastProblems,
+  derivePalette,
   buildQuestion,
   createRng,
   getKind,
@@ -9,7 +11,7 @@ import {
   livingItems,
   toPublicQuestion,
   validatePack,
-} from "@candlelight/core";
+} from "@curio/core";
 import { PACKS, findPack, packSummaries, resolvePack } from "../index.js";
 
 describe("every shipped pack", () => {
@@ -81,9 +83,19 @@ describe("multi-topic plumbing", () => {
     expect(new Set(signatures).size).toBe(packsWithCategories.length);
   });
 
-  it("gives each pack its own palette", () => {
-    expect(new Set(PACKS.map((p) => p.theme.accent)).size).toBe(PACKS.length);
+  it("gives each pack its own palette and display face", () => {
+    expect(new Set(PACKS.map((p) => p.atmosphere.signature.accent)).size).toBe(PACKS.length);
+    expect(new Set(PACKS.map((p) => p.atmosphere.hue)).size).toBe(PACKS.length);
   });
+
+  it.each(PACKS.map((pack) => [pack.id, pack] as const))(
+    "%s derives a palette everything stays readable on",
+    (_id, pack) => {
+      // The whole point of deriving the palette rather than hand-picking it:
+      // a pack cannot ship colours nobody can read.
+      expect(contrastProblems(derivePalette(pack.atmosphere))).toEqual([]);
+    },
+  );
 
   it("supports image puzzles in more than one pack", () => {
     const withImages = PACKS.filter((pack) => livingItems(pack, "imageChoice").length > 0);

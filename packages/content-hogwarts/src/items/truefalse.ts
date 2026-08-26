@@ -1,4 +1,4 @@
-import type { TrueFalseItem } from "@candlelight/core";
+import type { TrueFalseItem } from "@curio/core";
 
 /** A statement to accept or reject. `note` explains the trap on a miss. */
 export const truefalse: TrueFalseItem[] = [

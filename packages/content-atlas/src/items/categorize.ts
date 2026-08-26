@@ -1,4 +1,4 @@
-import type { CategorizeItem } from "@candlelight/core";
+import type { CategorizeItem } from "@curio/core";
 
 export const categorize: CategorizeItem[] = [
   { label: "Cairo", category: "africa" },

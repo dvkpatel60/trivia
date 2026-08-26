@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { ranked, type PublicGameState } from "@candlelight/core";
+import { type PublicGameState } from "@curio/core";
 
-import { Players } from "../components/Players.js";
+import { QrCode, Roster, Scene } from "../design/index.js";
 
 interface LobbyProps {
   game: PublicGameState;
@@ -15,16 +15,16 @@ interface LobbyProps {
 export function Lobby({ game, meId, now, onStart, onLeave, onCopied }: LobbyProps) {
   const [busy, setBusy] = useState(false);
   const isHost = game.hostId === meId;
-  const players = ranked(game.players).sort((a, b) => a.joinedAt - b.joinedAt);
+  const players = Object.values(game.players).sort((a, b) => a.joinedAt - b.joinedAt);
+  const link = `${location.origin}${location.pathname}?code=${game.code}`;
 
   const share = async () => {
-    const url = `${location.origin}${location.pathname}?code=${game.code}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: "Candlelight", text: `Join my game: ${game.code}`, url });
+        await navigator.share({ title: "Curio", text: `Join my game: ${game.code}`, url: link });
         return;
       }
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(link);
       onCopied("Link copied");
     } catch {
       onCopied(game.code);
@@ -41,51 +41,67 @@ export function Lobby({ game, meId, now, onStart, onLeave, onCopied }: LobbyProp
   };
 
   return (
-    <div className="page fade-in">
-      <div className="between">
-        <span className="eyebrow">Lobby</span>
-        <span className="badge live">Waiting</span>
-      </div>
-
-      <div className="card center stack-s">
-        <span className="eyebrow">Game code</span>
-        <h1 className="code">{game.code}</h1>
-        <button type="button" className="btn ghost small" onClick={() => void share()}>
+    <Scene
+      id="lobby"
+      flow="top"
+      rail={
+        <>
+          <span className="eyebrow">Lobby</span>
+          <span className="badge badge--live">Open</span>
+        </>
+      }
+      dock={
+        <>
+          {isHost ? (
+            <button type="button" className="button" disabled={busy} onClick={() => void start()}>
+              {busy ? "Dealing…" : `Start · ${game.config.rounds} rounds`}
+            </button>
+          ) : (
+            <p className="lede center">
+              {game.players[game.hostId]?.name ?? "The host"} starts when everyone's in.
+            </p>
+          )}
+          <button type="button" className="button button--quiet" onClick={onLeave}>
+            Leave
+          </button>
+        </>
+      }
+    >
+      <div className="stack--tight center">
+        <span className="eyebrow" style={{ justifyContent: "center" }}>
+          Scan to join
+        </span>
+        <QrCode value={link} label={`Join game ${game.code}`} />
+        <p className="code-display" aria-label={`Game code ${game.code}`}>
+          {game.code.split("").map((character, index) => (
+            <span key={index} style={{ animationDelay: `${index * 40}ms` }}>
+              {character}
+            </span>
+          ))}
+        </p>
+        <button
+          type="button"
+          className="button button--ghost button--inline"
+          style={{ alignSelf: "center" }}
+          onClick={() => void share()}
+        >
           Share the link
         </button>
       </div>
 
-      <div className="card stack-s">
-        <div className="between">
+      <div className="panel stack--tight">
+        <div className="row--between">
           <span className="eyebrow">Who's here</span>
-          <span className="tiny faint">{players.length}</span>
+          <span className="tiny faint num">{players.length}</span>
         </div>
-        <Players players={players} meId={meId} now={now} />
+        <Roster players={players} meId={meId} now={now} />
       </div>
 
-      <p className="tiny center faint">
+      <p className="tiny faint center">
         {game.config.pacing === "live"
           ? "Everyone answers together, one question at a time."
           : "Each round stays open until everyone has played it."}
       </p>
-
-      <div className="spacer" />
-
-      {isHost ? (
-        <button type="button" className="btn" disabled={busy} onClick={() => void start()}>
-          {busy ? "Dealing…" : `Start ${game.config.rounds} rounds`}
-        </button>
-      ) : (
-        <div className="card center">
-          <p className="serif-i">
-            {game.players[game.hostId]?.name ?? "The host"} starts when everyone's in.
-          </p>
-        </div>
-      )}
-
-      <button type="button" className="btn quiet" onClick={onLeave}>
-        Leave this game
-      </button>
-    </div>
+    </Scene>
   );
 }

@@ -8,7 +8,7 @@ import type {
   GameRequest,
   PublicGameState,
   SubmitResponse,
-} from "@candlelight/core";
+} from "@curio/core";
 
 /** Call the function the way Netlify would. */
 async function call<T>(body: GameRequest): Promise<T> {

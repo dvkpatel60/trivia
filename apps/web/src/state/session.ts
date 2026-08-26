@@ -5,7 +5,7 @@ import {
   type GameRequest,
   type GameResponse,
   type PublicGameState,
-} from "@candlelight/core";
+} from "@curio/core";
 
 import type { Transport } from "../net/transport.js";
 

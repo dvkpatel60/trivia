@@ -1,6 +1,6 @@
-import { ranked, type PublicGameState } from "@candlelight/core";
+import { ranked, type PublicGameState } from "@curio/core";
 
-import { Verdict } from "../components/Verdict.js";
+import { Scene, Verdict } from "../design/index.js";
 
 interface BeatProps {
   game: PublicGameState;
@@ -10,9 +10,8 @@ interface BeatProps {
 }
 
 /**
- * The pause between live questions: what the answer was, how you did, and
- * who got it. Long enough to register, short enough that nobody reaches for
- * their pocket.
+ * The pause between live questions: what it was, how you did, who got it.
+ * Long enough to register, short enough that nobody reaches for their pocket.
  */
 export function Beat({ game, meId, round, index }: BeatProps) {
   const result = game.players[meId]?.rounds[round]?.answers[index];
@@ -21,40 +20,39 @@ export function Beat({ game, meId, round, index }: BeatProps) {
   const sealed = game.config.hideAnswers && !revealed;
 
   return (
-    <div className="page fade-in">
-      <span className="eyebrow center">Question {index + 1}</span>
+    <Scene
+      id={`beat-${round}-${index}`}
+      rail={<span className="eyebrow">Question {index + 1}</span>}
+      dock={<p className="tiny faint center">Next up…</p>}
+    >
+      <Verdict result={result} sealed={sealed} />
 
-      <div className="card">
-        <Verdict result={result} sealed={sealed} />
-      </div>
-
-      <div className="card stack-s">
-        <span className="eyebrow">How everyone did</span>
+      <div className="stack--tight stagger">
         {players.map((player) => {
           const theirs = player.rounds[round]?.answers[index];
-          const tone = !theirs ? "faint" : theirs.fraction >= 0.999 ? "" : "muted";
+          const outcome = !theirs
+            ? "missed"
+            : theirs.fraction >= 0.999
+              ? "right"
+              : theirs.fraction > 0
+                ? "partly"
+                : "wrong";
           return (
-            <div key={player.id} className="player-row">
+            <div
+              key={player.id}
+              className="person"
+              data-done={theirs != null && theirs.fraction >= 0.999}
+            >
               <span className="pip" style={{ color: player.color }} />
-              <span className="name">
+              <span className="person__name">
                 {player.name}
-                {player.id === meId ? " (you)" : ""}
+                {player.id === meId ? " · you" : ""}
               </span>
-              <span className={`state ${tone}`}>
-                {!theirs
-                  ? "missed it"
-                  : theirs.fraction >= 0.999
-                    ? "right"
-                    : theirs.fraction > 0
-                      ? "partly"
-                      : "wrong"}
-              </span>
+              <span className="person__state">{outcome}</span>
             </div>
           );
         })}
       </div>
-
-      <p className="tiny center faint">Next question in a moment…</p>
-    </div>
+    </Scene>
   );
 }

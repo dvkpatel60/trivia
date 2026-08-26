@@ -1,37 +1,42 @@
 import { useState } from "react";
 
-import { Options } from "./Options.js";
+import { OptionList } from "../design/index.js";
 import type { PuzzleProps } from "./types.js";
 
 /**
- * Clues are rationed: the player asks for the next one, and the engine pays
- * less the more they took. The clue count travels with the answer so the
- * server can price it.
+ * Clues are rationed. Spent ones shrink and grey out rather than vanishing,
+ * so you can see the trail you followed — and what it cost you.
  */
 export function WhoAmI({ question, locked, onCommit }: PuzzleProps<"whoAmI">) {
   const [shown, setShown] = useState(1);
   const clues = question.view.clues;
-  const canReveal = shown < clues.length;
+  const more = shown < clues.length;
 
   return (
-    <div className="stack">
-      <div className="stack-s">
+    <div className="stack--loose">
+      <div className="clues">
         {clues.slice(0, shown).map((clue, index) => (
-          <p key={clue} className={index === shown - 1 ? "prompt fade-in" : "prompt muted"}>
-            &ldquo;{clue}&rdquo;
+          <p key={clue} className="clue" data-spent={index < shown - 1}>
+            {clue}
           </p>
         ))}
       </div>
 
-      {canReveal && !locked ? (
-        <button type="button" className="btn ghost small" onClick={() => setShown(shown + 1)}>
-          Another clue &mdash; worth less
+      {more && !locked ? (
+        <button
+          type="button"
+          className="button button--ghost button--inline"
+          style={{ alignSelf: "center" }}
+          onClick={() => setShown(shown + 1)}
+        >
+          Another clue · worth less
         </button>
       ) : null}
 
-      <Options
+      <OptionList
         options={question.view.options}
         locked={locked}
+        label="Who am I?"
         onPick={(choice) => onCommit({ choice, clueIndex: shown - 1 })}
       />
     </div>

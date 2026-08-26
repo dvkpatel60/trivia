@@ -1,4 +1,4 @@
-import type { ContentPack } from "@candlelight/core";
+import type { ContentPack } from "@curio/core";
 
 import { houses } from "./categories.js";
 import { choice } from "./items/choice.js";
@@ -23,13 +23,19 @@ export const hogwartsPack: ContentPack = {
   name: "Candlelight",
   tagline: "Wizarding world trivia",
   blurb: "Spells, houses, and the people who made a mess of them.",
-  theme: {
-    accent: "#e8b55c",
-    support: "#3f9c7d",
-    warn: "#c2543a",
-    extra: "#8878d6",
-    backdrop: "#0d0f14",
-    surface: "#171a22",
+  atmosphere: {
+    // Indigo pulled almost to black, with candle-gold used sparingly: light
+    // appears only on the things you can actually do something with.
+    hue: 276,
+    mood: "enigmatic",
+    signature: {
+      accent: "#e8b55c",
+      support: "#3f9c7d",
+      warn: "#c2543a",
+      extra: "#8878d6",
+    },
+    texture: ["emberGlow", "grain", "vignette"],
+    display: "fraunces",
   },
   categories: houses,
   items: {

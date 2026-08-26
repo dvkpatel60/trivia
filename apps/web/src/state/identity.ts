@@ -6,7 +6,7 @@
  * refresh and nothing more.
  */
 
-const KEY = "candlelight:me";
+const KEY = "curio:me";
 
 export interface Identity {
   id: string;

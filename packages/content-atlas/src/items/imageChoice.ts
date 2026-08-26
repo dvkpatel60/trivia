@@ -1,4 +1,4 @@
-import type { ImageChoiceItem } from "@candlelight/core";
+import type { ImageChoiceItem } from "@curio/core";
 
 /**
  * A picture round drawn as SVG rather than shipped as image files.

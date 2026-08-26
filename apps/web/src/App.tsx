@@ -1,20 +1,21 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  getKind,
   isErrorResponse,
   questionDurationMs,
-  getKind,
+  type ContentPack,
   type GameConfig,
   type PublicGameState,
-} from "@candlelight/core";
-import { resolvePack } from "@candlelight/content";
+} from "@curio/core";
+import { resolvePack } from "@curio/content";
 
 import { createLocalTransport } from "./net/local.js";
 import { createRemoteTransport } from "./net/remote.js";
 import type { Transport } from "./net/transport.js";
 import { loadIdentity, saveIdentity, type Identity } from "./state/identity.js";
 import { useSession } from "./state/session.js";
-import { applyTheme } from "./state/theme.js";
 import { useToast } from "./state/useToast.js";
+import { applyPack, Atmosphere, Scene } from "./design/index.js";
 
 import { Beat } from "./screens/Beat.js";
 import { Final } from "./screens/Final.js";
@@ -30,7 +31,7 @@ import { Waiting } from "./screens/Waiting.js";
 
 type Route = "home" | "join" | "host" | "local" | "game";
 
-/** Ask whether there is a server at all; pass-and-play works either way. */
+/** Is there a server at all? Pass-and-play works either way. */
 async function probeOnline(): Promise<boolean> {
   try {
     const response = await fetch("/.netlify/functions/game", {
@@ -39,7 +40,7 @@ async function probeOnline(): Promise<boolean> {
       body: JSON.stringify({ op: "state", code: "__probe__" }),
     });
     // A 404 from a static host looks nothing like a 404 from the function,
-    // which answers with its own error shape — so check the body, not the code.
+    // which answers in its own shape — so check the body, not the status.
     const body = (await response.json()) as { code?: string };
     return typeof body?.code === "string";
   } catch {
@@ -52,6 +53,8 @@ export function App() {
   const [route, setRoute] = useState<Route>("home");
   const [online, setOnline] = useState(true);
   const [booted, setBooted] = useState(false);
+  const [prefill, setPrefill] = useState<string | null>(null);
+  const [previewPackId, setPreviewPackId] = useState<string | null>(null);
   const [toast, showToast] = useToast();
 
   const remote = useMemo(() => createRemoteTransport(), []);
@@ -64,7 +67,6 @@ export function App() {
 
   /** Pass-and-play: whose turn it is, and whether they've picked the device up. */
   const [turn, setTurn] = useState({ playerIndex: 0, ready: false });
-  const localNames = useRef<string[]>([]);
 
   const persist = useCallback((next: Identity) => {
     setIdentity(next);
@@ -81,13 +83,12 @@ export function App() {
       if (cancelled) return;
       setOnline(reachable);
 
-      const params = new URLSearchParams(location.search);
-      const deepLink = params.get("code")?.trim().toUpperCase();
+      const deepLink = new URLSearchParams(location.search).get("code")?.trim().toUpperCase();
       if (deepLink) {
-        // Clear it so a refresh doesn't re-trigger the join.
+        // Cleared so a refresh doesn't re-trigger the join.
         history.replaceState(null, "", location.pathname);
-        setRoute("join");
         setPrefill(deepLink);
+        setRoute("join");
       }
       setBooted(true);
     })();
@@ -97,14 +98,33 @@ export function App() {
     };
   }, []);
 
-  const [prefill, setPrefill] = useState<string | null>(null);
+  /* ── the world follows whichever pack is in play ── */
 
-  /* ── theming follows the pack in play ── */
+  const pack: ContentPack = useMemo(
+    () => resolvePack(game?.config.packId ?? previewPackId ?? undefined),
+    [game?.config.packId, previewPackId],
+  );
 
   useEffect(() => {
-    const packId = game?.config.packId;
-    applyTheme(resolvePack(packId).theme);
-  }, [game?.config.packId]);
+    applyPack(pack);
+  }, [pack]);
+
+  /**
+   * The edge bloom during a live question. Only live play has a deadline
+   * everyone shares, so it is the only place time pressure is ambient.
+   */
+  const pressure = useMemo(() => {
+    if (!game || game.phase.name !== "question" || game.phase.endsAt == null) return null;
+    const question = game.rounds[game.phase.round]?.questions[game.phase.index];
+    if (!question || !game.config.timerOn) return null;
+    return {
+      endsAt: game.phase.endsAt,
+      totalMs: questionDurationMs(game.config, getKind(question.kind).timeMultiplier),
+      now: session.now(),
+    };
+    // Recomputed when the question changes, not on every tick — the bloom is
+    // a CSS animation from there on.
+  }, [game, session]);
 
   /* ── actions ── */
 
@@ -123,6 +143,7 @@ export function App() {
       void transport.send({ op: "leave", code, playerId: identity.id });
     }
     setCode(null);
+    setPreviewPackId(null);
     setRoute("home");
     persist({ ...identity, code: null });
   }, [code, transport, identity, persist]);
@@ -163,13 +184,10 @@ export function App() {
 
   const startLocal = useCallback(
     async (config: GameConfig, names: string[]) => {
-      localNames.current = names;
-      const hostName = names[0] ?? "Player 1";
-
       const created = await local.send({
         op: "create",
         hostId: identity.id,
-        hostName,
+        hostName: names[0] ?? "Player 1",
         config: { ...config, pacing: "local" },
       });
       if (isErrorResponse(created) || !("code" in created)) {
@@ -193,20 +211,18 @@ export function App() {
     [local, identity, enter, showToast],
   );
 
-  if (!booted) {
-    return (
-      <div className="shell">
-        <div className="page">
-          <div className="splash">
-            <span className="flame" />
-            <p className="serif-i">Lighting the candle…</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const body = (() => {
+    if (!booted) {
+      return (
+        <Scene id="boot">
+          <div className="splash splash--solo">
+            <span className="ember" />
+            <p className="lede">Opening the cabinet…</p>
+          </div>
+        </Scene>
+      );
+    }
+
     if (route === "home") {
       return (
         <Home
@@ -235,25 +251,35 @@ export function App() {
       );
     }
 
-    if (route === "host") {
-      return <Setup local={false} onStart={(config) => host(config)} onBack={() => setRoute("home")} />;
-    }
-
-    if (route === "local") {
-      return <Setup local onStart={startLocal} onBack={() => setRoute("home")} />;
+    if (route === "host" || route === "local") {
+      return (
+        <Setup
+          local={route === "local"}
+          onStart={route === "local" ? startLocal : (config) => host(config)}
+          onBack={() => {
+            setPreviewPackId(null);
+            setRoute("home");
+          }}
+          onPreview={setPreviewPackId}
+        />
+      );
     }
 
     if (!game) {
       return (
-        <div className="page">
-          <div className="splash">
-            <span className="flame" />
-            <p className="serif-i">{session.trouble ?? "Finding the game…"}</p>
-            <button type="button" className="btn quiet" onClick={leave}>
+        <Scene
+          id="connecting"
+          dock={
+            <button type="button" className="button button--quiet" onClick={leave}>
               Back to the start
             </button>
+          }
+        >
+          <div className="splash splash--solo">
+            <span className="ember" />
+            <p className="lede">{session.trouble ?? "Finding the game…"}</p>
           </div>
-        </div>
+        </Scene>
       );
     }
 
@@ -271,10 +297,11 @@ export function App() {
   })();
 
   return (
-    <div className="shell">
+    <>
+      <Atmosphere textures={pack.atmosphere.texture} pressure={pressure} />
       {body}
       {toast ? <div className="toast">{toast}</div> : null}
-    </div>
+    </>
   );
 }
 
@@ -293,9 +320,9 @@ interface GameScreenProps {
 /**
  * Which screen a phase means.
  *
- * The server owns the phase, so this is a lookup rather than a decision —
- * no client ever has to work out from timers and answer counts what everyone
- * else is looking at.
+ * The server owns the phase, so this is a lookup rather than a decision — no
+ * client has to work out from timers and answer counts what everyone else is
+ * looking at.
  */
 function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }: GameScreenProps) {
   const { phase } = game;
@@ -307,7 +334,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
     [game.players],
   );
 
-  /** In pass-and-play the "me" for answering is whoever's turn it is. */
+  /** In pass-and-play the "me" who answers is whoever's turn it is. */
   const activeId = isLocal ? (roster[turn.playerIndex]?.id ?? identity.id) : identity.id;
 
   const answersFor = (round: number, playerId: string) =>
@@ -332,6 +359,14 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
     if (isErrorResponse(response)) onToast(response.error);
   }, [session, game.code, identity.id, onToast]);
 
+  const waiting = (
+    <Scene id="settling">
+      <div className="splash splash--solo">
+        <span className="ember" />
+      </div>
+    </Scene>
+  );
+
   if (phase.name === "lobby") {
     return (
       <Lobby
@@ -348,9 +383,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
     );
   }
 
-  if (phase.name === "final") {
-    return <Final game={game} meId={identity.id} onHome={onLeave} />;
-  }
+  if (phase.name === "final") return <Final game={game} meId={identity.id} onHome={onLeave} />;
 
   if (phase.name === "standings") {
     return (
@@ -369,14 +402,13 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
   }
 
   if (phase.name === "reveal") {
-    // Pass-and-play starts the next round back at the first player.
     return (
       <Reveal
         game={game}
         meId={identity.id}
         round={phase.round}
-        hostDriven
         onNext={async () => {
+          // Pass-and-play starts the next round back at the first player.
           setTurn({ playerIndex: 0, ready: !game.config.passScreen });
           await advance();
         }}
@@ -387,10 +419,12 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
 
   if (phase.name === "question") {
     const question = game.rounds[phase.round]?.questions[phase.index];
-    if (!question) return <Waiting game={game} meId={identity.id} round={phase.round} endsAt={null} now={session.now} onClose={advance} onLeave={onLeave} />;
+    if (!question) return waiting;
 
-    const answered = answersFor(phase.round, identity.id);
-    const answeredCount = roster.filter((player) => answersFor(phase.round, player.id)[phase.index]).length;
+    const mine = answersFor(phase.round, identity.id);
+    const answeredCount = roster.filter(
+      (player) => answersFor(phase.round, player.id)[phase.index],
+    ).length;
 
     return (
       <Play
@@ -401,7 +435,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
         total={game.rounds[phase.round]?.questions.length ?? 1}
         endsAt={phase.endsAt}
         now={session.now}
-        answered={Boolean(answered[phase.index])}
+        answered={Boolean(mine[phase.index])}
         answeredCount={answeredCount}
         playerCount={roster.length}
         onAnswer={(index, answer, elapsedMs) => void submit(phase.round, index, answer, elapsedMs)}
@@ -409,46 +443,46 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
     );
   }
 
-  /* ── async and pass-and-play: an open round, played at your own pace ── */
+  /* ── an open round, played at your own pace ── */
 
   const round = phase.round;
   const questions = game.rounds[round]?.questions ?? [];
   const answers = answersFor(round, activeId);
   const cursor = questions.findIndex((_, index) => !answers[index]);
 
+  /** Each player's window starts when they reach the question. */
+  const ownPaceDeadline = (kindIndex: number): number | null => {
+    const question = questions[kindIndex];
+    if (!question || !game.config.timerOn) return null;
+    return session.now() + questionDurationMs(game.config, getKind(question.kind).timeMultiplier);
+  };
+
   if (isLocal) {
     const player = roster[turn.playerIndex];
-
     if (!player) {
-      // Everyone has had their go; close the round.
-      void advance();
-      return <div className="page"><div className="splash"><span className="flame" /></div></div>;
+      if (phase.name === "open") void advance();
+      return waiting;
     }
 
     if (!turn.ready) {
       return (
-        <Pass
-          name={player.name}
-          round={round}
-          onReady={() => setTurn({ ...turn, ready: true })}
-        />
+        <Pass name={player.name} round={round} onReady={() => setTurn({ ...turn, ready: true })} />
       );
     }
 
     if (cursor === -1) {
-      // This player is done — hand the device on. After the last player the
-      // engine closes the round itself, since everyone has now answered;
-      // advancing here is only a fallback for a round it left open.
+      // This player is done — hand the device on. After the last one the
+      // engine closes the round itself, since everyone has now answered.
       const next = turn.playerIndex + 1;
       queueMicrotask(() => {
         if (next < roster.length) setTurn({ playerIndex: next, ready: !game.config.passScreen });
         else if (game.phase.name === "open") void advance();
       });
-      return <div className="page"><div className="splash"><span className="flame" /></div></div>;
+      return waiting;
     }
 
     const question = questions[cursor];
-    if (!question) return null;
+    if (!question) return waiting;
 
     return (
       <Play
@@ -457,11 +491,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
         round={round}
         index={cursor}
         total={questions.length}
-        endsAt={
-          game.config.timerOn
-            ? session.now() + questionDurationMs(game.config, getKind(question.kind).timeMultiplier)
-            : null
-        }
+        endsAt={ownPaceDeadline(cursor)}
         now={session.now}
         answered={false}
         answeredCount={0}
@@ -487,7 +517,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
   }
 
   const question = questions[cursor];
-  if (!question) return null;
+  if (!question) return waiting;
 
   return (
     <Play
@@ -496,13 +526,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
       round={round}
       index={cursor}
       total={questions.length}
-      // Async has no shared clock: each player's window starts when they
-      // reach the question, and the server only ever grants a bonus from it.
-      endsAt={
-        game.config.timerOn
-          ? session.now() + questionDurationMs(game.config, getKind(question.kind).timeMultiplier)
-          : null
-      }
+      endsAt={ownPaceDeadline(cursor)}
       now={session.now}
       answered={false}
       answeredCount={0}

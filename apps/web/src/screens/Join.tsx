@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { Scene } from "../design/index.js";
+
 interface JoinProps {
   /** Filled in from a shared link, so most players never type a code. */
   initialCode?: string | null;
@@ -32,30 +34,43 @@ export function Join({ initialCode, name, onName, onJoin, onBack, trouble }: Joi
   };
 
   return (
-    <div className="page fade-in">
-      <button
-        type="button"
-        className="btn quiet"
-        onClick={onBack}
-        style={{ alignSelf: "flex-start", width: "auto" }}
-      >
-        &larr; Back
-      </button>
-
-      <div className="center stack-s" style={{ paddingTop: "5vh" }}>
-        <h2>Join a game</h2>
-        <p className="serif-i">
-          {initialCode ? "You've been invited." : "Ask the host for the code."}
-        </p>
+    <Scene
+      id="join"
+      rail={
+        <button type="button" className="button button--quiet button--inline" onClick={onBack}>
+          ← Back
+        </button>
+      }
+      dock={
+        <>
+          {touched && !ready ? (
+            <p className="tiny center" style={{ color: "var(--warn)" }}>
+              Both fields, please.
+            </p>
+          ) : null}
+          {trouble ? (
+            <p className="tiny center" style={{ color: "var(--warn)" }}>
+              {trouble}
+            </p>
+          ) : null}
+          <button type="button" className="button" disabled={busy} onClick={() => void submit()}>
+            {busy ? "Looking…" : "Join"}
+          </button>
+        </>
+      }
+    >
+      <div className="center stack--tight">
+        <h1>Join a game</h1>
+        <p className="lede">{initialCode ? "You've been invited." : "Ask the host for the code."}</p>
       </div>
 
-      <div className="stack-s">
+      <div className="field">
         <label className="eyebrow" htmlFor="join-code">
           Game code
         </label>
         <input
           id="join-code"
-          className="input code-input"
+          className="input input--code"
           value={code}
           placeholder="NIFFLER-42"
           autoComplete="off"
@@ -67,7 +82,7 @@ export function Join({ initialCode, name, onName, onJoin, onBack, trouble }: Joi
         />
       </div>
 
-      <div className="stack-s">
+      <div className="field">
         <label className="eyebrow" htmlFor="join-name">
           Your name
         </label>
@@ -85,21 +100,6 @@ export function Join({ initialCode, name, onName, onJoin, onBack, trouble }: Joi
           }}
         />
       </div>
-
-      {touched && !ready ? (
-        <p className="tiny center" style={{ color: "var(--warn)" }}>
-          Both fields, please.
-        </p>
-      ) : null}
-      {trouble ? (
-        <p className="tiny center" style={{ color: "var(--warn)" }}>
-          {trouble}
-        </p>
-      ) : null}
-
-      <button type="button" className="btn" disabled={busy} onClick={() => void submit()}>
-        {busy ? "Looking…" : "Join"}
-      </button>
-    </div>
+    </Scene>
   );
 }

@@ -1,0 +1,129 @@
+/*
+ * The scene: three fixed zones, one per phase of the game.
+ *
+ *   rail    context and the timer — never moves
+ *   stage   the question — the only part that scrolls
+ *   dock    the actions — pinned to the thumb, above the home indicator
+ *
+ * The dock staying put between questions is the single biggest usability
+ * win here: your thumb learns one place and never has to look again.
+ */
+
+.scene {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--s4);
+  width: 100%;
+  max-width: var(--page);
+  margin-inline: auto;
+  /* dvh, so mobile browser chrome collapsing doesn't shift the dock. */
+  min-height: 100dvh;
+  padding:
+    calc(env(safe-area-inset-top, 0px) + var(--s3))
+    var(--gutter)
+    calc(env(safe-area-inset-bottom, 0px) + var(--s4));
+}
+
+.scene__rail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  min-height: 34px;
+}
+
+.scene__stage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s5);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.scene__stage::-webkit-scrollbar { display: none; }
+
+/* Some scenes are a wall of content — a reveal, a scoreboard. Those anchor
+   to the top and scroll rather than centring. */
+.scene__stage[data-flow="top"] { justify-content: flex-start; }
+
+/*
+ * Play scenes: the question sits under the rail and the answers sit against
+ * the dock, with the slack between them. However long the prompt runs, the
+ * first option lands in the same place under your thumb.
+ */
+.scene__stage[data-flow="end"] { justify-content: stretch; }
+
+.scene__stage[data-flow="end"] > * {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--s5);
+}
+
+/* The prompt takes the slack and centres in it, so a one-line question sits
+   in the upper third rather than jammed against the rail. */
+.scene__stage[data-flow="end"] > * > .prompt {
+  flex: 1;
+  display: grid;
+  align-content: center;
+}
+
+.scene__dock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+/* ── the four transitions ─────────────────────────────────────────────── */
+
+@keyframes scene-enter {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.94); }
+  100% { opacity: 1; transform: none; }
+}
+
+@keyframes sweep {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.enter { animation: scene-enter var(--dur-scene) var(--ease-out) both; }
+.rise { animation: rise-in var(--dur-base) var(--ease-out) both; }
+.pop { animation: pop-in var(--dur-base) var(--ease-spring) both; }
+
+/* Children of a staggered list arrive in sequence rather than as a block. */
+.stagger > * { animation: rise-in var(--dur-base) var(--ease-out) both; }
+.stagger > *:nth-child(1) { animation-delay: 40ms; }
+.stagger > *:nth-child(2) { animation-delay: 90ms; }
+.stagger > *:nth-child(3) { animation-delay: 140ms; }
+.stagger > *:nth-child(4) { animation-delay: 190ms; }
+.stagger > *:nth-child(5) { animation-delay: 240ms; }
+.stagger > *:nth-child(6) { animation-delay: 290ms; }
+
+/* Phase changes go through the View Transitions API where it exists. */
+::view-transition-old(root) {
+  animation: fade-out var(--dur-fast) var(--ease-in-out) both;
+}
+
+::view-transition-new(root) {
+  animation: scene-enter var(--dur-base) var(--ease-out) both;
+}
+
+@keyframes fade-out {
+  to { opacity: 0; transform: translate3d(0, -8px, 0); }
+}

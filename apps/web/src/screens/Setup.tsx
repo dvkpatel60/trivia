@@ -3,32 +3,29 @@ import {
   CONFIG_LIMITS,
   defaultConfig,
   getKind,
+  oklchToHex,
   type GameConfig,
   type Pacing,
   type PuzzleKindId,
-} from "@candlelight/core";
-import { packSummaries } from "@candlelight/content";
+} from "@curio/core";
+import { packSummaries, type PackSummary } from "@curio/content";
 
-import { KindIcon } from "../components/KindIcon.js";
+import { KindIcon, Scene } from "../design/index.js";
 
 interface SetupProps {
-  /** Local pass-and-play skips the pacing choice; there is only one device. */
+  /** Pass-and-play skips the pacing choice; there is only one device. */
   local: boolean;
   onStart(config: GameConfig, playerNames: string[]): Promise<void>;
   onBack(): void;
+  /** Previews the chosen pack's world as you browse. */
+  onPreview(packId: string): void;
 }
 
-interface PacingOption {
-  id: Pacing;
-  name: string;
-  blurb: string;
-}
-
-const PACING: PacingOption[] = [
+const PACING: Array<{ id: Pacing; name: string; blurb: string }> = [
   {
     id: "live",
     name: "Live together",
-    blurb: "Everyone answers the same question at once. Best in a room or on a call.",
+    blurb: "One question at a time, everyone at once. For a room or a call.",
   },
   {
     id: "async",
@@ -37,106 +34,119 @@ const PACING: PacingOption[] = [
   },
 ];
 
-export function Setup({ local, onStart, onBack }: SetupProps) {
+export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
   const packs = useMemo(() => packSummaries(), []);
-  const [packId, setPackId] = useState(packs[0]?.id ?? "hogwarts");
+  const first = packs[0]?.id ?? "hogwarts";
+  const [packId, setPackId] = useState(first);
   const [config, setConfig] = useState<GameConfig>(() => ({
-    ...defaultConfig(packs[0]?.id ?? "hogwarts"),
+    ...defaultConfig(first),
     pacing: local ? "local" : "live",
   }));
   const [names, setNames] = useState(["Player 1", "Player 2"]);
   const [busy, setBusy] = useState(false);
 
   const pack = packs.find((entry) => entry.id === packId) ?? packs[0];
-  const availableKinds = pack?.kinds ?? [];
+  const kinds = pack?.kinds ?? [];
 
-  const patch = (changes: Partial<GameConfig>) => setConfig((current) => ({ ...current, ...changes }));
+  const patch = (changes: Partial<GameConfig>) =>
+    setConfig((current) => ({ ...current, ...changes }));
 
   const choosePack = (id: string) => {
     setPackId(id);
     patch({ packId: id });
+    onPreview(id);
   };
 
   const toggleKind = (kind: PuzzleKindId) => {
-    const enabled = { ...config.kinds, [kind]: config.kinds[kind] === false };
-    if (!availableKinds.some((id) => enabled[id] !== false)) return; // never zero
-    patch({ kinds: enabled });
+    const next = { ...config.kinds, [kind]: config.kinds[kind] === false };
+    if (!kinds.some((id) => next[id] !== false)) return; // never leave zero on
+    patch({ kinds: next });
   };
 
-  const step = (key: "rounds" | "questionsPerRound" | "seconds" | "basePoints", direction: 1 | -1) => {
+  const step = (
+    key: "rounds" | "questionsPerRound" | "seconds" | "basePoints",
+    direction: 1 | -1,
+  ) => {
     const limits = CONFIG_LIMITS[key];
     const increment = "step" in limits ? limits.step : 1;
     const next = config[key] + direction * increment;
     patch({ [key]: Math.max(limits.min, Math.min(limits.max, next)) } as Partial<GameConfig>);
   };
 
-  const estimate = useMemo(() => {
+  const minutes = useMemo(() => {
     const perQuestion = config.timerOn ? config.seconds * 1.15 + 5 : 22;
     const questions = config.rounds * config.questionsPerRound;
-    const playerFactor = local ? names.length : 1;
-    return Math.max(1, Math.round((questions * perQuestion * playerFactor) / 60));
+    return Math.max(1, Math.round((questions * perQuestion * (local ? names.length : 1)) / 60));
   }, [config, local, names.length]);
 
   const begin = async () => {
     if (busy) return;
     setBusy(true);
     try {
-      await onStart({ ...config, packId }, names.map((name, i) => name.trim() || `Player ${i + 1}`));
+      await onStart(
+        { ...config, packId },
+        names.map((name, index) => name.trim() || `Player ${index + 1}`),
+      );
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <div className="page fade-in">
-      <button type="button" className="btn quiet" onClick={onBack} style={{ alignSelf: "flex-start", width: "auto" }}>
-        &larr; Back
-      </button>
-
-      <h2>{local ? "Pass and play" : "Host a game"}</h2>
-
-      <section className="card stack-s">
+    <Scene
+      id="setup"
+      flow="top"
+      rail={
+        <>
+          <button type="button" className="button button--quiet button--inline" onClick={onBack}>
+            ← Back
+          </button>
+          <span className="eyebrow">{local ? "Pass and play" : "Host"}</span>
+        </>
+      }
+      dock={
+        <>
+          <p className="tiny faint center">About {minutes} minutes.</p>
+          <button type="button" className="button" disabled={busy} onClick={() => void begin()}>
+            {busy ? "Setting up…" : local ? "Start playing" : "Open the lobby"}
+          </button>
+        </>
+      }
+    >
+      <section className="stack--tight">
         <span className="eyebrow">Topic</span>
-        <div className="stack-s">
-          {packs.map((entry) => (
-            <button
-              key={entry.id}
-              type="button"
-              className="chip"
-              aria-pressed={entry.id === packId}
-              onClick={() => choosePack(entry.id)}
-            >
-              <span className="chip-name">{entry.name}</span>
-              <span className="chip-desc">
-                {entry.tagline} &middot; {entry.itemCount} questions
-              </span>
-            </button>
-          ))}
-        </div>
+        {packs.map((entry) => (
+          <PackDrawer
+            key={entry.id}
+            pack={entry}
+            selected={entry.id === packId}
+            onSelect={() => choosePack(entry.id)}
+          />
+        ))}
       </section>
 
       {local ? null : (
-        <section className="card stack-s">
+        <section className="stack--tight">
           <span className="eyebrow">Pace</span>
           {PACING.map((option) => (
             <button
               key={option.id}
               type="button"
-              className="chip"
+              className="mode"
               aria-pressed={config.pacing === option.id}
               onClick={() => patch({ pacing: option.id })}
             >
-              <span className="chip-name">{option.name}</span>
-              <span className="chip-desc">{option.blurb}</span>
+              <span className="mode__name">{option.name}</span>
+              <span className="mode__desc">{option.blurb}</span>
             </button>
           ))}
 
           {config.pacing === "async" ? (
-            <label className="row" style={{ justifyContent: "space-between" }}>
-              <span className="tiny muted">Close each round automatically</span>
+            <div className="setting">
+              <span className="setting__label">Close each round</span>
               <select
                 className="input"
-                style={{ width: "auto", minHeight: 40, padding: "6px 10px" }}
+                style={{ width: "auto", minHeight: 40, padding: "0 10px" }}
                 value={config.roundOpenMinutes ?? ""}
                 onChange={(event) =>
                   patch({
@@ -149,13 +159,13 @@ export function Setup({ local, onStart, onBack }: SetupProps) {
                 <option value="720">After 12 hours</option>
                 <option value="1440">After a day</option>
               </select>
-            </label>
+            </div>
           ) : null}
         </section>
       )}
 
       {local ? (
-        <section className="card stack-s">
+        <section className="stack--tight">
           <span className="eyebrow">Players</span>
           {names.map((name, index) => (
             <div className="row" key={index}>
@@ -173,11 +183,11 @@ export function Setup({ local, onStart, onBack }: SetupProps) {
               {names.length > 2 ? (
                 <button
                   type="button"
-                  className="btn quiet small"
-                  onClick={() => setNames(names.filter((_, i) => i !== index))}
+                  className="button button--quiet button--inline"
                   aria-label={`Remove player ${index + 1}`}
+                  onClick={() => setNames(names.filter((_, i) => i !== index))}
                 >
-                  &times;
+                  ✕
                 </button>
               ) : null}
             </div>
@@ -185,7 +195,7 @@ export function Setup({ local, onStart, onBack }: SetupProps) {
           {names.length < 8 ? (
             <button
               type="button"
-              className="btn ghost small"
+              className="button button--ghost"
               onClick={() => setNames([...names, `Player ${names.length + 1}`])}
             >
               Add a player
@@ -194,10 +204,10 @@ export function Setup({ local, onStart, onBack }: SetupProps) {
         </section>
       ) : null}
 
-      <section className="card stack-s">
+      <section className="stack--tight">
         <span className="eyebrow">Puzzle types</span>
-        <div className="chip-grid">
-          {availableKinds.map((id) => {
+        <div className="chips">
+          {kinds.map((id) => {
             const kind = getKind(id);
             return (
               <button
@@ -207,19 +217,19 @@ export function Setup({ local, onStart, onBack }: SetupProps) {
                 aria-pressed={config.kinds[id] !== false}
                 onClick={() => toggleKind(id)}
               >
-                <span className="chip-name row" style={{ gap: 6 }}>
-                  <KindIcon icon={kind.icon} size={15} />
+                <span className="chip__name">
+                  <KindIcon icon={kind.icon} size={14} />
                   {kind.name}
                 </span>
-                <span className="chip-desc">{kind.description}</span>
+                <span className="chip__desc">{kind.description}</span>
               </button>
             );
           })}
         </div>
       </section>
 
-      <section className="card stack-s">
-        <span className="eyebrow">Shape of it</span>
+      <section className="stack--tight">
+        <span className="eyebrow">Shape</span>
 
         <Stepper label="Rounds" value={config.rounds} onStep={(d) => step("rounds", d)} />
         <Stepper
@@ -229,73 +239,101 @@ export function Setup({ local, onStart, onBack }: SetupProps) {
         />
         <Stepper
           label="Seconds a question"
-          value={config.timerOn ? config.seconds : 0}
-          display={config.timerOn ? `${config.seconds}s` : "off"}
-          onStep={(d) => step("seconds", d)}
+          value={config.seconds}
+          display={config.timerOn ? `${config.seconds}s` : "—"}
           disabled={!config.timerOn}
+          onStep={(d) => step("seconds", d)}
         />
 
-        <Toggle
+        <Switch
           label="Timer"
           hint="Off means nobody is rushed."
           on={config.timerOn}
           onToggle={() => patch({ timerOn: !config.timerOn })}
         />
-        <Toggle
+        <Switch
           label="Speed bonus"
           hint="Up to half again for answering fast."
           on={config.speedBonus}
           onToggle={() => patch({ speedBonus: !config.speedBonus })}
         />
-        <Toggle
+        <Switch
           label="Streak bonus"
-          hint="Consecutive perfect answers stack."
+          hint="Perfect answers in a row stack up."
           on={config.streakBonus}
           onToggle={() => patch({ streakBonus: !config.streakBonus })}
         />
-        <Toggle
+        <Switch
           label="Themed rounds"
           hint="Each round sticks to one puzzle type."
           on={config.themedRounds}
           onToggle={() => patch({ themedRounds: !config.themedRounds })}
         />
         {local ? null : (
-          <Toggle
+          <Switch
             label="Seal scores"
-            hint="Nobody sees points until the round closes."
+            hint="No points shown until the round closes."
             on={config.hideAnswers}
             onToggle={() => patch({ hideAnswers: !config.hideAnswers })}
           />
         )}
       </section>
-
-      <p className="tiny center faint">Roughly {estimate} minutes.</p>
-
-      <button type="button" className="btn" disabled={busy} onClick={() => void begin()}>
-        {busy ? "Setting up…" : local ? "Start playing" : "Open the lobby"}
-      </button>
-    </div>
+    </Scene>
   );
 }
 
-interface StepperProps {
+/** A pack, shown as a swatch of its own palette so you pick by mood. */
+function PackDrawer({
+  pack,
+  selected,
+  onSelect,
+}: {
+  pack: PackSummary;
+  selected: boolean;
+  onSelect(): void;
+}) {
+  const { palette } = pack;
+  const swatch = [palette.accent, palette.support, palette.extra, palette.warn];
+
+  return (
+    <button type="button" className="drawer" aria-pressed={selected} onClick={onSelect}>
+      <span className="drawer__swatch" aria-hidden="true">
+        {swatch.map((colour, index) => (
+          <span key={index} style={{ background: colour ? oklchToHex(colour) : "transparent" }} />
+        ))}
+      </span>
+      <span className="grow">
+        <span className="drawer__title">{pack.name}</span>
+        <span className="drawer__meta">
+          {pack.tagline} · {pack.itemCount} questions · {pack.kinds.length} types
+        </span>
+      </span>
+    </button>
+  );
+}
+
+function Stepper({
+  label,
+  value,
+  display,
+  disabled,
+  onStep,
+}: {
   label: string;
   value: number;
   display?: string;
   disabled?: boolean;
   onStep(direction: 1 | -1): void;
-}
-
-function Stepper({ label, value, display, disabled, onStep }: StepperProps) {
+}) {
   return (
-    <div className="between">
-      <span className={disabled ? "faint" : ""}>{label}</span>
+    <div className="setting">
+      <span className={`setting__label${disabled ? " faint" : ""}`}>{label}</span>
       <div className="stepper">
-        <button type="button" disabled={disabled} onClick={() => onStep(-1)} aria-label={`Fewer ${label}`}>
-          &minus;
+        <button type="button" disabled={disabled} aria-label={`Fewer ${label}`} onClick={() => onStep(-1)}>
+          −
         </button>
-        <span className="value">{display ?? value}</span>
-        <button type="button" disabled={disabled} onClick={() => onStep(1)} aria-label={`More ${label}`}>
+        <span className="stepper__value">{display ?? value}</span>
+        <button type="button" disabled={disabled} aria-label={`More ${label}`} onClick={() => onStep(1)}>
           +
         </button>
       </div>
@@ -303,20 +341,33 @@ function Stepper({ label, value, display, disabled, onStep }: StepperProps) {
   );
 }
 
-interface ToggleProps {
+function Switch({
+  label,
+  hint,
+  on,
+  onToggle,
+}: {
   label: string;
   hint: string;
   on: boolean;
   onToggle(): void;
-}
-
-function Toggle({ label, hint, on, onToggle }: ToggleProps) {
+}) {
   return (
-    <button type="button" className="chip" aria-pressed={on} onClick={onToggle}>
-      <span className="chip-name">
-        {label} &middot; {on ? "on" : "off"}
+    <div className="setting">
+      <span className="grow">
+        <span className="setting__label">{label}</span>
+        <br />
+        <span className="setting__hint">{hint}</span>
       </span>
-      <span className="chip-desc">{hint}</span>
-    </button>
+      <button
+        type="button"
+        className="switch"
+        role="switch"
+        aria-checked={on}
+        aria-pressed={on}
+        aria-label={label}
+        onClick={onToggle}
+      />
+    </div>
   );
 }

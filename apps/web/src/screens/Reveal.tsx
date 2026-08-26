@@ -1,21 +1,18 @@
 import { useState } from "react";
-import { getKind, type PublicGameState } from "@candlelight/core";
+import { getKind, type PublicGameState } from "@curio/core";
 
-import { KindIcon } from "../components/KindIcon.js";
-import { Scoreboard } from "../components/Scoreboard.js";
+import { Board, KindIcon, Scene } from "../design/index.js";
 
 interface RevealProps {
   game: PublicGameState;
   meId: string;
   round: number;
-  /** Live play moves on by itself; async waits for the host. */
-  hostDriven: boolean;
   onNext(): Promise<void>;
   onLeave(): void;
 }
 
 /** Every question in the round, its answer, and how you did on it. */
-export function Reveal({ game, meId, round, hostDriven, onNext, onLeave }: RevealProps) {
+export function Reveal({ game, meId, round, onNext, onLeave }: RevealProps) {
   const [busy, setBusy] = useState(false);
   const state = game.rounds[round];
   const mine = game.players[meId]?.rounds[round];
@@ -32,67 +29,67 @@ export function Reveal({ game, meId, round, hostDriven, onNext, onLeave }: Revea
   };
 
   return (
-    <div className="page fade-in">
-      <div className="between">
-        <span className="eyebrow">Round {round + 1} &middot; answers</span>
-        <span className="eyebrow num">+{(mine?.score ?? 0).toLocaleString()}</span>
-      </div>
-
-      <div className="card stack-s">
+    <Scene
+      id={`reveal-${round}`}
+      flow="top"
+      rail={
+        <>
+          <span className="eyebrow">Round {round + 1} · answers</span>
+          <span className="eyebrow num">+{(mine?.score ?? 0).toLocaleString()}</span>
+        </>
+      }
+      dock={
+        <>
+          {isHost ? (
+            <button type="button" className="button" disabled={busy} onClick={() => void next()}>
+              {busy ? "Dealing…" : last ? "Final scores" : `Open round ${round + 2}`}
+            </button>
+          ) : (
+            <p className="tiny faint center">
+              {game.players[game.hostId]?.name ?? "The host"} opens the next round.
+            </p>
+          )}
+          <button type="button" className="button button--quiet" onClick={onLeave}>
+            Leave
+          </button>
+        </>
+      }
+    >
+      <div className="panel stack--tight">
         <span className="eyebrow">Standings</span>
-        <Scoreboard players={game.players} meId={meId} round={round} />
+        <Board players={game.players} meId={meId} round={round} />
       </div>
 
-      <div className="stack-s">
+      <div className="stack--tight stagger">
         {(state?.questions ?? []).map((question, index) => {
           const result = mine?.answers[index];
           const solution = state?.solutions?.[index];
           const kind = getKind(question.kind);
-          const tone = !result ? "faint" : result.fraction >= 0.999 ? "" : "muted";
+          const outcome = !result
+            ? "no answer"
+            : result.fraction >= 0.999
+              ? `+${result.points}`
+              : result.fraction > 0
+                ? `part · +${result.points}`
+                : "missed";
 
           return (
-            <div className="card stack-s" key={`${round}-${index}`}>
-              <div className="between">
-                <span className="eyebrow row" style={{ gap: 6 }}>
-                  <KindIcon icon={kind.icon} size={13} />
+            <div className="panel panel--quiet stack--tight" key={`${round}-${index}`}>
+              <div className="row--between">
+                <span className="eyebrow">
+                  <KindIcon icon={kind.icon} size={12} />
                   {kind.name}
                 </span>
-                <span className={`tiny ${tone}`}>
-                  {!result
-                    ? "no answer"
-                    : result.fraction >= 0.999
-                      ? `+${result.points}`
-                      : result.fraction > 0
-                        ? `part credit +${result.points}`
-                        : "missed"}
+                <span className={`tiny ${result && result.fraction >= 0.999 ? "" : "faint"}`}>
+                  {outcome}
                 </span>
               </div>
-              <p>{question.prompt}</p>
-              {solution ? <p className="serif-i">{solution}</p> : null}
+              <p className="small">{question.prompt}</p>
+              {solution ? <p className="lede small">{solution}</p> : null}
             </div>
           );
         })}
       </div>
-
-      <div className="spacer" />
-
-      {hostDriven ? (
-        isHost ? (
-          <button type="button" className="btn" disabled={busy} onClick={() => void next()}>
-            {busy ? "Dealing…" : last ? "Finish the game" : `Open round ${round + 2}`}
-          </button>
-        ) : (
-          <p className="tiny center faint">
-            {game.players[game.hostId]?.name ?? "The host"} opens the next round.
-          </p>
-        )
-      ) : (
-        <p className="tiny center faint">Next round starts in a moment…</p>
-      )}
-
-      <button type="button" className="btn quiet" onClick={onLeave}>
-        Leave this game
-      </button>
-    </div>
+    </Scene>
   );
 }

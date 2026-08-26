@@ -4,7 +4,7 @@ import {
   isUnchanged,
   type GameRequest,
   type GameResponse,
-} from "@candlelight/core";
+} from "@curio/core";
 
 import type { Subscriber, Transport } from "./transport.js";
 

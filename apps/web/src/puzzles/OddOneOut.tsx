@@ -1,13 +1,14 @@
-import { Options } from "./Options.js";
+import { OptionList } from "../design/index.js";
 import type { PuzzleProps } from "./types.js";
 
 export function OddOneOut({ question, locked, onCommit }: PuzzleProps<"oddOneOut">) {
   return (
-    <div className="stack">
+    <div className="stack--loose">
       <p className="prompt">{question.prompt}</p>
-      <Options
+      <OptionList
         options={question.view.options}
         locked={locked}
+        label={question.prompt}
         onPick={(choice) => onCommit({ choice })}
       />
     </div>

@@ -1,4 +1,4 @@
-import type { UnscrambleItem } from "@candlelight/core";
+import type { UnscrambleItem } from "@curio/core";
 
 /** A jumbled word and the hint that unlocks it. */
 export const unscramble: UnscrambleItem[] = [

@@ -1,4 +1,4 @@
-import type { ContentPack } from "@candlelight/core";
+import type { ContentPack } from "@curio/core";
 
 import { continents } from "./categories.js";
 import { choice } from "./items/choice.js";
@@ -22,13 +22,19 @@ export const atlasPack: ContentPack = {
   name: "Atlas",
   tagline: "The world, roughly",
   blurb: "Rivers, capitals, flags, and the places people always misplace.",
-  theme: {
-    accent: "#4fa3c7",
-    support: "#6fb98f",
-    warn: "#e07a5f",
-    extra: "#f2cc8f",
-    backdrop: "#0b1220",
-    surface: "#141d2b",
+  atmosphere: {
+    // Chart-paper navy with a horizon at the foot of the screen and a faint
+    // graticule: precise where Candlelight is secretive.
+    hue: 236,
+    mood: "deep",
+    signature: {
+      accent: "#4fa3c7",
+      support: "#6fb98f",
+      warn: "#e07a5f",
+      extra: "#f2cc8f",
+    },
+    texture: ["grid", "horizonGlow"],
+    display: "spaceGrotesk",
   },
   categories: continents,
   items: {

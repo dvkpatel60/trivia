@@ -1,4 +1,4 @@
-import type { ImageChoiceItem } from "@candlelight/core";
+import type { ImageChoiceItem } from "@curio/core";
 
 /**
  * A picture round built from house colours rather than shipped artwork, so

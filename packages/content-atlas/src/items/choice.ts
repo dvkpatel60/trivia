@@ -1,4 +1,4 @@
-import type { ChoiceItem } from "@candlelight/core";
+import type { ChoiceItem } from "@curio/core";
 
 export const choice: ChoiceItem[] = [
   { prompt: "Which is the largest country by area?", options: ["Canada", "China", "Russia", "the United States"], answer: 2 },

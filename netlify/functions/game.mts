@@ -2,7 +2,7 @@
  * The game API. One POST endpoint, one `op` per request.
  *
  * This file is deliberately thin. Every rule about who may do what and when a
- * phase ends lives in `@candlelight/core`, where it is tested without a
+ * phase ends lives in `@curio/core`, where it is tested without a
  * network. What is left here is I/O: read the blobs, call the engine, write
  * back, and hold the connection open when a client is waiting for something
  * to happen.
@@ -26,8 +26,8 @@ import {
   type EngineContext,
   type GameRequest,
   type GameState,
-} from "@candlelight/core";
-import { resolvePack } from "@candlelight/content";
+} from "@curio/core";
+import { resolvePack } from "@curio/content";
 
 import {
   cleanup,

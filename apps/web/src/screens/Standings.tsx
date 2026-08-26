@@ -1,41 +1,40 @@
-import { type PublicGameState } from "@candlelight/core";
+import { type PublicGameState } from "@curio/core";
 
-import { Scoreboard } from "../components/Scoreboard.js";
+import { Board, Scene } from "../design/index.js";
 
 interface StandingsProps {
   game: PublicGameState;
   meId: string;
   round: number;
-  onSkip(): void;
   isHost: boolean;
+  onSkip(): void;
 }
 
 /** The live-play breather between rounds. Advances itself. */
-export function Standings({ game, meId, round, onSkip, isHost }: StandingsProps) {
+export function Standings({ game, meId, round, isHost, onSkip }: StandingsProps) {
   const last = round + 1 >= game.config.rounds;
 
   return (
-    <div className="page fade-in">
-      <div className="center stack-s" style={{ paddingTop: "5vh" }}>
-        <span className="eyebrow">End of round {round + 1}</span>
-        <h2>{last ? "Last round done" : "How it stands"}</h2>
+    <Scene
+      id={`standings-${round}`}
+      rail={<span className="eyebrow">End of round {round + 1}</span>}
+      dock={
+        <>
+          <p className="tiny faint center">
+            {last ? "Final scores coming up…" : `Round ${round + 2} starts in a moment…`}
+          </p>
+          {isHost ? (
+            <button type="button" className="button button--ghost" onClick={onSkip}>
+              Skip ahead
+            </button>
+          ) : null}
+        </>
+      }
+    >
+      <div className="center stack--tight">
+        <h1>{last ? "That's the lot" : "How it stands"}</h1>
       </div>
-
-      <div className="card">
-        <Scoreboard players={game.players} meId={meId} round={round} />
-      </div>
-
-      <div className="spacer" />
-
-      <p className="tiny center faint">
-        {last ? "Final scores coming up…" : `Round ${round + 2} starts in a moment…`}
-      </p>
-
-      {isHost ? (
-        <button type="button" className="btn ghost" onClick={onSkip}>
-          Skip ahead
-        </button>
-      ) : null}
-    </div>
+      <Board players={game.players} meId={meId} round={round} />
+    </Scene>
   );
 }

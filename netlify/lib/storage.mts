@@ -24,11 +24,11 @@
  */
 
 import { getStore, type Store } from "@netlify/blobs";
-import type { AnyQuestion, GameState, PlayerState, RoundState } from "@candlelight/core";
-import type { Phase } from "@candlelight/core";
-import type { GameConfig } from "@candlelight/core";
+import type { AnyQuestion, GameState, PlayerState, RoundState } from "@curio/core";
+import type { Phase } from "@curio/core";
+import type { GameConfig } from "@curio/core";
 
-const STORE_NAME = "candlelight-games";
+const STORE_NAME = "curio-games";
 
 /** The lifecycle record: everything except what players did. */
 interface MainRecord {

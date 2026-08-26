@@ -1,4 +1,4 @@
-import type { OddOneOutItem } from "@candlelight/core";
+import type { OddOneOutItem } from "@curio/core";
 
 export const oddOneOut: OddOneOutItem[] = [
   { items: ["Nile", "Amazon", "Danube", "Sahara"], answer: 3, why: "The Sahara is a desert; the rest are rivers." },

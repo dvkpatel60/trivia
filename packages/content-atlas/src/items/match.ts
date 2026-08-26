@@ -1,4 +1,4 @@
-import type { MatchItem } from "@candlelight/core";
+import type { MatchItem } from "@curio/core";
 
 /** Countries whose capital is not the city people first guess. */
 export const match: MatchItem[] = [

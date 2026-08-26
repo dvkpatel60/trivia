@@ -1,4 +1,4 @@
-import type { WhoAmIItem } from "@candlelight/core";
+import type { WhoAmIItem } from "@curio/core";
 
 /** Clues run vague to obvious; guessing early is worth more. */
 export const whoAmI: WhoAmIItem[] = [

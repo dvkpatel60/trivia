@@ -1,3 +1,5 @@
+export * from "./color.js";
+export * from "./atmosphere.js";
 export * from "./types.js";
 export * from "./rng.js";
 export * from "./text.js";

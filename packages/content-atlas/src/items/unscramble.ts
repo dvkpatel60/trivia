@@ -1,4 +1,4 @@
-import type { UnscrambleItem } from "@candlelight/core";
+import type { UnscrambleItem } from "@curio/core";
 
 export const unscramble: UnscrambleItem[] = [
   { word: "MADAGASCAR", hint: "A very large island off south-east Africa" },

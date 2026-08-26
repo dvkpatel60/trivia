@@ -1,4 +1,4 @@
-import type { MatchItem } from "@candlelight/core";
+import type { MatchItem } from "@curio/core";
 
 /** Spell to effect. Four are drawn per question. */
 export const match: MatchItem[] = [

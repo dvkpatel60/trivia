@@ -1,4 +1,4 @@
-import type { ChoiceItem } from "@candlelight/core";
+import type { ChoiceItem } from "@curio/core";
 
 /** Straight trivia: four options, one truth. */
 export const choice: ChoiceItem[] = [

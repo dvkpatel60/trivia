@@ -1,4 +1,4 @@
-import type { GameRequest, GameResponse, PublicGameState } from "@candlelight/core";
+import type { GameRequest, GameResponse, PublicGameState } from "@curio/core";
 
 export interface StateUpdate {
   game: PublicGameState;

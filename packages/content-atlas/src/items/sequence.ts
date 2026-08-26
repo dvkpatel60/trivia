@@ -1,4 +1,4 @@
-import type { SequenceItem } from "@candlelight/core";
+import type { SequenceItem } from "@curio/core";
 
 /** Authored in the correct order; the engine shuffles before serving. */
 export const sequence: SequenceItem[] = [

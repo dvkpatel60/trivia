@@ -1,4 +1,4 @@
-import type { Category } from "@candlelight/core";
+import type { Category } from "@curio/core";
 
 /** This pack sorts cities by continent, where Hogwarts sorts people by house. */
 export const continents: Category[] = [

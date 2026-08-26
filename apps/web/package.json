@@ -1,5 +1,5 @@
 {
-  "name": "@candlelight/web",
+  "name": "@curio/web",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -9,8 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@candlelight/content": "1.0.0",
-    "@candlelight/core": "1.0.0",
+    "@curio/content": "1.0.0",
+    "@curio/core": "1.0.0",
+    "qrcode-generator": "^2.0.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

@@ -1,4 +1,4 @@
-import type { Category } from "@candlelight/core";
+import type { Category } from "@curio/core";
 
 /**
  * The buckets `categorize` puzzles sort into. The engine knows nothing about

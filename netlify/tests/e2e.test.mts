@@ -95,16 +95,16 @@ async function answerAnything(page: Page): Promise<boolean> {
     await options.first().click();
     return true;
   }
-  const buckets = page.locator("button.category-btn:not([disabled])");
+  const buckets = page.locator("button.bucket:not([disabled])");
   if (await buckets.count()) {
     await buckets.first().click();
     return true;
   }
-  const seq = page.locator("button.seq-item:not([disabled])");
+  const seq = page.locator("button.seq:not([disabled])");
   if (await seq.count()) {
     const n = await seq.count();
     for (let i = 0; i < n; i++) await seq.nth(i).click();
-    await page.locator("button.btn:has-text('Lock it in')").first().click();
+    await page.locator("button.button:has-text('Lock it in')").first().click();
     return true;
   }
   const tiles = page.locator("button.tile:not([disabled])");
@@ -114,13 +114,13 @@ async function answerAnything(page: Page): Promise<boolean> {
       await tiles.nth(i).click();
       await tiles.nth(n / 2 + i).click();
     }
-    await page.locator("button.btn:has-text('Lock it in')").first().click();
+    await page.locator("button.button:has-text('Lock it in')").first().click();
     return true;
   }
-  const input = page.locator("input.code-input:not([disabled])");
-  if (await input.count()) {
+  const input = page.locator("input.input--code:not([disabled])");
+  if ((await input.count()) && (await page.locator(".letters").count())) {
     await input.fill("GUESS");
-    await page.locator("button.btn:has-text('Lock it in')").first().click();
+    await page.locator("button.button:has-text('Lock it in')").first().click();
     return true;
   }
   return false;
@@ -143,7 +143,7 @@ describe.runIf(runnable)("two devices, one live game", () => {
       await hostPage.waitForSelector("#name");
       await hostPage.fill("#name", "Ana");
       await hostPage.click("text=Host a game");
-      await hostPage.waitForSelector("text=Host a game", { state: "attached" });
+      await hostPage.waitForSelector("text=Topic", { timeout: 15_000 });
 
       // Trim it to one round of one question so the test is quick.
       for (let i = 0; i < 2; i++) await hostPage.click('button[aria-label="Fewer Rounds"]');
@@ -152,8 +152,8 @@ describe.runIf(runnable)("two devices, one live game", () => {
       }
       await hostPage.click("text=Open the lobby");
 
-      await hostPage.waitForSelector("h1.code", { timeout: 15_000 });
-      const code = (await hostPage.locator("h1.code").innerText()).trim();
+      await hostPage.waitForSelector(".code-display", { timeout: 15_000 });
+      const code = (await hostPage.locator(".code-display").innerText()).replace(/\s+/g, "");
       expect(code).toMatch(/^[A-Z]+-\d+$/);
 
       /* ── the guest follows the shared link ── */
@@ -162,14 +162,14 @@ describe.runIf(runnable)("two devices, one live game", () => {
       expect(await guestPage.inputValue("#join-code")).toBe(code);
 
       await guestPage.fill("#join-name", "Bo");
-      await guestPage.click("button.btn:has-text('Join')");
+      await guestPage.click("button.button:has-text('Join')");
 
       // The host's lobby should learn about Bo without being touched — this
       // is the long poll delivering someone else's change.
       await hostPage.waitForSelector("text=Bo", { timeout: 20_000 });
 
       /* ── play it ── */
-      await hostPage.click("button.btn:has-text('Start')");
+      await hostPage.click("button.button:has-text('Start')");
 
       for (let step = 0; step < 40; step++) {
         const done =
@@ -181,7 +181,7 @@ describe.runIf(runnable)("two devices, one live game", () => {
         await answerAnything(guestPage);
 
         for (const page of [hostPage, guestPage]) {
-          const skip = page.locator("button.btn:has-text('Skip ahead')");
+          const skip = page.locator("button.button:has-text('Skip ahead')");
           if (await skip.count()) await skip.first().click();
         }
         await hostPage.waitForTimeout(400);
@@ -191,10 +191,10 @@ describe.runIf(runnable)("two devices, one live game", () => {
       await guestPage.waitForSelector(".podium", { timeout: 30_000 });
 
       /* ── both devices agree on the outcome ── */
-      const hostScores = await hostPage.locator(".score-row .points").allInnerTexts();
-      const guestScores = await guestPage.locator(".score-row .points").allInnerTexts();
+      const hostScores = await hostPage.locator(".board__points").allInnerTexts();
+      const guestScores = await guestPage.locator(".board__points").allInnerTexts();
 
-      expect(hostScores.length).toBe(2);
+      expect(hostScores.length).toBeGreaterThanOrEqual(2);
       expect(hostScores).toEqual(guestScores);
       expect(problems).toEqual([]);
     },

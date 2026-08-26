@@ -1,4 +1,4 @@
-import type { AnswerFor, AnyPublicQuestion, PuzzleKindId } from "@candlelight/core";
+import type { AnswerFor, AnyPublicQuestion, PuzzleKindId } from "@curio/core";
 
 export interface PuzzleProps<K extends PuzzleKindId = PuzzleKindId> {
   question: Extract<AnyPublicQuestion, { kind: K }>;

@@ -1,4 +1,4 @@
-import type { OddOneOutItem } from "@candlelight/core";
+import type { OddOneOutItem } from "@curio/core";
 
 /** Three belong together, one doesn't, and `why` says so on the reveal. */
 export const oddOneOut: OddOneOutItem[] = [

@@ -6,13 +6,12 @@ export const fixturePack: ContentPack = {
   name: "Fixture",
   tagline: "test pack",
   blurb: "Not for humans.",
-  theme: {
-    accent: "#e8b55c",
-    support: "#3f9c7d",
-    warn: "#c2543a",
-    extra: "#8878d6",
-    backdrop: "#0d0f14",
-    surface: "#171a22",
+  atmosphere: {
+    hue: 276,
+    mood: "enigmatic",
+    signature: { accent: "#e8b55c", support: "#3f9c7d", warn: "#c2543a", extra: "#8878d6" },
+    texture: ["grain"],
+    display: "fraunces",
   },
   categories: [
     { id: "alpha", label: "Alpha" },

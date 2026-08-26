@@ -1,0 +1,93 @@
+/*
+ * Per-pack background treatments.
+ *
+ * A pack picks textures from a fixed vocabulary rather than shipping CSS,
+ * which is what stops twelve topics becoming twelve stylesheets.
+ */
+
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--surface-0);
+}
+
+.atmosphere > * {
+  position: absolute;
+  inset: 0;
+}
+
+/* Candlelight: two slow embers drifting behind everything. */
+.tex-ember {
+  background:
+    radial-gradient(
+      42vmax 34vmax at 22% 8%,
+      color-mix(in oklab, var(--accent) 20%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      34vmax 30vmax at 84% 78%,
+      color-mix(in oklab, var(--extra) 15%, transparent),
+      transparent 66%
+    );
+  animation: drift 26s var(--ease-in-out) infinite alternate;
+}
+
+@keyframes drift {
+  from { transform: translate3d(-2%, -1%, 0) scale(1); }
+  to { transform: translate3d(2%, 2%, 0) scale(1.07); }
+}
+
+/* Atlas: a graticule, and a lit horizon at the foot of the screen. */
+.tex-grid {
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--ink) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--ink) 6%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(120vmax 90vmax at 50% 18%, black, transparent 78%);
+}
+
+.tex-horizon {
+  background: linear-gradient(
+    to top,
+    color-mix(in oklab, var(--accent) 22%, transparent),
+    transparent 34%
+  );
+}
+
+/* Film grain, so flat dark surfaces don't band on cheap panels. */
+.tex-grain {
+  opacity: 0.32;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+.tex-vignette {
+  background: radial-gradient(
+    120vmax 96vmax at 50% 30%,
+    transparent 42%,
+    color-mix(in oklab, var(--surface-0) 88%, black) 100%
+  );
+}
+
+/*
+ * The time pressure layer: a warm bloom at the screen edge that grows as a
+ * question runs out. Peripheral, so nobody has to watch a number.
+ */
+.tex-pressure {
+  opacity: 0;
+  background: radial-gradient(
+    130vmax 100vmax at 50% 50%,
+    transparent 52%,
+    color-mix(in oklab, var(--warn) 46%, transparent) 100%
+  );
+  animation-name: pressure;
+  animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  animation-fill-mode: forwards;
+}
+
+@keyframes pressure {
+  0%, 62% { opacity: 0; }
+  100% { opacity: 0.85; }
+}

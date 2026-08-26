@@ -6,10 +6,17 @@
  * package, import it, add it to `PACKS`.
  */
 
-import { validatePack, type ContentPack, type PuzzleKindId } from "@candlelight/core";
-import { availableKinds } from "@candlelight/core";
-import { hogwartsPack } from "@candlelight/content-hogwarts";
-import { atlasPack } from "@candlelight/content-atlas";
+import {
+  availableKinds,
+  derivePalette,
+  validatePack,
+  type Atmosphere,
+  type ContentPack,
+  type Palette,
+  type PuzzleKindId,
+} from "@curio/core";
+import { hogwartsPack } from "@curio/content-hogwarts";
+import { atlasPack } from "@curio/content-atlas";
 
 export const PACKS: ContentPack[] = [hogwartsPack, atlasPack];
 
@@ -35,7 +42,9 @@ export interface PackSummary {
   name: string;
   tagline: string;
   blurb: string;
-  theme: ContentPack["theme"];
+  atmosphere: Atmosphere;
+  /** Derived once here so pickers can preview a pack without re-deriving. */
+  palette: Palette;
   kinds: PuzzleKindId[];
   itemCount: number;
 }
@@ -47,7 +56,8 @@ export function packSummaries(): PackSummary[] {
     name: pack.name,
     tagline: pack.tagline,
     blurb: pack.blurb,
-    theme: pack.theme,
+    atmosphere: pack.atmosphere,
+    palette: derivePalette(pack.atmosphere),
     kinds: availableKinds(pack),
     itemCount: Object.values(pack.items).reduce((sum, items) => sum + (items?.length ?? 0), 0),
   }));

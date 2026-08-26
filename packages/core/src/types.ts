@@ -1,3 +1,5 @@
+import type { Atmosphere } from "./atmosphere.js";
+
 /**
  * The vocabulary every other package speaks.
  *
@@ -292,27 +294,13 @@ export interface Category {
   color?: string;
 }
 
-export interface PackTheme {
-  /** Primary accent: highlights, timers, the active state. */
-  accent: string;
-  /** Secondary accent, used for "correct" and progress. */
-  support: string;
-  /** Warning / wrong / urgency. */
-  warn: string;
-  /** A fourth hue for variety in charts and player pips. */
-  extra: string;
-  /** Page background, darkest layer. */
-  backdrop: string;
-  /** Card and panel surface. */
-  surface: string;
-}
-
 export interface ContentPack {
   id: string;
   name: string;
   tagline: string;
   blurb: string;
-  theme: PackTheme;
+  /** The mood the app derives this pack's whole palette and type from. */
+  atmosphere: Atmosphere;
   /** Required if the pack ships `categorize` items. */
   categories?: Category[];
   items: { [K in PuzzleKindId]?: Array<ItemFor[K]> };

@@ -1,4 +1,4 @@
-import type { TrueFalseItem } from "@candlelight/core";
+import type { TrueFalseItem } from "@curio/core";
 
 export const truefalse: TrueFalseItem[] = [
   { statement: "Australia is both a country and a continent.", answer: true },

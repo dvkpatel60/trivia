@@ -1,5 +1,5 @@
 {
-  "name": "candlelight",
+  "name": "curio",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -7,16 +7,16 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace @candlelight/web",
+    "dev": "npm run dev --workspace @curio/web",
     "dev:netlify": "netlify dev",
     "build": "npm run build --workspaces --if-present",
-    "preview": "npm run preview --workspace @candlelight/web",
+    "preview": "npm run preview --workspace @curio/web",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --build --force",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "test:e2e": "npm run build --workspace @candlelight/web && vitest run --config vitest.e2e.config.ts",
+    "test:e2e": "npm run build --workspace @curio/web && vitest run --config vitest.e2e.config.ts",
     "check": "npm run typecheck && npm run lint && npm run test"
   },
   "devDependencies": {

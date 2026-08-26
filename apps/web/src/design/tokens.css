@@ -1,0 +1,99 @@
+/*
+ * Design tokens.
+ *
+ * Colour is not here — a pack's palette is derived at runtime and set on
+ * :root as --surface-0..4, --ink*, --accent and friends. What lives here is
+ * everything that stays constant across topics: type, space, shape, motion.
+ */
+
+:root {
+  /* ── type ──
+   * Two variable families. The display face is swapped per pack, so a topic
+   * changes how the words feel and not just what colour they are. */
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --font-ui: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Inter", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Fluid scale. Everything in rem so system text scaling works. */
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.775rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: clamp(1.05rem, 1.5vw + 0.8rem, 1.2rem);
+  --text-xl: clamp(1.3rem, 3vw + 0.7rem, 1.65rem);
+  --text-2xl: clamp(1.6rem, 5vw + 0.6rem, 2.2rem);
+  --text-hero: clamp(2.2rem, 10vw, 3.4rem);
+
+  --leading-tight: 1.14;
+  --leading-snug: 1.3;
+  --leading-normal: 1.55;
+
+  /* ── space ── */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 22px;
+  --s6: 32px;
+  --s7: 48px;
+
+  --page: 34rem;
+  --gutter: clamp(16px, 4vw, 22px);
+
+  /* ── shape ── */
+  --r-sm: 10px;
+  --r-md: 15px;
+  --r-lg: 22px;
+  --r-full: 999px;
+  --hairline: 1px;
+
+  /* Interactive things are at least this tall, thumb-sized, always. */
+  --tap: 52px;
+
+  /* ── motion ──
+   * Four curves, four durations. Every animation in the app draws from
+   * these, which is what keeps the whole thing feeling like one object. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --ease-linear: linear;
+
+  --dur-instant: 110ms;
+  --dur-fast: 180ms;
+  --dur-base: 280ms;
+  --dur-slow: 420ms;
+  --dur-scene: 520ms;
+
+  /* ── depth ──
+   * Shadows are tinted toward the backdrop rather than pure black, so raised
+   * surfaces read as lit rather than as cut-outs. */
+  --shadow-sm: 0 2px 8px rgb(0 0 0 / 0.28);
+  --shadow-md: 0 10px 30px rgb(0 0 0 / 0.36);
+  --shadow-lg: 0 24px 60px rgb(0 0 0 / 0.46);
+  --glow: 0 0 0 1px color-mix(in oklab, var(--accent) 30%, transparent),
+    0 8px 30px color-mix(in oklab, var(--accent) 18%, transparent);
+}
+
+/* Per-pack display faces. Set by `applyPack` on the document element. */
+:root[data-display="fraunces"] {
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
+  /* Fraunces is a variable soft serif; the WONK axis gives it its character
+   * and the optical size axis keeps big text from feeling spindly. */
+  --display-settings: "SOFT" 40, "WONK" 1, "opsz" 120;
+  --display-weight: 600;
+  --display-tracking: -0.018em;
+}
+
+:root[data-display="spaceGrotesk"] {
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --display-settings: normal;
+  --display-weight: 600;
+  --display-tracking: -0.022em;
+}
+
+:root[data-display="inter"] {
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --display-settings: normal;
+  --display-weight: 650;
+  --display-tracking: -0.02em;
+}

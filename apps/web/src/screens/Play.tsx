@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   getKind,
   questionDurationMs,
-  type AnyPublicQuestion,
   type AnswerFor,
+  type AnyPublicQuestion,
   type PublicGameState,
   type PuzzleKindId,
-} from "@candlelight/core";
+} from "@curio/core";
+import type { ComponentType } from "react";
 
-import { KindIcon } from "../components/KindIcon.js";
-import { Timer } from "../components/Timer.js";
+import { KindIcon, Scene, TimerRing } from "../design/index.js";
 import { PUZZLES, type PuzzleProps } from "../puzzles/index.js";
 
 interface PlayProps {
@@ -18,14 +18,12 @@ interface PlayProps {
   round: number;
   index: number;
   total: number;
-  /** Server-clock deadline, or null when the host turned the timer off. */
   endsAt: number | null;
   now(): number;
   answeredCount: number;
   playerCount: number;
-  /** True when the server already holds an answer — a refresh mid-question. */
   answered: boolean;
-  /** Name shown above the question in pass-and-play. */
+  /** Named in pass-and-play, so nobody answers on somebody else's behalf. */
   whoseTurn?: string;
   onAnswer(index: number, answer: unknown, elapsedMs: number): void;
 }
@@ -33,9 +31,8 @@ interface PlayProps {
 /**
  * One question.
  *
- * The renderer is looked up from the kind registry, so this screen never
- * grows a switch statement: adding a puzzle kind means adding a component,
- * not editing this file.
+ * The renderer comes from the kind registry, so this file never grows a
+ * switch: a new puzzle kind is a new component, not an edit here.
  */
 export function Play({
   game,
@@ -55,12 +52,11 @@ export function Play({
   const openedAt = useRef(now());
   const kind = getKind(question.kind);
 
-  // Held in a ref so the expiry effect depends on the deadline alone, rather
-  // than re-arming its timer on every render of the parent.
+  // Held in a ref so the expiry timer depends on the deadline alone, rather
+  // than re-arming on every render of the parent.
   const answerRef = useRef(onAnswer);
   answerRef.current = onAnswer;
 
-  // A fresh question resets the local answer state and the clock it is timed against.
   useEffect(() => {
     setLocked(answered);
     openedAt.current = now();
@@ -69,10 +65,9 @@ export function Play({
   /**
    * Out of time.
    *
-   * The empty answer still gets submitted rather than simply locking the
-   * screen: it is what moves a round-paced game on to the next question, and
-   * it records "no answer" rather than leaving a hole nobody can explain
-   * later. The server decides what it is worth, which is nothing.
+   * The empty answer is still submitted rather than the screen simply
+   * locking: it is what moves a round-paced game on, and it records "no
+   * answer" instead of leaving a hole nobody can explain later.
    */
   useEffect(() => {
     if (endsAt == null || locked) return;
@@ -102,35 +97,44 @@ export function Play({
     onAnswer(index, answer, Math.max(0, now() - openedAt.current));
   };
 
-  const Renderer = PUZZLES[question.kind] as React.ComponentType<PuzzleProps>;
+  const Renderer = PUZZLES[question.kind] as ComponentType<PuzzleProps>;
 
   return (
-    <div className="page fade-in" key={`${round}-${index}`}>
-      <div className="between">
-        <span className="eyebrow row" style={{ gap: 6 }}>
-          <KindIcon icon={kind.icon} size={14} />
-          {kind.name}
-        </span>
-        <span className="eyebrow">
-          {index + 1} / {total}
-        </span>
-      </div>
-
-      {whoseTurn ? <h3 className="center">{whoseTurn}</h3> : null}
-
-      <Timer endsAt={endsAt} totalMs={totalMs} now={now} />
-
-      <div className="card">
-        <Renderer question={question} locked={locked} onCommit={commit} />
-      </div>
-
-      {locked ? (
-        <p className="tiny center faint">
-          {game.config.pacing === "live"
-            ? `${answeredCount} of ${playerCount} answered`
-            : "Answer locked in."}
-        </p>
-      ) : null}
-    </div>
+    <Scene
+      id={`play-${round}-${index}`}
+      flow="end"
+      rail={
+        <>
+          <span className="eyebrow">
+            <KindIcon icon={kind.icon} size={13} />
+            {kind.name}
+          </span>
+          <span className="row">
+            <span className="dots" aria-label={`Question ${index + 1} of ${total}`}>
+              {Array.from({ length: total }, (_, position) => (
+                <span
+                  key={position}
+                  data-state={position < index ? "done" : position === index ? "now" : "todo"}
+                />
+              ))}
+            </span>
+            <TimerRing endsAt={endsAt} totalMs={totalMs} now={now} />
+          </span>
+        </>
+      }
+      dock={
+        locked ? (
+          <p className="tiny faint center">
+            {game.config.pacing === "live"
+              ? `${answeredCount} of ${playerCount} in`
+              : "Answer locked in."}
+          </p>
+        ) : whoseTurn ? (
+          <p className="tiny faint center">{whoseTurn}'s turn</p>
+        ) : null
+      }
+    >
+      <Renderer question={question} locked={locked} onCommit={commit} />
+    </Scene>
   );
 }
