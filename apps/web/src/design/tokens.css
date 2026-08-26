@@ -11,7 +11,22 @@
    * Two variable families. The display face is swapped per pack, so a topic
    * changes how the words feel and not just what colour they are. */
   --font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
-  --font-ui: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /*
+   * The interface face. Bricolage Grotesque is irregular on purpose — its
+   * proportions wander in a way a workhorse grotesque never does — which is
+   * what stops a screen of buttons reading like a form. The fallbacks are
+   * the liveliest system faces available before it loads.
+   */
+  --font-ui: "Bricolage Grotesque", "Avenir Next", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  /* Its width axis: slightly narrow, so long labels stay on one line. */
+  --ui-settings: "wdth" 96;
+
+  /*
+   * Figures only. A score counting up in a proportional face makes the whole
+   * row breathe in and out; tabular numerals are non-negotiable for that.
+   */
+  --font-num: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Inter", ui-monospace, "SF Mono", Menlo, monospace;
 
   /* Fluid scale. Everything in rem so system text scaling works. */

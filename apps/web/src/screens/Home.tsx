@@ -62,11 +62,11 @@ export function Home({
             Pass one device around
           </button>
           <button type="button" className="button button--quiet state" onClick={onLibrary}>
-            Browse the picture rounds
+            Look through the pictures
           </button>
           {online ? null : (
             <p className="tiny faint center">
-              No server reachable — pass-and-play still works offline.
+              Nothing's answering out there. Pass-and-play doesn't care.
             </p>
           )}
         </>

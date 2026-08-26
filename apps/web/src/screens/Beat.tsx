@@ -23,7 +23,7 @@ export function Beat({ game, meId, round, index }: BeatProps) {
     <Scene
       id={`beat-${round}-${index}`}
       rail={<span className="eyebrow">Question {index + 1}</span>}
-      dock={<p className="tiny faint center">Next up…</p>}
+      dock={<p className="tiny faint center">Next one's coming…</p>}
     >
       <Verdict result={result} sealed={sealed} morphId={`answer-${round}-${index}`} />
 

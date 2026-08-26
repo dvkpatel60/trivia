@@ -74,7 +74,7 @@
 
 .eyebrow {
   font-size: var(--text-2xs);
-  font-weight: 600;
+  font-weight: 650;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--outline);
@@ -126,9 +126,19 @@
   border-radius: var(--r-md);
   background: var(--accent);
   color: var(--on-accent);
+  /*
+   * Primary actions speak in the pack's own voice.
+   *
+   * The interface face carries structure — labels, hints, numbers — and the
+   * display face carries anything a player reads *as content*: the question,
+   * the answers, and the button they press. Switching topic then changes how
+   * the game sounds, not just what colour it is.
+   */
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-settings, normal);
   font-weight: 620;
-  font-size: var(--text-md);
-  letter-spacing: -0.01em;
+  font-size: var(--text-lg);
+  letter-spacing: -0.005em;
   cursor: pointer;
   overflow: hidden;
   transition:
@@ -155,7 +165,26 @@
 
 .button--quiet:hover:not(:disabled) { color: var(--on-surface); }
 
-.button--inline { width: auto; padding: 0 var(--s4); min-height: 40px; font-size: var(--text-sm); }
+.button--inline { width: auto; padding: 0 var(--s4); min-height: 40px; }
+
+/*
+ * Only the primary action speaks in the pack's voice. Ghost, quiet and
+ * inline buttons are chrome — navigation, escapes, toggles — so they stay in
+ * the interface face. Declared after the modifiers above so it wins on
+ * source order rather than by piling on specificity.
+ */
+.button--ghost,
+.button--quiet,
+.button--inline {
+  font-family: var(--font-ui);
+  font-variation-settings: var(--ui-settings, normal);
+  font-size: var(--text-md);
+  font-weight: 650;
+  letter-spacing: -0.008em;
+}
+
+.button--quiet { font-weight: 550; }
+.button--inline { font-size: var(--text-sm); }
 
 /* ── inputs ───────────────────────────────────────────────────────────── */
 
@@ -185,6 +214,7 @@
 }
 
 .input--code {
+  font-family: var(--font-num);
   text-align: center;
   font-size: var(--text-lg);
   font-weight: 600;
@@ -237,12 +267,25 @@
   border-radius: var(--r-full);
   border: var(--hairline) solid var(--outline-variant);
   font-size: var(--text-xs);
-  font-weight: 650;
+  font-weight: 750;
   color: var(--outline);
   transition: all var(--dur-fast) var(--ease-out);
 }
 
-.option__label { flex: 1; min-width: 0; }
+/*
+ * An answer is content, not a control. Set in the pack's display face at a
+ * text optical size, it stops four options reading like a radio group.
+ */
+.option__label {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-settings, normal), "opsz" 14;
+  font-size: var(--text-lg);
+  font-weight: 520;
+  letter-spacing: -0.002em;
+  line-height: 1.24;
+}
 
 /* A fill sweeps in behind the row you picked. */
 .option__fill {
@@ -342,8 +385,10 @@
 }
 
 .ring__count {
+  font-family: var(--font-num);
   font-size: var(--text-xs);
   font-weight: 700;
+  font-variation-settings: normal;
   font-variant-numeric: tabular-nums;
   color: var(--warn);
   animation: pop-in var(--dur-fast) var(--ease-spring) both;

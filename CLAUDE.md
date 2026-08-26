@@ -199,8 +199,24 @@ primitives; they do not hand-roll layout.
 - **Gestures always have a tap fallback.** The sorter takes a drag *or* a tap
   on the bucket; a gesture nobody discovers is worse than no gesture.
 
-Type is Fraunces / Space Grotesk for display (per pack) and Inter for UI, from
-Google Fonts, with real fallback stacks.
+**Type has three roles, and the split is the point.**
+
+- `--font-display` is the pack's own face (Fraunces or Space Grotesk) and
+  carries anything a player reads *as content*: the question, the answer
+  options, the tiles they sort, and the primary button. Switching topic then
+  changes how the game sounds, not just what colour it is.
+- `--font-ui` is Bricolage Grotesque and carries structure: labels, hints,
+  toggles, secondary and quiet buttons. It is irregular on purpose — a party
+  game whose interface is set in a neutral grotesque reads like a settings
+  screen.
+- `--font-num` is Inter, used for figures only. A score counting up in a
+  proportional face makes the row breathe in and out; tabular numerals are
+  non-negotiable. Put `.num` on anything that changes in place.
+
+Loaded from Google Fonts with real fallback stacks. The sandboxed browser used
+for screenshots cannot reach them, so verify type changes by downloading the
+woff2 into `apps/web/dist/` and injecting `@font-face` — otherwise you are
+reviewing the fallback.
 
 ## Generated art
 

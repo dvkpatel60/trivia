@@ -319,7 +319,7 @@ export function App() {
           id="connecting"
           dock={
             <button type="button" className="button button--quiet state" onClick={leave}>
-              Back to the start
+              Back to the cabinet
             </button>
           }
         >

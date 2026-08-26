@@ -106,7 +106,7 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
       }
       dock={
         <>
-          <p className="tiny faint center">About {minutes} minutes.</p>
+          <p className="tiny faint center">About {minutes} minutes, give or take an argument.</p>
           <button type="button" className="button state" disabled={busy} onClick={() => void begin()}>
             {busy ? "Setting up…" : local ? "Start playing" : "Open the lobby"}
           </button>
@@ -114,7 +114,7 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
       }
     >
       <section className="stack--tight">
-        <span className="eyebrow">Topic</span>
+        <span className="eyebrow">Which drawer</span>
         {packs.map((entry) => (
           <PackDrawer
             key={entry.id}
@@ -127,7 +127,7 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
 
       {local ? null : (
         <section className="stack--tight">
-          <span className="eyebrow">Pace</span>
+          <span className="eyebrow">How you'll play</span>
           {PACING.map((option) => (
             <button
               key={option.id}
@@ -205,7 +205,7 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
       ) : null}
 
       <section className="stack--tight">
-        <span className="eyebrow">Puzzle types</span>
+        <span className="eyebrow">What's in the round</span>
         <div className="chips">
           {kinds.map((id) => {
             const kind = getKind(id);
@@ -229,7 +229,7 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
       </section>
 
       <section className="stack--tight">
-        <span className="eyebrow">Shape</span>
+        <span className="eyebrow">The shape of it</span>
 
         <Stepper label="Rounds" value={config.rounds} onStep={(d) => step("rounds", d)} />
         <Stepper
@@ -259,7 +259,7 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
         />
         <Switch
           label="Streak bonus"
-          hint="Perfect answers in a row stack up."
+          hint="Get them right back to back and they stack."
           on={config.streakBonus}
           onToggle={() => patch({ streakBonus: !config.streakBonus })}
         />
@@ -272,7 +272,7 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
         {local ? null : (
           <Switch
             label="Seal scores"
-            hint="No points shown until the round closes."
+            hint="Nobody sees a thing until the round closes."
             on={config.hideAnswers}
             onToggle={() => patch({ hideAnswers: !config.hideAnswers })}
           />

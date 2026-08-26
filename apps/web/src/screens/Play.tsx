@@ -127,7 +127,7 @@ export function Play({
           <p className="tiny faint center">
             {game.config.pacing === "live"
               ? `${answeredCount} of ${playerCount} in`
-              : "Answer locked in."}
+              : "Sealed."}
           </p>
         ) : whoseTurn ? (
           <p className="tiny faint center">{whoseTurn}'s turn</p>

@@ -14,10 +14,21 @@ interface VerdictProps {
   morphId?: string;
 }
 
-function headline(fraction: number): string {
-  if (fraction >= 0.999) return "Got it";
-  if (fraction > 0) return "Halfway";
-  return "Missed";
+/**
+ * A party game that says "Got it" every single time sounds like a form
+ * validating. The set is small and picked deterministically from when the
+ * answer was graded, so it varies across a round but never flickers between
+ * renders of the same one.
+ */
+const HEADLINES = {
+  full: ["Got it", "Clean", "Straight through", "Yes", "Nailed"],
+  part: ["Half a mark", "Nearly", "Some of it", "Partway"],
+  none: ["Not that one", "Afraid not", "No", "Nope"],
+} as const;
+
+function headline(fraction: number, seed: number): string {
+  const set = fraction >= 0.999 ? HEADLINES.full : fraction > 0 ? HEADLINES.part : HEADLINES.none;
+  return set[Math.abs(seed) % set.length] as string;
 }
 
 /** The moment after an answer: how you did, and what it was worth. */
@@ -44,7 +55,7 @@ export function Verdict({ result, solution, sealed, morphId }: VerdictProps) {
         animate={{ opacity: 1, scale: 1 }}
         transition={pounce}
       >
-        {headline(result.fraction)}
+        {headline(result.fraction, result.at)}
       </m.p>
 
       {result.message ? <p className="lede">{result.message}</p> : null}

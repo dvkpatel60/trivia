@@ -69,7 +69,7 @@ export function Lobby({ game, meId, now, onStart, onLeave, onCopied }: LobbyProp
     >
       <div className="stack--tight center">
         <span className="eyebrow" style={{ justifyContent: "center" }}>
-          Scan to join
+          Point a phone at this
         </span>
         <QrCode value={link} label={`Join game ${game.code}`} />
         <p className="code-display" aria-label={`Game code ${game.code}`}>
