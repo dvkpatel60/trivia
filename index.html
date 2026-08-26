@@ -146,6 +146,33 @@ hr.rule{border:0;border-top:1px solid var(--edge-soft);margin:18px 0}
 .glow{filter:blur(6px);opacity:.55}
 .candle-wrap.out .glow{opacity:0;transition:opacity .4s}
 
+/* ── countdown timer near candle ── */
+.candle-timer{text-align:center;font-family:var(--mono);font-size:1.6rem;font-weight:700;color:var(--candle);margin-top:8px;letter-spacing:.04em;line-height:1}
+.candle-timer.urgent{color:var(--ember);animation:pulseText .5s ease-in-out infinite}
+@keyframes pulseText{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* ── magic wand loading spinner ── */
+.magic-wand{display:inline-block;animation:wandWave 1.2s ease-in-out infinite}
+@keyframes wandWave{
+  0%{transform:rotate(-15deg) scale(1)}
+  25%{transform:rotate(10deg) scale(1.05)}
+  50%{transform:rotate(-8deg) scale(1)}
+  75%{transform:rotate(12deg) scale(1.05)}
+  100%{transform:rotate(-15deg) scale(1)}
+}
+.magic-wand::after{content:"🪄";font-size:1.6rem}
+.wand-sparkles{display:flex;gap:4px;justify-content:center;margin-top:8px}
+.wand-sparkles span{font-size:.8rem;opacity:0;animation:sparkle 1.4s ease-in-out infinite}
+.wand-sparkles span:nth-child(1){animation-delay:0s}
+.wand-sparkles span:nth-child(2){animation-delay:.2s}
+.wand-sparkles span:nth-child(3){animation-delay:.4s}
+@keyframes sparkle{0%,100%{opacity:0;transform:translateY(0) scale(.8)}50%{opacity:1;transform:translateY(-6px) scale(1.1)}}
+
+/* ── waiting round timer ── */
+.round-timer-bar{height:3px;background:var(--rule);border-radius:2px;overflow:hidden;margin-top:10px}
+.round-timer-bar .fill{height:100%;background:var(--candle);border-radius:2px;transition:width .8s linear}
+.round-timer-bar .fill.urgent{background:var(--ember)}
+
 /* ───────────────────────── play header ───────────────────────── */
 .hud{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
 .hud .who{min-width:0}
@@ -287,12 +314,6 @@ hr.rule{border:0;border-top:1px solid var(--edge-soft);margin:18px 0}
 .splash .logo{font-family:var(--display);font-size:clamp(2.6rem,7vw,3.8rem);font-weight:700;color:var(--candle);letter-spacing:.02em;opacity:0;animation:fadeUp .8s .2s ease-out forwards}
 .splash .candle-icon{font-size:3rem;opacity:0;animation:fadeUp .7s .1s ease-out forwards}
 .splash .credit{font-family:var(--serif);font-size:.88rem;color:var(--parchment-dim);margin-top:10px;opacity:0;animation:fadeUp .7s .5s ease-out forwards}
-.splash .dots{margin-top:28px;display:flex;gap:7px;opacity:0;animation:fadeUp .5s .7s ease-out forwards}
-.splash .dots span{width:7px;height:7px;border-radius:50%;background:var(--candle);opacity:.35;animation:pulse 1.4s .8s ease-in-out infinite}
-.splash .dots span:nth-child(2){animation-delay:.95s}
-.splash .dots span:nth-child(3){animation-delay:1.1s}
-@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulse{0%,100%{opacity:.3;transform:scale(.88)}50%{opacity:1;transform:scale(1.1)}}
 .splash-out{animation:splashOut .45s ease-in forwards}
 @keyframes splashOut{to{opacity:0;transform:scale(.96);pointer-events:none}}
 
@@ -689,6 +710,7 @@ function candleSVG(){
       <path d="M8 96h30l3 6H5Z" fill="#5a4a2c"/>
       <path d="M8 96h30l1 2H7Z" fill="#7a6640"/>
     </svg>
+    <div class="candle-timer" id="candleTimer"></div>
   </div>`;
 }
 function setCandle(frac){
@@ -986,6 +1008,13 @@ function tick(){
     if(answered)return;
     const frac=1-(performance.now()-tStart)/tTotal;
     setCandle(Math.max(0,frac));
+    // update countdown text
+    const el=document.getElementById("candleTimer");
+    if(el){
+      const secs=Math.max(0,Math.ceil(frac*tTotal/1000));
+      el.textContent=secs+"s";
+      el.classList.toggle("urgent",frac<0.28&&frac>0);
+    }
     if(frac<=0){timeUp();return;}
     timerId=requestAnimationFrame(loop);
   };
@@ -1517,7 +1546,7 @@ async function enterGame(code){
   A=null;                       // drop any previous game, or syncAndRoute follows the stale code
   if(ME)ME.code=code;
   lastSig="";
-  app.innerHTML=`<div class="pass"><span class="pill-live">Connecting</span><p class="serif-i mt">Finding the game…</p></div>`;
+  app.innerHTML=`<div class="pass"><div class="magic-wand"></div><div class="wand-sparkles"><span>✨</span><span>✨</span><span>✨</span></div><p class="serif-i mt">Finding the game…</p></div>`;
   await syncAndRoute();
 }
 async function syncAndRoute(){
@@ -1643,7 +1672,7 @@ async function hostNextRound(){
 function startRoundPlay(r){
   const qs=(A.game.questions||{})[r];
   if(!qs||!qs.length){
-    app.innerHTML=`<div class="pass" id="waitRoot"><span class="pill-live">Waiting</span>
+    app.innerHTML=`<div class="pass" id="waitRoot"><div class="magic-wand"></div><div class="wand-sparkles"><span>✨</span><span>✨</span><span>✨</span></div>
       <p class="serif-i mt">Round ${ROMAN[r+1]} is being set out…</p>${leaveButton()}</div>`;
     wireLeave();poll(syncAndRoute);return;
   }
@@ -1705,7 +1734,7 @@ async function asyncVerdict(frac,total,lines,message,extraHTML){
   foot.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 async function submitRound(){
-  app.innerHTML=`<div class="pass"><span class="pill-live">Sending</span><p class="serif-i mt">Sealing your answers…</p></div>`;
+  app.innerHTML=`<div class="pass"><div class="magic-wand"></div><div class="wand-sparkles"><span>✨</span><span>✨</span><span>✨</span></div><p class="serif-i mt">Sealing your answers…</p></div>`;
   // Collect raw answers from each question with actual elapsed times
   const rawAnswers=A.qs.map((q,i)=>{
     const qStart=asyncTimestamps[i]||asyncTStart;
@@ -1725,6 +1754,10 @@ function renderWaiting(){
   const m=A.game,r=m.round,ps=A.players;
   const inCount=ps.filter(p=>(p.answers||{})[r]?.done).length;
   const allIn=inCount===ps.length;
+  const hasTimer=!!m.timerExpiresAt;
+  const timeLeft=hasTimer?Math.max(0,m.timerExpiresAt-Date.now()):0;
+  const pct=hasTimer?Math.max(0,Math.min(100,(timeLeft/(m.cfg.seconds*1000))*100)):0;
+  const urgent=hasTimer&&timeLeft<(m.cfg.seconds*1000*0.28);
   app.innerHTML=`
     <div id="waitRoot">
       <div class="between" style="padding:14px 0 2px">
@@ -1732,14 +1765,16 @@ function renderWaiting(){
       </div>
       <div class="center" style="padding:22px 0 2px">
         <h2>${allIn?"Everyone's in":`${inCount} of ${ps.length} finished`}</h2>
-        <p class="serif-i" style="margin-top:8px">${A.isHost?(allIn?"Close the round whenever you're ready.":"You can wait, or close the round without them."):(allIn?"The host will close the round shortly.":"Nudge the stragglers.")}</p>
+        <p class="serif-i" style="margin-top:8px">${allIn
+          ?(hasTimer?"Round closes automatically.":"The host will close the round shortly.")
+          :(hasTimer?"Waiting for the rest — the candle is still burning.":"Nudge the stragglers.")}</p>
+        ${hasTimer?`<div class="candle-timer${urgent?" urgent":""}" style="margin-top:12px;font-size:1.4rem">${Math.ceil(timeLeft/1000)}s</div><div class="round-timer-bar"><div class="fill${urgent?" urgent":""}" style="width:${pct}%"></div></div>`:""}
       </div>
 
       <div class="card mt">
         <span class="eyebrow">Who's answered</span>
         <div class="stack mt-s">${ps.map(p=>{
           const done=(p.answers||{})[r]?.done;
-          const n=((m.questions||{})[r]||[]).length||1;
           return `<div class="wait-row ${done?"in":""}">
             <span class="pip" style="color:${p.color};background:${p.color}"></span>
             <span class="nm">${esc(p.name)}${p.id===ME.id?" (you)":""}</span>
@@ -1758,7 +1793,22 @@ function renderWaiting(){
     </div>`;
   if(A.isHost)document.getElementById("close").onclick=hostCloseRound;
   wireLeave();
-  poll(syncAndRoute);
+  poll(syncAndRoute,2000);
+  // local countdown updater between polls
+  if(hasTimer){
+    const timerEl=document.getElementById("candleTimer");
+    const fillEl=document.querySelector(".round-timer-bar .fill");
+    const countdown=()=>{
+      if(!document.getElementById("waitRoot"))return;
+      const tl=Math.max(0,m.timerExpiresAt-Date.now());
+      const p=Math.max(0,Math.min(100,(tl/(m.cfg.seconds*1000))*100));
+      if(timerEl)timerEl.textContent=Math.ceil(tl/1000)+"s";
+      if(fillEl){fillEl.style.width=p+"%";fillEl.classList.toggle("urgent",tl<(m.cfg.seconds*1000*0.28));}
+      if(timerEl)timerEl.classList.toggle("urgent",tl<(m.cfg.seconds*1000*0.28));
+      if(tl>0)requestAnimationFrame(countdown);
+    };
+    requestAnimationFrame(countdown);
+  }
 }
 
 /* ── round reveal ── */
@@ -1856,7 +1906,7 @@ async function boot(){
       <div class="candle-icon">🕯️</div>
       <div class="logo">CandleLight</div>
       <div class="credit">by MrKnowItAll</div>
-      <div class="dots"><span></span><span></span><span></span></div>
+      <div style="margin-top:24px"><div class="magic-wand"></div></div>
     </div>`;
 
   // Check server in background while splash plays

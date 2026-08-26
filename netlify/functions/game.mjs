@@ -226,6 +226,25 @@ function scoreAnswer(cfg, fraction, elapsedMs, streak) {
   return { total, streak, lines };
 }
 
+/* ── auto-reveal: grade stragglers + mark round revealed ── */
+function autoReveal(game, round) {
+  const qs = game.questions[round];
+  if (!qs) return;
+  for (const pid of Object.keys(game.players)) {
+    const p = game.players[pid];
+    if (!p.answers[round]) {
+      p.answers[round] = { done: true, results: qs.map(() => ({ f: 0, p: 0, message: "No answer." })), score: 0, streak: 0 };
+    }
+  }
+  game.revealed = game.revealed || {};
+  game.revealed[round] = true;
+}
+
+function allAnswered(game) {
+  const r = game.round;
+  return Object.values(game.players).every(p => p.answers[r]?.done);
+}
+
 /* ── game state shape stored in Blobs ──
 {
   code, host, status: "lobby"|"playing"|"done",
@@ -335,6 +354,7 @@ export default async (req) => {
         game.questions[game.round] = qs;
         game.status = "playing";
         game.roundStartedAt = Date.now();
+        game.timerExpiresAt = game.cfg.timerOn ? game.roundStartedAt + game.cfg.seconds * 1000 : null;
         await store.set(code, JSON.stringify(game));
 
         return json({ ok: true, game });
@@ -346,7 +366,18 @@ export default async (req) => {
         if (!code) return json({ error: "code required" }, 400);
         const raw = await store.get(code);
         if (!raw) return json({ error: "Game not found." }, 404);
-        return json({ game: JSON.parse(raw) });
+        const game = JSON.parse(raw);
+
+        // auto-reveal if timer expired or all answered
+        if (game.status === "playing" && !game.revealed?.[game.round]) {
+          const timerExpired = game.timerExpiresAt && Date.now() >= game.timerExpiresAt;
+          if (timerExpired || allAnswered(game)) {
+            autoReveal(game, game.round);
+            await store.set(code, JSON.stringify(game));
+          }
+        }
+
+        return json({ game });
       }
 
       /* ── submit answers for a round ── */
@@ -389,6 +420,11 @@ export default async (req) => {
         player.score = (player.score || 0) + totalScore;
         player.streak = streak;
 
+        // auto-reveal if all players have now answered
+        if (allAnswered(game)) {
+          autoReveal(game, round);
+        }
+
         await store.set(code, JSON.stringify(game));
         return json({ ok: true, results, totalScore, streak });
       }
@@ -401,17 +437,7 @@ export default async (req) => {
         const game = JSON.parse(raw);
         if (game.host !== hostId) return json({ error: "Only the host can close rounds." }, 403);
 
-        // grade any players who didn't submit (score = 0)
-        const qs = game.questions[round];
-        for (const pid of Object.keys(game.players)) {
-          const p = game.players[pid];
-          if (!p.answers[round]) {
-            p.answers[round] = { done: true, results: qs.map(() => ({ f: 0, p: 0, message: "No answer." })), score: 0, streak: 0 };
-          }
-        }
-
-        game.revealed = game.revealed || {};
-        game.revealed[round] = true;
+        autoReveal(game, round);
         await store.set(code, JSON.stringify(game));
         return json({ ok: true, game });
       }
@@ -434,6 +460,7 @@ export default async (req) => {
         game.round = next;
         game.status = "playing";
         game.roundStartedAt = Date.now();
+        game.timerExpiresAt = game.cfg.timerOn ? game.roundStartedAt + game.cfg.seconds * 1000 : null;
 
         // generate questions for the new round
         const used = {};
