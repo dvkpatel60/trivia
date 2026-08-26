@@ -32,20 +32,54 @@ export function playableKinds(pack: ContentPack, config: GameConfig): PuzzleKind
   return enabled.length > 0 ? enabled : availableKinds(pack);
 }
 
-/** Draw `count` unused item indices, recycling the pool once it's exhausted. */
-function drawIndices(rng: Rng, usage: KindUsage, kindId: PuzzleKindId, poolSize: number, count: number): number[] {
+/** Draw `count` unused indices from `candidates`, recycling once exhausted. */
+function drawIndices(
+  rng: Rng,
+  usage: KindUsage,
+  kindId: PuzzleKindId,
+  candidates: number[],
+  count: number,
+): number[] {
   const spent = usage[kindId] ?? [];
-  let available = Array.from({ length: poolSize }, (_, i) => i).filter((i) => !spent.includes(i));
+  let available = candidates.filter((index) => !spent.includes(index));
 
   if (available.length < count) {
-    // Pool exhausted. Start it over rather than repeating within one question.
-    usage[kindId] = [];
-    available = Array.from({ length: poolSize }, (_, i) => i);
+    // This pool is spent. Forget what it has used rather than repeating an
+    // item inside a single question.
+    usage[kindId] = spent.filter((index) => !candidates.includes(index));
+    available = candidates;
   }
 
   const drawn = rng.shuffle(available).slice(0, count);
   usage[kindId] = [...(usage[kindId] ?? []), ...drawn];
   return drawn;
+}
+
+/**
+ * Which slice of the pool this question may draw from.
+ *
+ * Most kinds draw from everything. Kinds with a `groupKey` — sorting, whose
+ * items only make sense beside others that share their buckets — pick one
+ * group first, so a question never mixes houses with continents.
+ */
+function candidatesFor(
+  kind: { groupKey?(item: never): string; itemsPerQuestion: number },
+  pool: readonly unknown[],
+  rng: Rng,
+): number[] {
+  const all = pool.map((_, index) => index);
+  if (!kind.groupKey) return all;
+
+  const groups = new Map<string, number[]>();
+  for (const index of all) {
+    const key = kind.groupKey(pool[index] as never);
+    const bucket = groups.get(key);
+    if (bucket) bucket.push(index);
+    else groups.set(key, [index]);
+  }
+
+  const viable = [...groups.values()].filter((group) => group.length >= kind.itemsPerQuestion);
+  return rng.pick(viable) ?? all;
 }
 
 export function buildQuestion(
@@ -61,7 +95,15 @@ export function buildQuestion(
       `Pack "${pack.id}" cannot build a ${kindId} question: needs ${kind.itemsPerQuestion} items, has ${pool.length}.`,
     );
   }
-  const picked = drawIndices(rng, usage, kindId, pool.length, kind.itemsPerQuestion).map(
+
+  const candidates = candidatesFor(kind, pool, rng);
+  if (candidates.length < kind.itemsPerQuestion) {
+    throw new Error(
+      `Pack "${pack.id}" cannot build a ${kindId} question: no group has ${kind.itemsPerQuestion} items.`,
+    );
+  }
+
+  const picked = drawIndices(rng, usage, kindId, candidates, kind.itemsPerQuestion).map(
     (i) => pool[i] as ItemFor[PuzzleKindId],
   );
 

@@ -82,4 +82,17 @@ export const oddOneOut: OddOneOutItem[] = [
     answer: 3,
     why: "A Deluminator is a device, not a potion.",
   },
+
+  { items: ["Boggart", "Dementor", "Inferius", "Niffler"], answer: 3, why: "A Niffler is a living beast; the others never really were." },
+  { items: ["Moaning Myrtle", "The Grey Lady", "The Bloody Baron", "Peeves"], answer: 3, why: "Peeves is a poltergeist. The rest are ghosts." },
+  { items: ["Acromantula", "Grindylow", "Basilisk", "Merperson"], answer: 3, why: "Merpeople are Beings; the rest are Beasts." },
+  { items: ["Avada Kedavra", "Crucio", "Imperio", "Sectumsempra"], answer: 3, why: "Sectumsempra is vicious, but not an Unforgivable Curse." },
+  { items: ["Phoenix feather", "Unicorn hair", "Dragon heartstring", "Basilisk fang"], answer: 3, why: "The other three are wand cores." },
+  { items: ["The Leaky Cauldron", "The Three Broomsticks", "The Hog's Head", "Flourish and Blotts"], answer: 3, why: "Flourish and Blotts sells books, not drinks." },
+  { items: ["Floo Powder", "Portkey", "Apparition", "Patronus"], answer: 3, why: "A Patronus is a defence, not a way of travelling." },
+  { items: ["Gryffindor Tower", "The Dungeons", "The Astronomy Tower", "Diagon Alley"], answer: 3, why: "Diagon Alley is not inside the castle." },
+  { items: ["Mandrake", "Devil's Snare", "Gillyweed", "Grindylow"], answer: 3, why: "A Grindylow is a creature; the rest are plants." },
+  { items: ["Fang", "Fluffy", "Buckbeak", "Crookshanks"], answer: 3, why: "Crookshanks was Hermione's; the others were Hagrid's." },
+  { items: ["Bellatrix", "Lucius", "Dolohov", "Kingsley"], answer: 3, why: "Kingsley was in the Order, not among the Death Eaters." },
+  { items: ["Riddikulus", "Lumos", "Accio", "Amortentia"], answer: 3, why: "Amortentia is a potion, not a spell." },
 ];

@@ -35,6 +35,14 @@ export interface PuzzleKind<K extends PuzzleKindId> {
   needsCategories?: boolean;
   /** True when every item carries media, so hosts can skip it on slow links. */
   usesMedia?: boolean;
+  /**
+   * Narrows the pool before items are drawn.
+   *
+   * For kinds whose items only make sense beside their own kind — sorting
+   * items that share a set of buckets, say. A question then draws from one
+   * group rather than mixing houses with continents.
+   */
+  groupKey?(item: ItemFor[K]): string;
 
   build(items: Array<ItemFor[K]>, ctx: BuildContext): Question<K>;
 

@@ -101,4 +101,86 @@ export const whoAmI: WhoAmIItem[] = [
     options: ["Voldemort", "Gellert Grindelwald", "Herpo the Foul", "Ekrizdis"],
     answer: 1,
   },
+
+  {
+    clues: [
+      "I was expelled before I ever finished school.",
+      "My hut stands at the edge of the trees.",
+      "I have loved every creature everyone else runs from.",
+    ],
+    options: ["Rubeus Hagrid", "Newt Scamander", "Silvanus Kettleburn", "Amos Diggory"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I died in a bathroom and never got round to leaving it.",
+      "A pair of enormous yellow eyes was the last thing I saw.",
+      "People still complain about the noise.",
+    ],
+    options: ["Moaning Myrtle", "The Grey Lady", "Lavender Brown", "Olive Hornby"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I was never alive, so I am not a ghost.",
+      "Only the Bloody Baron has ever frightened me.",
+      "Chandeliers are not safe in my presence.",
+    ],
+    options: ["Peeves", "Nearly Headless Nick", "The Fat Friar", "Sir Cadogan"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I burn, and then I begin again.",
+      "My tears close wounds that nothing else can.",
+      "I carried four people out of a chamber.",
+    ],
+    options: ["Fawkes", "Hedwig", "Buckbeak", "Errol"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "A boy raised me in a cupboard and never told anyone.",
+      "I never harmed him, whatever the school decided.",
+      "My children in the forest are far less patient.",
+    ],
+    options: ["Aragog", "Mosag", "Nagini", "Norbert"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "Bow to me, and I may allow you closer.",
+      "I was sentenced to death for wounding a boy who deserved it.",
+      "I carried a prisoner out of a tower.",
+    ],
+    options: ["Buckbeak", "Fawkes", "Thestral", "Firenze"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I am fond of pink, and of kittens.",
+      "One of my quills wrote in a student's own hand.",
+      "I took over a school that never wanted me.",
+    ],
+    options: ["Dolores Umbridge", "Rita Skeeter", "Bellatrix Lestrange", "Alecto Carrow"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I served a house that deserved rather better than me.",
+      "I hated the boy who inherited me.",
+      "A locket changed how I felt about everything.",
+    ],
+    options: ["Kreacher", "Dobby", "Winky", "Hokey"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I am not quite as decapitated as I would like to be.",
+      "A certain club has refused me entry over half an inch.",
+      "I am Gryffindor's ghost.",
+    ],
+    options: ["Nearly Headless Nick", "The Bloody Baron", "The Fat Friar", "Sir Patrick"],
+    answer: 0,
+  },
 ];

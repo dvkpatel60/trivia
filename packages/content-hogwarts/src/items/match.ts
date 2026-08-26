@@ -24,4 +24,15 @@ export const match: MatchItem[] = [
   { left: "Sectumsempra", right: "Slashes deep wounds" },
   { left: "Rictusempra", right: "Sets the target laughing" },
   { left: "Engorgio", right: "Makes something swell in size" },
+
+  { left: "Riddikulus", right: "Turns a Boggart absurd" },
+  { left: "Morsmordre", right: "Casts the Dark Mark" },
+  { left: "Serpensortia", right: "Conjures a snake" },
+  { left: "Finite Incantatem", right: "Ends a spell in progress" },
+  { left: "Evanesco", right: "Makes something vanish" },
+  { left: "Reducto", right: "Blasts an object apart" },
+  { left: "Legilimens", right: "Enters another mind" },
+  { left: "Densaugeo", right: "Makes teeth grow" },
+  { left: "Anapneo", right: "Clears a blocked airway" },
+  { left: "Homenum Revelio", right: "Reveals people hidden nearby" },
 ];

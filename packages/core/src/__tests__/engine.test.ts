@@ -4,6 +4,7 @@ import { scoreAnswer } from "../scoring.js";
 import { buildRound, playableKinds } from "../round.js";
 import { defaultConfig, sanitizeConfig } from "../config.js";
 import { availableKinds, validatePack } from "../pack.js";
+import { KIND_IDS } from "../kinds/index.js";
 import { toPublicGame } from "../protocol.js";
 import { toPublicQuestion } from "../grade.js";
 import { buildQuestion } from "../round.js";
@@ -122,7 +123,10 @@ describe("round building", () => {
   });
 
   it("honours the host's kind selection", () => {
-    const only = { ...config, kinds: { choice: true, truefalse: false, match: false, unscramble: false, oddOneOut: false, whoAmI: false, categorize: false, sequence: false, imageChoice: false } };
+    const only = {
+      ...config,
+      kinds: Object.fromEntries(KIND_IDS.map((id) => [id, id === "choice"])),
+    };
     expect(playableKinds(fixturePack, only)).toEqual(["choice"]);
   });
 
@@ -163,7 +167,14 @@ describe("pack validation", () => {
   it("catches an unknown category", () => {
     const broken: ContentPack = {
       ...fixturePack,
-      items: { ...fixturePack.items, categorize: [{ label: "x", category: "ghost" }] },
+      items: {
+        ...fixturePack.items,
+        categorize: [
+          { label: "x", set: "greek", category: "ghost" },
+          { label: "y", set: "greek", category: "alpha" },
+          { label: "z", set: "greek", category: "beta" },
+        ],
+      },
     };
     expect(validatePack(broken).some((p) => p.message.includes("ghost"))).toBe(true);
   });

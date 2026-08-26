@@ -74,6 +74,15 @@
   align-content: center;
 }
 
+/*
+ * Puzzles that are mostly board — a wall of tiles, a stack of rows — want
+ * their parts together rather than pushed to the two ends of the screen.
+ */
+.scene__stage[data-flow="end"] > .puzzle--dense {
+  justify-content: center;
+  gap: var(--s3);
+}
+
 .scene__dock {
   display: flex;
   flex-direction: column;

@@ -46,4 +46,53 @@ export const choice: ChoiceItem[] = [
   { prompt: "What is Neville's toad called?", options: ["Trevor", "Errol", "Arnold", "Nagini"], answer: 0 },
   { prompt: "Which room appears only when someone truly needs it?", options: ["The Chamber of Secrets", "The Room of Requirement", "The Restricted Section", "The Great Hall"], answer: 1 },
   { prompt: "What is the name of the pub that hides the entrance to Diagon Alley?", options: ["The Three Broomsticks", "The Hog's Head", "The Leaky Cauldron", "The Green Dragon"], answer: 2 },
+
+  /* ── boggarts and what frightens people ── */
+
+  { prompt: "What does a Boggart become?", options: ["Your worst fear", "Your happiest memory", "A mirror", "A shadow"], answer: 0 },
+  { prompt: "Which spell defeats a Boggart?", options: ["Riddikulus", "Expelliarmus", "Finite", "Obliviate"], answer: 0 },
+  { prompt: "What does Ron's Boggart turn into?", options: ["A giant spider", "A dementor", "A snake", "His mother"], answer: 0 },
+  { prompt: "What shape does Lupin's Boggart take?", options: ["A full moon", "A wolf", "A grave", "A locked door"], answer: 0 },
+  { prompt: "What does Harry's Boggart become?", options: ["A Dementor", "Voldemort", "A basilisk", "An empty room"], answer: 0 },
+  { prompt: "What does Molly Weasley's Boggart show her?", options: ["Her family dead", "A burning house", "Bellatrix", "An empty table"], answer: 0 },
+  { prompt: "What does Hermione's Boggart tell her?", options: ["That she has failed everything", "That her parents forgot her", "That she is a Muggle", "That she is expelled"], answer: 0 },
+  { prompt: "Why is a Boggart easier to face in a crowd?", options: ["It cannot choose whose fear to take", "It grows weaker", "It becomes visible", "It must answer a riddle"], answer: 0 },
+
+  /* ── creatures ── */
+
+  { prompt: "What kills a Basilisk?", options: ["A rooster's crow", "Sunlight", "Silver", "Running water"], answer: 0 },
+  { prompt: "What is a Niffler drawn to?", options: ["Anything shiny", "Fresh blood", "Loud noise", "Fire"], answer: 0 },
+  { prompt: "How should you greet a Hippogriff?", options: ["Bow, and wait for it to bow back", "Offer it food", "Look away", "Speak its name"], answer: 0 },
+  { prompt: "What repels a Dementor?", options: ["A Patronus", "A shield charm", "Fire", "Silver"], answer: 0 },
+  { prompt: "What is a Grindylow?", options: ["A water demon", "A tree spirit", "A winged horse", "A cave troll"], answer: 0 },
+  { prompt: "What calmed Fluffy?", options: ["Music", "Meat", "Darkness", "A sleeping charm"], answer: 0 },
+  { prompt: "What does a mature Mandrake's cry do?", options: ["Kills anyone who hears it", "Summons others", "Puts out fires", "Reveals lies"], answer: 0 },
+  { prompt: "Where do the Hogwarts merpeople live?", options: ["The Black Lake", "The Forbidden Forest", "Beneath the dungeons", "The Great Lake at Hogsmeade"], answer: 0 },
+  { prompt: "What kind of creature is a Kneazle?", options: ["A cat-like creature", "A small dragon", "A burrowing rodent", "A winged serpent"], answer: 0 },
+  { prompt: "Who raised Aragog?", options: ["Hagrid", "Newt Scamander", "Grubbly-Plank", "Slughorn"], answer: 0 },
+  { prompt: "What is unusual about house-elf magic at Hogwarts?", options: ["They can Apparate where wizards cannot", "It only works at night", "It needs a wand", "It fails inside the castle"], answer: 0 },
+  { prompt: "What did Hagrid breed for Care of Magical Creatures?", options: ["Blast-Ended Skrewts", "Chimaeras", "Nundus", "Quintapeds"], answer: 0 },
+
+  /* ── spells ── */
+
+  { prompt: "Which spell lights the tip of a wand?", options: ["Lumos", "Incendio", "Aguamenti", "Nox"], answer: 0 },
+  { prompt: "Which spell summons an object to you?", options: ["Accio", "Engorgio", "Reducio", "Evanesco"], answer: 0 },
+  { prompt: "What does Levicorpus do?", options: ["Hangs the target by an ankle", "Freezes the target", "Silences the target", "Blinds the target"], answer: 0 },
+  { prompt: "Which spell conjures the Dark Mark?", options: ["Morsmordre", "Serpensortia", "Incendio", "Obscuro"], answer: 0 },
+  { prompt: "What does the Fidelius Charm do?", options: ["Hides a secret inside a person", "Locks a door forever", "Erases a memory", "Makes an object unbreakable"], answer: 0 },
+  { prompt: "What does Priori Incantatem reveal?", options: ["The last spells a wand cast", "The owner of a wand", "A wand's core", "Where a wand was made"], answer: 0 },
+  { prompt: "Which of these is not an Unforgivable Curse?", options: ["Sectumsempra", "Avada Kedavra", "Crucio", "Imperio"], answer: 0 },
+  { prompt: "What is Occlumency?", options: ["Sealing the mind against intrusion", "Reading minds", "Erasing memories", "Speaking to snakes"], answer: 0 },
+
+  /* ── places ── */
+
+  { prompt: "Where is the entrance to the Chamber of Secrets?", options: ["A girls' bathroom", "The dungeons", "Behind a portrait", "The Owlery"], answer: 0 },
+  { prompt: "What guards the Gryffindor common room?", options: ["The Fat Lady", "A suit of armour", "A riddle", "The Bloody Baron"], answer: 0 },
+  { prompt: "How do you enter the Ravenclaw common room?", options: ["Answer a riddle", "Give a password", "Bow to a statue", "Knock three times"], answer: 0 },
+  { prompt: "What is the Hufflepuff common room next to?", options: ["The kitchens", "The greenhouses", "The Owlery", "The lake"], answer: 0 },
+  { prompt: "Where is the Order of the Phoenix's headquarters?", options: ["Twelve Grimmauld Place", "The Burrow", "Shell Cottage", "Hogsmeade"], answer: 0 },
+  { prompt: "What is St Mungo's disguised as?", options: ["A closed department store", "A block of flats", "A railway arch", "A public library"], answer: 0 },
+  { prompt: "How do you reach Diagon Alley from the Leaky Cauldron?", options: ["Tap the bricks behind the pub", "Take the fireplace", "Walk through a mirror", "Say the password"], answer: 0 },
+  { prompt: "What is Knockturn Alley known for?", options: ["Dark artefacts", "Wand shops", "Bookshops", "Broom racing"], answer: 0 },
+  { prompt: "Where does the Hogwarts Express leave from?", options: ["King's Cross", "Paddington", "Euston", "Waterloo"], answer: 0 },
 ];

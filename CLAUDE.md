@@ -133,6 +133,14 @@ timeout is 10s — do not raise the hold near it.
 `packages/content/src/index.ts`. Kinds with too few items simply do not appear,
 so a partial pack is valid. `validatePack` runs over every pack in a test.
 
+**A way of sorting.** Add a `CategorySet` to the pack's `categorySets` — an id,
+a prompt in the pack's own voice, and its buckets — then tag items with
+`set`. A sorting question draws from one set at a time, so houses never appear
+beside continents. That narrowing is the `groupKey` hook on `PuzzleKind`: any
+kind whose items only make sense beside their own group can use it, and
+`availableKinds` accounts for it, so a pack with plenty of items spread thinly
+across sets is correctly reported as unable to deal the kind.
+
 **A puzzle kind.** Add the item, view, solution, and answer shapes to
 `packages/core/src/types.ts`; write `packages/core/src/kinds/<id>.ts`; register
 it in `kinds/index.ts`. `Registry` is a mapped type over `PuzzleKindId`, so a

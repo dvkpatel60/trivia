@@ -1,6 +1,6 @@
 import type { ContentPack } from "@curio/core";
 
-import { houses } from "./categories.js";
+import { categorySets } from "./categories.js";
 import { choice } from "./items/choice.js";
 import { truefalse } from "./items/truefalse.js";
 import { match } from "./items/match.js";
@@ -8,6 +8,7 @@ import { unscramble } from "./items/unscramble.js";
 import { oddOneOut } from "./items/oddOneOut.js";
 import { whoAmI } from "./items/whoAmI.js";
 import { categorize } from "./items/categorize.js";
+import { connections } from "./items/connections.js";
 import { sequence } from "./items/sequence.js";
 import { imageChoice } from "./items/imageChoice.js";
 
@@ -49,7 +50,7 @@ export const hogwartsPack: ContentPack = {
     composition: "three-quarter view, shallow depth of field, dark vignetted background",
     avoid: "modern objects, photography, neon, plastic",
   },
-  categories: houses,
+  categorySets,
   items: {
     choice,
     truefalse,
@@ -58,6 +59,7 @@ export const hogwartsPack: ContentPack = {
     oddOneOut,
     whoAmI,
     categorize,
+    connections,
     sequence,
     imageChoice,
   },

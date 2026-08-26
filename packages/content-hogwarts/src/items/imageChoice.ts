@@ -123,4 +123,55 @@ export const imageChoice: ImageChoiceItem[] = [
     "Where is this?",
     ["The Great Hall", "The Room of Requirement", "The Leaky Cauldron", "Gringotts"],
   ),
+
+  generated(
+    {
+      id: "creature-dementor",
+      subject:
+        "a tall gaunt hooded figure in tattered black robes gliding low over still water, its face hidden, frost spreading beneath it",
+    },
+    "A tall hooded figure in tattered black robes gliding over water, frost spreading beneath it",
+    "What is this?",
+    ["A Dementor", "An Inferius", "A Boggart", "A wraith"],
+  ),
+  generated(
+    {
+      id: "creature-basilisk",
+      subject:
+        "an enormous green serpent coiled through a flooded stone chamber lined with carved pillars, only its body visible",
+    },
+    "An enormous green serpent coiled through a flooded stone chamber lined with carved pillars",
+    "What is this?",
+    ["A Basilisk", "A Runespoor", "An Occamy", "A Horned Serpent"],
+  ),
+  generated(
+    {
+      id: "creature-mandrake",
+      subject:
+        "a small ugly root shaped like a screaming infant, being lifted out of a clay plant pot on a potting bench",
+    },
+    "A small root shaped like a screaming infant, lifted from a clay pot on a potting bench",
+    "What is being repotted?",
+    ["A Mandrake", "A Bubotuber", "Gillyweed", "A Snargaluff"],
+  ),
+  generated(
+    {
+      id: "place-diagon-alley",
+      subject:
+        "a narrow crooked cobbled street of leaning shopfronts with bow windows and hanging trade signs, crowded with robed figures",
+    },
+    "A narrow crooked cobbled street of leaning shopfronts crowded with robed figures",
+    "Where is this?",
+    ["Diagon Alley", "Knockturn Alley", "Hogsmeade", "Godric's Hollow"],
+  ),
+  generated(
+    {
+      id: "object-snitch",
+      subject:
+        "a small golden sphere the size of a walnut with delicate silver filigree wings outstretched, hovering in dark air",
+    },
+    "A small golden sphere with delicate silver wings, hovering in dark air",
+    "What is this?",
+    ["A Golden Snitch", "A Remembrall", "A Sneakoscope", "A Deluminator"],
+  ),
 ];

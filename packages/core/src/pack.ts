@@ -11,14 +11,26 @@ export function livingItems<K extends PuzzleKindId>(
 }
 
 /**
- * Kinds this pack can actually deal: it has enough live items for at least one
- * question, and has declared categories if the kind needs them.
+ * Kinds this pack can actually deal.
+ *
+ * A kind is available when some *drawable group* has enough live items — not
+ * merely when the kind has enough overall. A pack with two sorting items in
+ * each of three sets has plenty of items and cannot deal a single question.
  */
 export function availableKinds(pack: ContentPack): PuzzleKindId[] {
   return KIND_IDS.filter((id) => {
     const kind = getKind(id);
-    if (kind.needsCategories && (pack.categories ?? []).length < 2) return false;
-    return livingItems(pack, id).length >= kind.itemsPerQuestion;
+    const items = livingItems(pack, id);
+    if (items.length < kind.itemsPerQuestion) return false;
+
+    if (!kind.groupKey) return true;
+
+    const sizes = new Map<string, number>();
+    for (const item of items) {
+      const key = kind.groupKey(item as never);
+      sizes.set(key, (sizes.get(key) ?? 0) + 1);
+    }
+    return [...sizes.values()].some((size) => size >= kind.itemsPerQuestion);
   });
 }
 
@@ -39,7 +51,16 @@ export function validatePack(pack: ContentPack): PackProblem[] {
   if (!pack.id.trim()) push("Pack has no id.");
   if (!pack.name.trim()) push("Pack has no name.");
 
-  const categoryIds = new Set((pack.categories ?? []).map((category) => category.id));
+  const sets = pack.categorySets ?? [];
+  const setIds = new Set(sets.map((set) => set.id));
+  const categoryIdsBySet = new Map(
+    sets.map((set) => [set.id, new Set(set.categories.map((category) => category.id))]),
+  );
+
+  for (const set of sets) {
+    if (set.categories.length < 2) push(`category set "${set.id}" has fewer than two categories`);
+    if (!set.prompt.trim()) push(`category set "${set.id}" has no prompt`);
+  }
 
   for (const kindId of KIND_IDS) {
     const kind = getKind(kindId);
@@ -53,14 +74,49 @@ export function validatePack(pack: ContentPack): PackProblem[] {
       );
     }
 
-    if (kind.needsCategories && categoryIds.size < 2) {
-      push(`ships ${kindId} items but the pack declares no categories`, kindId);
+    if (kind.needsCategories && setIds.size === 0) {
+      push(`ships ${kindId} items but the pack declares no category sets`, kindId);
     }
 
     if (kindId === "categorize") {
+      const perSet = new Map<string, number>();
       for (const item of items as Array<ItemFor["categorize"]>) {
-        if (!categoryIds.has(item.category)) {
-          push(`"${item.label}" is filed under unknown category "${item.category}"`, kindId);
+        perSet.set(item.set, (perSet.get(item.set) ?? 0) + 1);
+        if (!setIds.has(item.set)) {
+          push(`"${item.label}" belongs to unknown set "${item.set}"`, kindId);
+          continue;
+        }
+        if (!categoryIdsBySet.get(item.set)?.has(item.category)) {
+          push(
+            `"${item.label}" is filed under "${item.category}", which set "${item.set}" does not declare`,
+            kindId,
+          );
+        }
+      }
+      // A set nobody can draw a full question from is dead content.
+      for (const [setId, count] of perSet) {
+        if (setIds.has(setId) && count < kind.itemsPerQuestion) {
+          push(
+            `set "${setId}" has ${count} live ${count === 1 ? "item" : "items"} but a question needs ${kind.itemsPerQuestion}`,
+            kindId,
+          );
+        }
+      }
+    }
+
+    if (kindId === "connections") {
+      for (const item of items as Array<ItemFor["connections"]>) {
+        const sizes = new Set(item.groups.map((group) => group.members.length));
+        const first = item.groups[0];
+        if (item.groups.length < 3) {
+          push(`a connections puzzle has only ${item.groups.length} groups`, kindId);
+        }
+        if (sizes.size > 1) {
+          push(`"${first?.label ?? "a puzzle"}" has groups of differing sizes`, kindId);
+        }
+        const members = item.groups.flatMap((group) => group.members);
+        if (new Set(members).size !== members.length) {
+          push(`"${first?.label ?? "a puzzle"}" repeats a tile between groups`, kindId);
         }
       }
     }

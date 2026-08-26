@@ -9,6 +9,7 @@ const PATHS: Record<string, string> = {
   hat: "M3 9 12 4l9 5-9 5z M7 11v5c0 1.7 2.2 3 5 3s5-1.3 5-3v-5",
   hourglass: "M7 3h10M7 21h10M8 3c0 5 8 5 8 18M16 3c0 5-8 5-8 18",
   frame: "M3 5h18v14H3z M3 15l5-5 4 4 3-3 6 6",
+  grid: "M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z",
 };
 
 interface KindIconProps {

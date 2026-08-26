@@ -73,4 +73,29 @@ export const sequence: SequenceItem[] = [
       "The Battle of Hogwarts",
     ],
   },
+
+  {
+    title: "Order what the three brothers asked for",
+    items: ["An unbeatable wand", "A stone to recall the dead", "A cloak to hide from Death"],
+  },
+  {
+    title: "Order these creatures by size, smallest first",
+    items: ["Pixie", "Niffler", "Hippogriff", "Giant"],
+  },
+  {
+    title: "Order these by when Harry first met them",
+    items: ["Rubeus Hagrid", "Draco Malfoy", "Ron Weasley", "Hermione Granger"],
+  },
+  {
+    title: "Order the castle from the ground up",
+    items: ["The Chamber of Secrets", "The Dungeons", "The Great Hall", "The Astronomy Tower"],
+  },
+  {
+    title: "Order the steps of facing a Boggart",
+    items: ["It takes the shape of your fear", "You picture it absurd", "You cast Riddikulus", "Everybody laughs"],
+  },
+  {
+    title: "Order these Hogwarts years by their Defence teacher",
+    items: ["Quirinus Quirrell", "Gilderoy Lockhart", "Remus Lupin", "Dolores Umbridge", "Severus Snape"],
+  },
 ];

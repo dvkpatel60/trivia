@@ -250,3 +250,56 @@
   color: var(--outline);
   border-left-color: var(--outline-variant);
 }
+
+/* ── connections ──────────────────────────────────────────────────────── */
+
+.wall {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s1);
+}
+
+.wall__tile {
+  min-height: 62px;
+  padding: var(--s1) 4px;
+  border-radius: var(--r-sm);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface-container) 74%, transparent);
+  color: var(--on-surface);
+  /* Sixteen tiles on a narrow phone: small type, tight leading, balanced. */
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  line-height: 1.15;
+  text-wrap: balance;
+  hyphens: auto;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.wall__tile[data-picked="true"] {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* A guess, lifted out of the board. */
+.grouped {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  padding: var(--s1);
+  border-radius: var(--r-sm);
+  background: color-mix(in oklab, var(--accent-container) 70%, transparent);
+  border: var(--hairline) solid color-mix(in oklab, var(--accent) 40%, transparent);
+}
+
+.grouped__tile {
+  padding: 6px 2px;
+  text-align: center;
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--on-accent-container);
+  text-wrap: balance;
+}

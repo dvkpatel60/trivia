@@ -32,6 +32,7 @@ export type PuzzleKindId =
   | "oddOneOut"
   | "whoAmI"
   | "categorize"
+  | "connections"
   | "sequence"
   | "imageChoice";
 
@@ -85,8 +86,16 @@ export interface WhoAmIItem {
 
 export interface CategorizeItem {
   label: string;
-  /** Must match a category id declared by the pack. */
+  /** Which of the pack's category sets this belongs to. */
+  set: string;
+  /** Must match a category id declared by that set. */
   category: string;
+  retired?: boolean;
+}
+
+export interface ConnectionsItem {
+  /** Four groups of four that share something the player has to spot. */
+  groups: Array<{ label: string; members: string[] }>;
   retired?: boolean;
 }
 
@@ -121,6 +130,7 @@ export interface ItemFor {
   oddOneOut: OddOneOutItem;
   whoAmI: WhoAmIItem;
   categorize: CategorizeItem;
+  connections: ConnectionsItem;
   sequence: SequenceItem;
   imageChoice: ImageChoiceItem;
 }
@@ -152,6 +162,13 @@ export interface CategorizeView {
   labels: string[];
   categories: Category[];
 }
+
+export interface ConnectionsView {
+  /** All members, shuffled together. The whole puzzle is un-mixing them. */
+  tiles: string[];
+  groupSize: number;
+  groupCount: number;
+}
 export interface SequenceView {
   items: string[];
 }
@@ -167,6 +184,7 @@ export interface ViewFor {
   oddOneOut: OddOneOutView;
   whoAmI: WhoAmIView;
   categorize: CategorizeView;
+  connections: ConnectionsView;
   sequence: SequenceView;
   imageChoice: ImageChoiceView;
 }
@@ -199,6 +217,10 @@ export interface CategorizeSolution {
   /** Category id per label, positionally aligned with `view.labels`. */
   truth: string[];
 }
+
+export interface ConnectionsSolution {
+  groups: Array<{ label: string; members: string[] }>;
+}
 export interface SequenceSolution {
   /** Correct final position for each item in `view.items`. */
   positions: number[];
@@ -216,6 +238,7 @@ export interface SolutionFor {
   oddOneOut: OddOneOutSolution;
   whoAmI: WhoAmISolution;
   categorize: CategorizeSolution;
+  connections: ConnectionsSolution;
   sequence: SequenceSolution;
   imageChoice: ImageChoiceSolution;
 }
@@ -246,6 +269,11 @@ export interface CategorizeAnswer {
   /** Category id per label, positionally aligned with `view.labels`. */
   assignments: string[];
 }
+
+export interface ConnectionsAnswer {
+  /** The groupings the player committed to, as sets of tile labels. */
+  groups: string[][];
+}
 export interface SequenceAnswer {
   /** Item indices in the order the player arranged them. */
   order: number[];
@@ -262,6 +290,7 @@ export interface AnswerFor {
   oddOneOut: OddOneOutAnswer;
   whoAmI: WhoAmIAnswer;
   categorize: CategorizeAnswer;
+  connections: ConnectionsAnswer;
   sequence: SequenceAnswer;
   imageChoice: ImageChoiceAnswer;
 }
@@ -302,6 +331,20 @@ export interface Category {
   color?: string;
 }
 
+/**
+ * One way of sorting things.
+ *
+ * A pack declares several: witches by house, creatures by nature, places by
+ * where they are. A sorting question draws its items from a single set, so
+ * the buckets on screen always belong together.
+ */
+export interface CategorySet {
+  id: string;
+  /** The question, in the pack's own words: "Sort each one into a house." */
+  prompt: string;
+  categories: Category[];
+}
+
 export interface ContentPack {
   id: string;
   name: string;
@@ -312,7 +355,7 @@ export interface ContentPack {
   /** Shared art direction for this pack's generated picture rounds. */
   art?: ArtDirection;
   /** Required if the pack ships `categorize` items. */
-  categories?: Category[];
+  categorySets?: CategorySet[];
   items: { [K in PuzzleKindId]?: Array<ItemFor[K]> };
 }
 

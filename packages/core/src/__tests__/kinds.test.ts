@@ -161,3 +161,73 @@ describe("imageChoice", () => {
     expect(gradeQuestion(q, { choice: q.solution.correct }).fraction).toBe(1);
   });
 });
+
+describe("connections", () => {
+  it("shuffles every group's members into one pool", () => {
+    const q = build("connections");
+    if (q.kind !== "connections") throw new Error("wrong kind");
+    const expected = q.solution.groups.flatMap((group) => group.members);
+    expect(q.view.tiles.slice().sort()).toEqual(expected.slice().sort());
+    expect(q.view.tiles.length).toBe(q.view.groupSize * q.view.groupCount);
+  });
+
+  it("scores a group found however its members were ordered", () => {
+    const q = build("connections");
+    if (q.kind !== "connections") throw new Error("wrong kind");
+    const first = q.solution.groups[0]!.members.slice().reverse();
+    expect(gradeQuestion(q, { groups: [first] }).fraction).toBeCloseTo(0.25);
+  });
+
+  it("gives partial credit for a partial solve", () => {
+    const q = build("connections");
+    if (q.kind !== "connections") throw new Error("wrong kind");
+    const two = q.solution.groups.slice(0, 2).map((group) => group.members);
+    expect(gradeQuestion(q, { groups: two }).fraction).toBeCloseTo(0.5);
+    expect(gradeQuestion(q, { groups: q.solution.groups.map((g) => g.members) }).fraction).toBe(1);
+  });
+
+  it("cannot be farmed by submitting one correct group four times", () => {
+    const q = build("connections");
+    if (q.kind !== "connections") throw new Error("wrong kind");
+    const same = q.solution.groups[0]!.members;
+    expect(gradeQuestion(q, { groups: [same, same, same, same] }).fraction).toBeCloseTo(0.25);
+  });
+
+  it("scores a near miss as nothing — a group is all four or none", () => {
+    const q = build("connections");
+    if (q.kind !== "connections") throw new Error("wrong kind");
+    const [a, b] = q.solution.groups;
+    const nearly = [...a!.members.slice(0, 3), b!.members[0]!];
+    expect(gradeQuestion(q, { groups: [nearly] }).fraction).toBe(0);
+  });
+
+  it("survives junk in the answer", () => {
+    const q = build("connections");
+    expect(gradeQuestion(q, { groups: [null, "nope", []] }).fraction).toBe(0);
+  });
+});
+
+describe("categorize sets", () => {
+  it("never mixes two sets into one question", () => {
+    // Sorting is only coherent if every label on screen shares its buckets.
+    for (let seed = 0; seed < 40; seed++) {
+      const q = buildQuestion("categorize", fixturePack, createRng(seed), {});
+      if (q.kind !== "categorize") throw new Error("wrong kind");
+      const ids = new Set(q.view.categories.map((category) => category.id));
+      for (const truth of q.solution.truth) expect(ids.has(truth)).toBe(true);
+    }
+  });
+
+  it("draws from more than one set across many questions", () => {
+    const prompts = new Set<string>();
+    for (let seed = 0; seed < 40; seed++) {
+      prompts.add(buildQuestion("categorize", fixturePack, createRng(seed), {}).prompt);
+    }
+    expect(prompts.size).toBeGreaterThan(1);
+  });
+
+  it("uses the set's own prompt", () => {
+    const q = buildQuestion("categorize", fixturePack, createRng(1), {});
+    expect(["Alpha or beta?", "Odd or even?"]).toContain(q.prompt);
+  });
+});

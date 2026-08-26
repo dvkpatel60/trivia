@@ -8,6 +8,7 @@ import { unscramble } from "./unscramble.js";
 import { oddOneOut } from "./oddOneOut.js";
 import { whoAmI } from "./whoAmI.js";
 import { categorize } from "./categorize.js";
+import { connections } from "./connections.js";
 import { sequence } from "./sequence.js";
 import { imageChoice } from "./imageChoice.js";
 
@@ -27,6 +28,7 @@ export const KINDS: Registry = {
   oddOneOut,
   whoAmI,
   categorize,
+  connections,
   sequence,
   imageChoice,
 };
@@ -43,4 +45,15 @@ export function isKindId(value: string): value is PuzzleKindId {
   return Object.prototype.hasOwnProperty.call(KINDS, value);
 }
 
-export { choice, truefalse, match, unscramble, oddOneOut, whoAmI, categorize, sequence, imageChoice };
+export {
+  choice,
+  truefalse,
+  match,
+  unscramble,
+  oddOneOut,
+  whoAmI,
+  categorize,
+  connections,
+  sequence,
+  imageChoice,
+};

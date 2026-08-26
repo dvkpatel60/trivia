@@ -13,9 +13,23 @@ export const fixturePack: ContentPack = {
     texture: ["grain"],
     display: "fraunces",
   },
-  categories: [
-    { id: "alpha", label: "Alpha" },
-    { id: "beta", label: "Beta" },
+  categorySets: [
+    {
+      id: "greek",
+      prompt: "Alpha or beta?",
+      categories: [
+        { id: "alpha", label: "Alpha" },
+        { id: "beta", label: "Beta" },
+      ],
+    },
+    {
+      id: "parity",
+      prompt: "Odd or even?",
+      categories: [
+        { id: "odd", label: "Odd" },
+        { id: "even", label: "Even" },
+      ],
+    },
   ],
   items: {
     choice: [
@@ -46,11 +60,32 @@ export const fixturePack: ContentPack = {
       },
     ],
     categorize: [
-      { label: "one", category: "alpha" },
-      { label: "two", category: "beta" },
-      { label: "three", category: "alpha" },
+      { label: "one", set: "greek", category: "alpha" },
+      { label: "two", set: "greek", category: "beta" },
+      { label: "three", set: "greek", category: "alpha" },
+      { label: "seven", set: "parity", category: "odd" },
+      { label: "eight", set: "parity", category: "even" },
+      { label: "nine", set: "parity", category: "odd" },
     ],
     sequence: [{ title: "Order these", items: ["first", "second", "third", "fourth"] }],
+    connections: [
+      {
+        groups: [
+          { label: "Reds", members: ["crimson", "scarlet", "ruby", "cherry"] },
+          { label: "Blues", members: ["navy", "azure", "cobalt", "teal"] },
+          { label: "Greens", members: ["emerald", "olive", "jade", "moss"] },
+          { label: "Yellows", members: ["amber", "gold", "lemon", "ochre"] },
+        ],
+      },
+      {
+        groups: [
+          { label: "Cats", members: ["lion", "tiger", "lynx", "puma"] },
+          { label: "Dogs", members: ["wolf", "dingo", "coyote", "jackal"] },
+          { label: "Birds", members: ["heron", "osprey", "grebe", "swift"] },
+          { label: "Fish", members: ["carp", "tench", "roach", "bream"] },
+        ],
+      },
+    ],
     imageChoice: [
       {
         prompt: "What is this?",

@@ -1,6 +1,6 @@
 import type { ContentPack } from "@curio/core";
 
-import { continents } from "./categories.js";
+import { categorySets } from "./categories.js";
 import { choice } from "./items/choice.js";
 import { truefalse } from "./items/truefalse.js";
 import { match } from "./items/match.js";
@@ -46,7 +46,7 @@ export const atlasPack: ContentPack = {
     composition: "straight-on orthographic view, generous margin, flat even lighting",
     avoid: "photorealism, gradients, drop shadows, 3d render",
   },
-  categories: continents,
+  categorySets,
   items: {
     choice,
     truefalse,

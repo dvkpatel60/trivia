@@ -3,6 +3,7 @@ import type { PuzzleKindId } from "@curio/core";
 
 import { Categorize } from "./Categorize.js";
 import { Choice } from "./Choice.js";
+import { Connections } from "./Connections.js";
 import { ImageChoice } from "./ImageChoice.js";
 import { Match } from "./Match.js";
 import { OddOneOut } from "./OddOneOut.js";
@@ -29,6 +30,7 @@ export const PUZZLES: Renderers = {
   oddOneOut: OddOneOut,
   whoAmI: WhoAmI,
   categorize: Categorize,
+  connections: Connections,
   sequence: Sequence,
   imageChoice: ImageChoice,
 };
