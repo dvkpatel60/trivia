@@ -15,8 +15,8 @@ Blobs.
 
 ```sh
 npm install
-npm run dev          # app only; pass-and-play works, multiplayer needs the functions
-npm run dev:netlify  # netlify dev: app + functions + local blobs
+npm run dev          # the whole game, functions included
+npm run dev:netlify  # the same through the real Netlify CLI, for fidelity
 npm run check        # typecheck + lint + tests, what CI would run
 npm test             # vitest, everything except the browser suite
 npm run test:e2e     # builds, then plays a live game in two real browsers
@@ -127,6 +127,23 @@ result. Never make grading depend on request identity.
 also measures elapsed time itself, since it knows when the question opened; a
 client-reported `elapsedMs` is only trusted in round-paced play, where it can
 only ever *add* a speed bonus clamped to the question's own window.
+
+### Multiplayer runs under `npm run dev`
+
+`apps/web/vite-plugin-game-api.ts` mounts the real function on the Vite dev
+server, loaded through Vite's own module graph so it resolves the workspace
+packages from source. `CURIO_LOCAL_BLOBS` points `netlify/lib/storage.mts` at
+a filesystem store instead of `@netlify/blobs`, which only works inside
+Netlify's runtime.
+
+That stand-in implements the same narrow surface and **deliberately no more**
+— in particular it has no conditional write, because the real one has none.
+A local store more capable than production would let a race pass here and
+fail on deploy.
+
+The Netlify CLI is not a dependency: it and vitest disagree about
+`@opentelemetry/api`. `npm run dev:netlify` runs it through `npx` for anyone
+who wants full fidelity.
 
 ### One engine, two transports
 

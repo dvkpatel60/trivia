@@ -51,7 +51,8 @@ export function Library({ onBack, onPreview }: LibraryProps) {
       }
       dock={
         <p className="tiny faint center">
-          Subjects without a picture are generated with <code>npm run art</code>.
+          Subjects without a picture are generated with <code>npm run art</code>, which
+          writes into <code>apps/web/public/packs/</code>.
         </p>
       }
     >
@@ -116,7 +117,7 @@ function GalleryItem({ pack, item }: { pack: ContentPack; item: ImageChoiceItem 
       <figcaption className="plate__caption">
         <span className="plate__answer">{answer}</span>
         <span className="tiny faint">
-          {item.art ? artPath(pack.id, item.art.id).replace(/^\//, "") : "drawn in the pack"}
+          {item.art ? artPath(pack.id, item.art.id) : "drawn in the pack"}
         </span>
       </figcaption>
     </m.figure>

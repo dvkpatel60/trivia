@@ -22,9 +22,14 @@ not editing the game.
 
 ```sh
 npm install
-npm run dev          # the app alone; pass-and-play works, multiplayer doesn't
-npm run dev:netlify  # app + functions + a local blob store
+npm run dev          # the whole game: hosting, joining, both online pacings
+npm run dev:netlify  # the same, but through the real Netlify CLI
 ```
+
+`npm run dev` serves the game function from the Vite dev server against a
+filesystem blob store under `node_modules/.curio-blobs`, so hosting a game and
+joining with a code work with nothing else running. Delete that directory to
+throw away every local game.
 
 ```sh
 npm run check        # typecheck, lint, and the test suite

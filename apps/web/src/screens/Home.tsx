@@ -66,7 +66,8 @@ export function Home({
           </button>
           {online ? null : (
             <p className="tiny faint center">
-              Nothing's answering out there. Pass-and-play doesn't care.
+              No game server answering, so hosting and joining are off. Start one with{" "}
+              <code>npm run dev</code> — pass-and-play works either way.
             </p>
           )}
         </>

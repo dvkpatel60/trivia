@@ -24,6 +24,8 @@
  */
 
 import { getStore, type Store } from "@netlify/blobs";
+
+import { createFileStore } from "./local-store.mts";
 import type { AnyQuestion, GameState, PlayerState, RoundState } from "@curio/core";
 import type { Phase } from "@curio/core";
 import type { GameConfig } from "@curio/core";
@@ -58,8 +60,21 @@ export interface LoadedGame {
 }
 
 let cached: Store | undefined;
+
+/**
+ * The store this process should use.
+ *
+ * `@netlify/blobs` only works inside Netlify's runtime, so local development
+ * points `CURIO_LOCAL_BLOBS` at a directory instead. The file-backed stand-in
+ * implements the same narrow surface — including having no conditional write,
+ * because the real one has none either.
+ */
 function store(): Store {
-  cached ??= getStore({ name: STORE_NAME, consistency: "strong" });
+  if (cached) return cached;
+  const local = process.env.CURIO_LOCAL_BLOBS;
+  cached = local
+    ? (createFileStore(local) as unknown as Store)
+    : getStore({ name: STORE_NAME, consistency: "strong" });
   return cached;
 }
 

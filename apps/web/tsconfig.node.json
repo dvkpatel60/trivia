@@ -1,0 +1,9 @@
+{
+  "//": "Build tooling that runs in Node, not in the browser: the Vite config and its plugins.",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["node"]
+  },
+  "include": ["vite.config.ts", "vite-plugin-*.ts"]
+}

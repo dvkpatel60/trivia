@@ -1,15 +1,13 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
+import { gameApi } from "./vite-plugin-game-api.js";
+
 export default defineConfig({
-  plugins: [react()],
-  server: {
-    proxy: {
-      // `netlify dev` serves the functions; `vite dev` alone falls back to
-      // local pass-and-play, which needs no server at all.
-      "/.netlify": "http://localhost:8888",
-    },
-  },
+  // `gameApi` mounts the real game function on the dev server, so `npm run
+  // dev` is a complete game — hosting, joining and both online pacings —
+  // without needing the Netlify CLI.
+  plugins: [react(), gameApi()],
   build: {
     outDir: "dist",
     sourcemap: true,
