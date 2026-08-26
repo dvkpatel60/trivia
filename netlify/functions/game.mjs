@@ -5,7 +5,7 @@
 // Client calls it at:          /.netlify/functions/game
 
 import { getStore } from "@netlify/blobs";
-import { BANK } from "../bank.mjs";
+import { BANK } from "./bank.mjs";
 
 const NS = "cndl";
 const json = (body, status = 200) =>

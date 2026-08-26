@@ -7,7 +7,7 @@ A single-page Harry Potter trivia party game. Server-authoritative multiplayer w
 ## Architecture
 
 - `index.html` — entire client (UI, renderers, local game flow, multiplayer state machine, polling)
-- `bank.mjs` — shared question bank (imported by server for grading; client uses the BANK copy embedded in `index.html` for local play only)
+- `netlify/functions/bank.mjs` — shared question bank (imported by server for grading; client uses the BANK copy embedded in `index.html` for local play only)
 - `netlify/functions/game.mjs` — **server-authoritative game API** (creates rooms, joins players, generates questions, grades answers, calculates scores, manages round lifecycle)
 - `netlify/functions/kv.mjs` — legacy generic KV endpoint (kept for backward compatibility, not used by the new game flow)
 - `netlify.toml` — deploy config: publish `.`, functions `netlify/functions`
@@ -66,7 +66,7 @@ Each entry in `answers` array: `{ answer: {type-specific}, elapsedMs: number|nul
 
 ## Adding content
 
-Add items to `bank.mjs` (server uses this for grading) **and** to the `BANK` object in `index.html` (client uses this for local play). 8 puzzle types: `trivia`, `tf`, `spells`, `scramble`, `odd`, `whoami`, `sorting`, `sequence`. The `TYPES` registry maps each to display metadata and a time multiplier.
+Add items to `netlify/functions/bank.mjs` (server uses this for grading) **and** to the `BANK` object in `index.html` (client uses this for local play). 8 puzzle types: `trivia`, `tf`, `spells`, `scramble`, `odd`, `whoami`, `sorting`, `sequence`. The `TYPES` registry maps each to display metadata and a time multiplier.
 
 ## Dev / deploy
 
