@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace @curio/web",
-    "dev:netlify": "npx esbuild netlify/functions/game.mts --bundle --platform=node --format=esm --outfile=netlify/functions/game.mjs --external:@netlify/blobs && netlify dev",
+    "dev:netlify": "npx esbuild netlify/functions/game.mts --bundle --platform=node --format=esm --outfile=netlify/functions/game.mjs --external:@netlify/blobs && netlify dev --filter @curio/web",
     "build": "npm run build --workspaces --if-present",
     "preview": "npm run preview --workspace @curio/web",
     "test": "vitest run",

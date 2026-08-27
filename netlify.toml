@@ -12,6 +12,9 @@
 [dev]
   command = "npm run dev --workspace @curio/web"
   targetPort = 5173
+  # Pinned, because an unpinned `netlify dev` picks a free port at random —
+  # which is fine until you are pointing a tunnel at it.
+  port = 8888
   autoLaunch = false
 
 # SPA fallback: every non-function path serves the app shell.
