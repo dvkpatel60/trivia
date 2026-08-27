@@ -7,6 +7,7 @@ import { SCENERY } from "./Scenery.js";
 const LAYERS: Record<Texture, string> = {
   grid: "tex-grid",
   vignette: "tex-vignette",
+  nightGlow: "tex-nightglow",
 };
 
 /** What the background should be doing right now. */

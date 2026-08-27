@@ -159,6 +159,46 @@ function Plane({ index }: PieceProps) {
   );
 }
 
+/**
+ * A night sky: many small points, each twinkling on its own cycle.
+ *
+ * One `<svg>` per instance would be twenty nodes for nothing, so a star
+ * field is a single element holding a grid of circles. The scatter is
+ * derived from the index rather than random, so it is identical on every
+ * render and between the server and the browser.
+ */
+function Stars({ index }: PieceProps) {
+  const points = Array.from({ length: 44 }, (_, i) => {
+    const n = i * 9973 + index * 7919;
+    return {
+      cx: (n % 997) / 997,
+      cy: ((n >> 3) % 991) / 991,
+      r: 0.7 + ((n >> 5) % 7) / 8,
+      delay: ((n >> 7) % 40) / 10,
+    };
+  });
+
+  return (
+    <svg
+      className="scenery__piece scenery__stars"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      {points.map((point, i) => (
+        <circle
+          key={i}
+          cx={point.cx * 100}
+          cy={point.cy * 100}
+          r={point.r / 4}
+          className="fill-accent scenery__star"
+          style={{ "--piece-delay": `-${point.delay}s` } as CSSProperties}
+        />
+      ))}
+    </svg>
+  );
+}
+
 /* ── the app's own world ──────────────────────────────────────────────── */
 
 /**
@@ -210,4 +250,5 @@ export const SCENERY: Record<SceneryId, { Piece: ComponentType<PieceProps>; coun
   clouds: { Piece: Cloud, count: 4 },
   planes: { Piece: Plane, count: 2 },
   confetti: { Piece: Confetti, count: 10 },
+  stars: { Piece: Stars, count: 1 },
 };

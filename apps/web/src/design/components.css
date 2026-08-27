@@ -73,9 +73,12 @@
 /* ── text ─────────────────────────────────────────────────────────────── */
 
 .eyebrow {
+  font-family: var(--font-label, var(--font-ui));
+  font-variation-settings: var(--label-settings, var(--ui-settings, normal));
   font-size: var(--text-2xs);
   font-weight: 650;
-  letter-spacing: 0.15em;
+  /* A monospace sets much wider, so the tracking comes from the face. */
+  letter-spacing: var(--eyebrow-tracking, 0.15em);
   text-transform: uppercase;
   color: var(--outline);
   display: inline-flex;
@@ -95,7 +98,12 @@
 .muted { color: var(--on-surface-variant); }
 .faint { color: var(--outline); }
 .small { font-size: var(--text-sm); }
-.tiny { font-size: var(--text-xs); }
+/* Status and hints: the other half of the label tier the mono face covers. */
+.tiny {
+  font-family: var(--font-label, var(--font-ui));
+  font-variation-settings: var(--label-settings, var(--ui-settings, normal));
+  font-size: var(--text-xs);
+}
 .center { text-align: center; }
 
 /* The question itself. This is the hero of the entire app. */
@@ -475,6 +483,8 @@
   display: inline-flex;
   align-items: center;
   gap: var(--s2);
+  font-family: var(--font-label, var(--font-ui));
+  font-variation-settings: var(--label-settings, var(--ui-settings, normal));
   padding: 4px 10px;
   border-radius: var(--r-full);
   border: var(--hairline) solid var(--outline-variant);

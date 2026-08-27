@@ -35,11 +35,17 @@ export const hogwartsPack: ContentPack = {
       warn: "#c2543a",
       extra: "#8878d6",
     },
-    // Grain is gone with the gradients it existed to mask.
-    texture: ["vignette"],
-    // Candles burn upward, embers rise off them, and a key drifts past.
-    scenery: ["candles", "embers", "keys"],
-    display: "fraunces",
+    // Two soft washes and a vignette: the night this pack was built around.
+    texture: ["nightGlow", "vignette"],
+    // A sky over it, candles burning upward, embers, and a key drifting past.
+    scenery: ["stars", "candles", "embers", "keys"],
+    /*
+     * Cormorant Garamond over letterspaced monospace — the pairing the
+     * earlier wizarding build used, and the thing people actually responded
+     * to. The palette was already identical; this is what was missing.
+     */
+    display: "cormorant",
+    interface: "plexMono",
   },
   /**
    * Every generated image in this pack is painted, lit by one warm source,

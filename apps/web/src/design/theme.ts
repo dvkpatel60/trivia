@@ -29,6 +29,7 @@ export function applyPack(pack: Themed): void {
   }
 
   root.dataset.display = pack.atmosphere.display;
+  root.dataset.ui = pack.atmosphere.interface ?? "bricolage";
   root.dataset.pack = pack.id;
 
   // Keeps the browser's own chrome — address bar, overscroll — in the

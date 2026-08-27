@@ -35,8 +35,12 @@ export type Mood = "enigmatic" | "deep" | "warm" | "stark" | "bright";
  * pinned to the bottom of the screen, and a band that stops partway up reads
  * as a seam between the background and the content rather than as ground.
  * What a pack's world is made of belongs in `scenery`, which moves.
+ *
+ * `nightGlow` is the one gradient left in the codebase, and it is narrow on
+ * purpose: two low-contrast radials in the corners, no blur, no full-screen
+ * mesh. The mesh is what banded and needed a noise bitmap over it.
  */
-export type Texture = "grid" | "vignette";
+export type Texture = "grid" | "vignette" | "nightGlow";
 
 /**
  * Objects that drift through a pack's background.
@@ -63,10 +67,23 @@ export type Scenery =
   | "peaks"
   | "clouds"
   | "planes"
-  | "confetti";
+  | "confetti"
+  | "stars";
 
 /** Display faces a pack may set for its headings and question prompts. */
-export type DisplayFace = "fraunces" | "spaceGrotesk" | "inter";
+export type DisplayFace = "fraunces" | "cormorant" | "spaceGrotesk" | "inter";
+
+/**
+ * Interface faces a pack may set for its labels, hints and quiet buttons.
+ *
+ * Separate from the display face because they do different jobs: the display
+ * face carries what a player reads *as content*, and this carries the
+ * structure around it. Letting a pack choose both is what makes a topic
+ * sound different rather than merely look recoloured — a wizarding party in
+ * letterspaced monospace reads as a different application from a geography
+ * quiz in a grotesque, even though the layout is identical.
+ */
+export type InterfaceFace = "bricolage" | "plexMono";
 
 export interface Atmosphere {
   /** Base hue in OKLCH degrees; surfaces are tinted toward it. */
@@ -86,6 +103,8 @@ export interface Atmosphere {
    */
   scenery?: Scenery[];
   display: DisplayFace;
+  /** Optional: packs that say nothing keep the app's own interface face. */
+  interface?: InterfaceFace;
 }
 
 interface MoodShape {

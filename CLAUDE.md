@@ -269,7 +269,12 @@ primitives; they do not hand-roll layout.
   wide gradient across a dark panel bands into visible steps, and the old orb
   mesh needed a tiled noise bitmap over the top to disguise that, which is
   what made it read as pixelated. Solid fills have nothing to band, so there
-  is no blur and no grain. A pack declares `scenery` — a closed vocabulary in
+  is no blur and no grain. The one exception is `nightGlow`: two low-contrast
+  radials in the corners, running to transparent, no blur. Measured down a
+  500px column it steps by 1/255 at most, where the old full-screen mesh
+  under a 58px blur stepped visibly — position, contrast and blur are what
+  separate a wash from a band, not the word "gradient". A pack declares
+  `scenery` — a closed vocabulary in
   `packages/core` — and `SCENERY` in the web app is a mapped type over it, so
   a name added there will not compile until something draws it. **Scenery has
   no hue of its own**: every piece is an alpha veil of `--on-surface`, and
@@ -303,6 +308,15 @@ primitives; they do not hand-roll layout.
   runs first and a reset effect here would wipe that staging.
 - **Gestures always have a tap fallback.** The sorter takes a drag *or* a tap
   on the bucket; a gesture nobody discovers is worse than no gesture.
+
+**A pack chooses two faces, not one.** `display` carries what a player reads
+as content; `interface` carries the label tier — eyebrows, badges, status
+lines — and defaults to the app's own. It is deliberately *not* the whole of
+`--font-ui`: the wizarding build people responded to set labels in
+letterspaced monospace and everything else in its serif, and swapping the
+interface face wholesale put player names and topic titles in monospace too,
+which turned the pack picker into a terminal. Candlelight is Cormorant
+Garamond over IBM Plex Mono; the others keep Bricolage.
 
 **Type has three roles, and the split is the point.**
 

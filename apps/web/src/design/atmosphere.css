@@ -187,6 +187,31 @@
   to { transform: translate3d(60vw, 12vh, 0) rotate(220deg); }
 }
 
+/* ── night sky ────────────────────────────────────────────────────────── */
+
+/*
+ * The field itself fills the frame and does not drift; the stars twinkle in
+ * place. `place()` sets a left offset for pieces that travel, which a sky
+ * has no use for, so it is pinned instead.
+ */
+.scenery__stars {
+  inset: 0;
+  left: 0 !important;
+  width: 100%;
+  height: 100%;
+  opacity: calc(var(--scene-ink) * 0.9);
+}
+
+.scenery__star {
+  animation: twinkle 4.5s var(--ease-in-out) infinite;
+  animation-delay: var(--piece-delay, 0s);
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.16; }
+  50% { opacity: 0.75; }
+}
+
 /* ── the app's own world ──────────────────────────────────────────────── */
 
 /*
@@ -288,6 +313,35 @@
     linear-gradient(color-mix(in oklab, var(--on-surface) 5%, transparent) 1px, transparent 1px),
     linear-gradient(90deg, color-mix(in oklab, var(--on-surface) 5%, transparent) 1px, transparent 1px);
   background-size: 56px 56px;
+}
+
+/*
+ * Two soft washes in the corners — the one gradient in the codebase.
+ *
+ * The rule against gradients came from a full-screen orb mesh under a 58px
+ * blur, which banded into visible steps on a dark panel and needed a tiled
+ * noise bitmap to hide it. These are different in the ways that caused that:
+ * they sit in the corners rather than across the middle, they run to
+ * transparent rather than between two lit colours, and there is no blur. The
+ * colours are the pack's own, so a topic gets its own night rather than a
+ * borrowed one: the deep one overhead, and the accent low and faint, which
+ * on Candlelight reads as the candles lighting the floor they stand on.
+ * `--support` was the obvious second choice and the wrong one — it is
+ * Candlelight's green, and a green haze under a row of candles reads as
+ * damp rather than as light.
+ */
+.tex-nightglow {
+  background:
+    radial-gradient(
+      120% 80% at 50% -10%,
+      color-mix(in oklab, var(--extra) 26%, transparent) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      90% 60% at 10% 100%,
+      color-mix(in oklab, var(--accent) 10%, transparent) 0%,
+      transparent 55%
+    );
 }
 
 /* A flat inset frame rather than a radial darkening. */

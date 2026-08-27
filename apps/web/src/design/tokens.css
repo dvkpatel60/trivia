@@ -111,6 +111,32 @@
   :root { --page: 62rem; }
 }
 
+/*
+ * Per-pack interface faces. Set by `applyPack`, same as the display face.
+ *
+ * The monospace option is not a typographic joke: letterspaced uppercase
+ * mono is what made the wizarding build read as an *instrument* rather than
+ * as an app, and it is the single strongest signature it had. It needs more
+ * tracking than a grotesque, because a mono at the same size sets wider.
+ *
+ * It replaces the *label* face only — eyebrows, badges, status lines — and
+ * not `--font-ui` wholesale. The earlier build used mono for exactly that
+ * tier and set everything else in its serif; swapping the whole interface
+ * face put player names and topic titles in monospace too, which turned the
+ * pack picker into a terminal.
+ */
+:root[data-ui="bricolage"] {
+  --font-label: var(--font-ui);
+  --label-settings: var(--ui-settings);
+  --eyebrow-tracking: 0.15em;
+}
+
+:root[data-ui="plexMono"] {
+  --font-label: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --label-settings: normal;
+  --eyebrow-tracking: 0.22em;
+}
+
 /* Per-pack display faces. Set by `applyPack` on the document element. */
 :root[data-display="fraunces"] {
   --font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
@@ -119,6 +145,19 @@
   --display-settings: "SOFT" 40, "WONK" 1, "opsz" 120;
   --display-weight: 600;
   --display-tracking: -0.018em;
+}
+
+/*
+ * Cormorant Garamond: a high-contrast bookish serif, and the face the
+ * wizarding build was built around. Set heavier than a display serif
+ * usually wants — at 600 it holds up against a dark ground, where 400 goes
+ * spindly and starts to disappear.
+ */
+:root[data-display="cormorant"] {
+  --font-display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  --display-settings: normal;
+  --display-weight: 600;
+  --display-tracking: 0;
 }
 
 :root[data-display="spaceGrotesk"] {
