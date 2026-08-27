@@ -72,16 +72,41 @@
   will-change: transform;
 }
 
-/* The palette, as flat fills. Nothing here authors a colour. */
-.fill-accent { fill: var(--accent); }
-.fill-support { fill: var(--support); }
-.fill-extra { fill: var(--extra); }
-.fill-outline { fill: var(--outline); }
+/*
+ * Scenery has no colour of its own. It is opacity, over whatever is behind.
+ *
+ * These were the pack's signature colours, and a signature colour on a big
+ * drifting object reads as something pasted over the screen rather than as
+ * part of it: Atlas's peaks were teal triangles, and they washed the dock
+ * green every time one passed behind it. A veil of `--on-surface` instead
+ * means a piece is only ever a *lightening* of the ground it stands on, so
+ * it takes the background's colour wherever it goes and `--scene-ink` is
+ * the one thing that governs how present it is.
+ *
+ * They still differ from each other, but by alpha alone — which is what
+ * lets a flat shape read as an object without introducing a second hue.
+ */
+.fill-accent { fill: color-mix(in oklab, var(--on-surface) 92%, transparent); }
+.fill-support { fill: color-mix(in oklab, var(--on-surface) 52%, transparent); }
+.fill-extra { fill: color-mix(in oklab, var(--on-surface) 68%, transparent); }
+.fill-outline { fill: color-mix(in oklab, var(--on-surface) 38%, transparent); }
 .fill-void { fill: var(--surface); }
 /* A lighter face on a solid body, so a flat shape still reads as an object. */
 .fill-highlight { fill: color-mix(in oklab, var(--on-surface) 22%, transparent); }
-/* Wax is warm and near-neutral — a signature colour would make it a prop. */
-.fill-wax { fill: color-mix(in oklab, var(--accent) 26%, var(--surface-high)); }
+.fill-wax { fill: color-mix(in oklab, var(--on-surface) 58%, transparent); }
+
+/*
+ * Confetti keeps its colours — the one exception, and a narrow one.
+ *
+ * The hue-free rule above is about size: a peak is big enough that its
+ * colour lands on the button it drifts behind. A ten-pixel scrap is not, and
+ * colour is the whole point of it. These are the four signature roles at
+ * full strength, so the scatter is the palette rather than a fifth idea.
+ */
+.fill-party-a { fill: var(--accent); }
+.fill-party-b { fill: var(--support); }
+.fill-party-c { fill: var(--extra); }
+.fill-party-d { fill: var(--warn); }
 
 /*
  * This is a background. It is meant to be felt rather than read, so it sits
@@ -153,6 +178,29 @@
   to { transform: translate3d(60vw, 12vh, 0) rotate(220deg); }
 }
 
+/* ── the app's own world ──────────────────────────────────────────────── */
+
+/*
+ * Confetti falls, turning as it goes, and starts again above the fold.
+ *
+ * Brighter than any other scenery: it is not atmosphere behind a question,
+ * it is the app's own front door, and at 0.17 it would have been invisible
+ * against a near-white page.
+ */
+.scenery__confetti {
+  top: -6vh;
+  opacity: calc(var(--scene-ink) * 1.05);
+  animation-name: fall;
+  animation-duration: calc(15s * var(--scene-drift) * var(--piece-jitter, 1));
+}
+
+@keyframes fall {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0; }
+  8% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { transform: translate3d(4vw, 112vh, 0) rotate(540deg); opacity: 0; }
+}
+
 /* ── Atlas ────────────────────────────────────────────────────────────── */
 
 /* The skyline. It does not travel; it breathes. */
@@ -162,7 +210,13 @@
   animation-duration: calc(20s * var(--scene-drift) * var(--piece-jitter, 1));
   animation-direction: alternate;
   animation-timing-function: var(--ease-in-out);
-  opacity: calc(var(--scene-ink) * 0.3);
+  /*
+   * Lower than it was. The peaks used to be drawn in a signature colour and
+   * needed the extra presence to read at all; as a plain lightening of the
+   * ground they are far more visible, and at the old 0.3 a peak passing
+   * behind the dock visibly bleached the Submit button.
+   */
+  opacity: calc(var(--scene-ink) * 0.13);
 }
 
 @keyframes loom {
@@ -226,23 +280,6 @@
     linear-gradient(90deg, color-mix(in oklab, var(--on-surface) 5%, transparent) 1px, transparent 1px);
   background-size: 56px 56px;
 }
-
-/*
- * No floor bands. The previous tex-ember and tex-horizon created a visible
- * seam between the atmosphere and the stage — the bottom 18-26% was a
- * different colour from the rest. Removing them keeps the background uniform
- * so the scenery pieces (candles, peaks) float in the same space as the
- * content above.
- */
-.tex-ember,
-.tex-horizon { display: none; }
-
-/*
- * Grain existed to hide gradient banding. There are no gradients left to
- * band, so it draws nothing — kept as a no-op because the vocabulary is a
- * published type and a pack may still name it.
- */
-.tex-grain { display: none; }
 
 /* A flat inset frame rather than a radial darkening. */
 .tex-vignette {

@@ -222,7 +222,7 @@ describe("answer secrecy", () => {
       version: 1,
       players: {},
       usage: {},
-      rounds: { 0: { questions, revealed } },
+      rounds: { 0: { questions, revealed, revealedQuestions: revealed ? questions.map((_, i) => i) : [] } },
     };
   };
 

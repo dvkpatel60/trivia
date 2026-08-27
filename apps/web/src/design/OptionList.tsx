@@ -45,8 +45,16 @@ export function OptionList({
   const [picked, setPicked] = useState<number | null>(null);
   const known = correct != null;
 
+  /**
+   * Picking is not committing.
+   *
+   * The dock's Submit is what sends an answer, so a row stays tappable until
+   * the question locks and a player may change their mind as many times as
+   * they like. Re-picking used to be impossible, which made a mis-tap on a
+   * phone unrecoverable.
+   */
   const choose = (index: number) => {
-    if (locked || picked !== null) return;
+    if (locked || index === picked) return;
     setPicked(index);
     navigator.vibrate?.(8);
     onPick(index);
@@ -81,9 +89,9 @@ export function OptionList({
             variants={rise}
             layout
             {...(morphId && isPicked ? { layoutId: morphId } : {})}
-            whileTap={locked || picked !== null ? undefined : { scale: 0.975 }}
+            whileTap={locked ? undefined : { scale: 0.975 }}
             transition={snap}
-            disabled={locked || picked !== null}
+            disabled={locked}
             onClick={() => choose(index)}
           >
             <span className="option__fill" aria-hidden="true" />

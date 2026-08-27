@@ -18,12 +18,29 @@
   width: 100%;
   max-width: var(--page);
   margin-inline: auto;
-  /* dvh, so mobile browser chrome collapsing doesn't shift the dock. */
-  min-height: 100dvh;
+  /*
+   * Exactly the viewport, not merely at least it.
+   *
+   * `overflow-y: auto` on the stage only means something if the stage's
+   * track is *bounded*, and a `1fr` row under `min-height` is not: it grows
+   * to fit its content and takes the whole scene with it. Any screen long
+   * enough to need scrolling therefore got none — the stage sat at its full
+   * content height and the dock was pushed off the bottom of the page. The
+   * setup wizard was the one screen long enough to show it.
+   *
+   * dvh, so mobile browser chrome collapsing doesn't shift the dock.
+   */
+  height: 100dvh;
+  /*
+   * The bottom is deliberately deeper than the top. The dock is the last
+   * thing on the screen and at --s4 the primary button sat about sixteen
+   * pixels off the edge, which on a handset with a home indicator is no gap
+   * at all.
+   */
   padding:
     calc(env(safe-area-inset-top, 0px) + var(--s3))
     var(--gutter)
-    calc(env(safe-area-inset-bottom, 0px) + var(--s4));
+    calc(env(safe-area-inset-bottom, 0px) + var(--s6));
 }
 
 .scene__rail {
@@ -67,8 +84,13 @@
 }
 
 /* The prompt takes the slack and centres in it, so a one-line question sits
-   in the upper third rather than jammed against the rail. */
-.scene__stage[data-flow="end"] > * > .prompt {
+   in the upper third rather than jammed against the rail.
+
+   `.clues` is the same thing wearing a different name — Who Am I's clues
+   *are* its question — and without this it pinned itself to the rail with
+   half a screen of nothing under it. */
+.scene__stage[data-flow="end"] > * > .prompt,
+.scene__stage[data-flow="end"] > * > .clues {
   flex: 1;
   display: grid;
   align-content: center;

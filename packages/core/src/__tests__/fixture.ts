@@ -10,7 +10,7 @@ export const fixturePack: ContentPack = {
     hue: 276,
     mood: "enigmatic",
     signature: { accent: "#e8b55c", support: "#3f9c7d", warn: "#c2543a", extra: "#8878d6" },
-    texture: ["grain"],
+    texture: ["vignette"],
     display: "fraunces",
   },
   categorySets: [

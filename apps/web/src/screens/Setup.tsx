@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CONFIG_LIMITS,
   defaultConfig,
@@ -44,6 +44,15 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
   }));
   const [names, setNames] = useState(["Player 1", "Player 2"]);
   const [busy, setBusy] = useState(false);
+
+  /*
+   * A pack arrives already selected, so the world has to arrive with it.
+   * Without this the wizard sat in the app's own light theme while the first
+   * drawer was visibly picked, and choosing that same pack changed nothing.
+   */
+  useEffect(() => {
+    onPreview(first);
+  }, [first, onPreview]);
 
   const pack = packs.find((entry) => entry.id === packId) ?? packs[0];
   const kinds = pack?.kinds ?? [];

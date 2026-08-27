@@ -4,7 +4,6 @@ import {
   getKind,
   isErrorResponse,
   questionDurationMs,
-  type ContentPack,
   type GameConfig,
   type PublicGameState,
 } from "@curio/core";
@@ -18,7 +17,7 @@ import { useSession } from "./state/session.js";
 import { useToast } from "./state/useToast.js";
 import { domMax, LazyMotion } from "motion/react";
 
-import { applyPack, Atmosphere, KindIcon, Scene, Wordmark, type AtmosphereMood } from "./design/index.js";
+import { applyPack, Atmosphere, HOUSE, KindIcon, Scene, Wordmark, type AtmosphereMood } from "./design/index.js";
 
 import { Beat } from "./screens/Beat.js";
 import { Final } from "./screens/Final.js";
@@ -111,14 +110,20 @@ export function App() {
 
   /* ── the world follows whichever pack is in play ── */
 
-  const pack: ContentPack = useMemo(
-    () => resolvePack(game?.config.packId ?? previewPackId ?? undefined),
-    [game?.config.packId, previewPackId],
-  );
+  /**
+   * No topic yet means the app's own world, not a topic's.
+   *
+   * `resolvePack(undefined)` answers with Hogwarts, which is the right
+   * default for *dealing questions* and the wrong one for a front door: it
+   * put the player inside a topic before they had chosen one, and made
+   * choosing that topic a no-op.
+   */
+  const chosen = game?.config.packId ?? previewPackId ?? null;
+  const world = useMemo(() => (chosen ? resolvePack(chosen) : HOUSE), [chosen]);
 
   useEffect(() => {
-    applyPack(pack);
-  }, [pack]);
+    applyPack(world);
+  }, [world]);
 
   /** What the background should be doing, read straight off the phase. */
   const mood: AtmosphereMood = useMemo(() => {
@@ -348,8 +353,8 @@ export function App() {
   return (
     <LazyMotion features={domMax} strict>
       <Atmosphere
-        textures={pack.atmosphere.texture}
-        scenery={pack.atmosphere.scenery}
+        textures={world.atmosphere.texture}
+        scenery={world.atmosphere.scenery}
         mood={mood}
         pressure={pressure}
         bloomKey={bloomKey}
@@ -436,10 +441,28 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
     [session, game.code, activeId, onToast],
   );
 
+  const revealQuestion = useCallback(
+    async (round: number, index: number) => {
+      const response = await session.send({
+        op: "revealQuestion",
+        code: game.code,
+        hostId: identity.id,
+        round,
+        index,
+      });
+      if (isErrorResponse(response)) onToast(response.error);
+    },
+    [session, game.code, identity.id, onToast],
+  );
+
   const waiting = (
     <Scene id="settling">
       <div className="splash splash--solo">
-        <span className="ember" />
+        <span className="ember" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
       </div>
     </Scene>
   );
@@ -520,7 +543,15 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
   const round = phase.round;
   const questions = game.rounds[round]?.questions ?? [];
   const answers = answersFor(round, activeId);
-  const cursor = questions.findIndex((_, index) => !answers[index]);
+  const revealed = game.rounds[round]?.revealedQuestions ?? [];
+  /**
+   * Local play doesn't use per-question reveal, so the gate only applies
+   * to remote async play.  The cursor finds the first unanswered question
+   * (local) or the first unanswered *and* revealed question (async).
+   */
+  const cursor = isLocal
+    ? questions.findIndex((_, index) => !answers[index])
+    : questions.findIndex((_, index) => revealed.includes(index) && !answers[index]);
 
   /**
    * Each player's window, as the server stamped it.
@@ -565,6 +596,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
 
     return (
       <OwnPaceQuestion
+        key={`${turn.playerIndex}:${round}:${cursor}`}
         game={game}
         meId={identity.id}
         question={question}
@@ -591,6 +623,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
         endsAt={phase.endsAt}
         now={session.now}
         onClose={advance}
+        onReveal={revealQuestion}
         onLeave={onLeave}
       />
     );
@@ -601,6 +634,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
 
   return (
     <OwnPaceQuestion
+      key={`${round}:${cursor}`}
       game={game}
       meId={identity.id}
       question={question}
@@ -623,29 +657,48 @@ interface OwnPaceQuestionProps extends Omit<ComponentProps<typeof Play>, "answer
 }
 
 /**
- * A question in a round-paced game, with its window opened server-side.
+ * A question in a round-paced game, behind a gate.
  *
- * Shows a pre-play reveal screen first: the kind, position, and prompt are
- * visible but the clock is not running. The player taps "Begin" to start
- * the timer, which fires `onBegin` to anchor the window server-side.
+ * Round-paced play has no shared deadline, so a question's window opens the
+ * moment the player first sees it — which means simply arriving on the
+ * screen used to start a clock they had not agreed to. The gate makes that
+ * an explicit act: it names the kind and where you are in the round, and
+ * nothing more.
+ *
+ * The prompt in particular is withheld. A prompt visible before the clock
+ * starts is a free reading of the question, and the window is the whole
+ * challenge — showing it would hand back exactly what the gate protects.
+ *
+ * The caller keys this component per question (and per player, when the
+ * device is being passed around), so the gate resets rather than opening
+ * once and letting every later question through.
  */
 function OwnPaceQuestion({ onBegin, meId, round, index, ...rest }: OwnPaceQuestionProps) {
   const [ready, setReady] = useState(false);
-  const begun = useRef<string | null>(null);
+  const begun = useRef(false);
   const kind = getKind(rest.question.kind);
 
+  /**
+   * Fire once, not once per render.
+   *
+   * `onBegin` closes over the session, which is rebuilt on every state
+   * update — so depending on its identity would re-open the question on each
+   * poll, and since opening is itself a write, that is an infinite loop.
+   */
   useEffect(() => {
-    const key = `${round}:${index}`;
-    if (!ready || begun.current === key) return;
-    begun.current = key;
+    if (!ready || begun.current) return;
+    begun.current = true;
     onBegin(round, index);
   }, [onBegin, round, index, ready]);
 
   if (!ready) {
+    const window = rest.game.config.timerOn
+      ? Math.round(questionDurationMs(rest.game.config, kind.timeMultiplier) / 1000)
+      : null;
+
     return (
       <Scene
-        id={`play-${round}-${index}`}
-        flow="end"
+        id={`gate-${round}-${index}`}
         rail={
           <span className="eyebrow">
             <KindIcon icon={kind.icon} size={13} />
@@ -654,13 +707,20 @@ function OwnPaceQuestion({ onBegin, meId, round, index, ...rest }: OwnPaceQuesti
         }
         dock={
           <button type="button" className="button state" onClick={() => setReady(true)}>
-            Begin
+            Show me the question
           </button>
         }
       >
-        <div className="stack--loose">
-          <p className={rest.question.prompt.length > 74 ? "prompt prompt--long" : "prompt"}>
-            {rest.question.prompt}
+        <div className="center stack--tight">
+          <span className="eyebrow">
+            Question {index + 1} of {rest.total}
+          </span>
+          <h1>{kind.name}</h1>
+          <p className="lede">{kind.description}.</p>
+          <p className="tiny faint">
+            {window == null
+              ? "No clock on this one — take as long as you like."
+              : `The clock starts when you tap, and runs for ${window} seconds.`}
           </p>
         </div>
       </Scene>

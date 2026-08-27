@@ -9,6 +9,7 @@ import {
   hostAdvance,
   joinGame,
   removePlayer,
+  revealAllQuestions,
   startGame,
   streakBefore,
   submitAnswers,
@@ -114,6 +115,15 @@ describe("lobby", () => {
   });
 });
 
+/** Create an async game with all questions in round 0 revealed. */
+function makeAsyncGame(overrides: Partial<GameConfig> = {}, extraPlayers: string[] = []): GameState {
+  const game = makeGame("async", overrides);
+  for (const id of extraPlayers) joinGame(game, id, id, T0);
+  startGame(game, "host", ctxAt(T0));
+  revealAllQuestions(game, 0);
+  return game;
+}
+
 describe("live pacing", () => {
   it("puts everyone on the same question with a shared deadline", () => {
     const game = makeGame("live");
@@ -164,7 +174,14 @@ describe("live pacing", () => {
         answerRight(game, "host", game.phase.round, game.phase.index, now + 500);
         answerRight(game, "p2", game.phase.round, game.phase.index, now + 600);
       }
-      now += 10_000;
+      /*
+       * Step to just past whatever this phase is waiting for, rather than a
+       * fixed ten seconds. A fixed step long enough to clear two phases at
+       * once makes the loop blind to the shorter of them — which is exactly
+       * what happened to `standings` when it came down to five seconds.
+       */
+      const endsAt = "endsAt" in game.phase ? game.phase.endsAt : null;
+      now = endsAt != null ? endsAt + 1 : now + 1_000;
       advance(game, ctxAt(now));
     }
 
@@ -265,8 +282,7 @@ describe("live pacing", () => {
 
 describe("async pacing", () => {
   it("falls back to the client's timing for a question never opened", () => {
-    const game = makeGame("async", { questionsPerRound: 1, rounds: 1 });
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame({ questionsPerRound: 1, rounds: 1 });
     // No beginQuestion call, so there is no stamp to measure against.
     const outcome = submitAnswers(
       game,
@@ -279,8 +295,7 @@ describe("async pacing", () => {
   });
 
   it("times from its own stamp once opened, ignoring the client's claim", () => {
-    const game = makeGame("async", { questionsPerRound: 1, rounds: 1 });
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame({ questionsPerRound: 1, rounds: 1 });
     beginQuestion(game, "host", 0, 0, T0 + 1_000);
     const outcome = submitAnswers(
       game,
@@ -294,8 +309,7 @@ describe("async pacing", () => {
   });
 
   it("does not hand out a fresh window on a second open", () => {
-    const game = makeGame("async", { questionsPerRound: 1, rounds: 1 });
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame({ questionsPerRound: 1, rounds: 1 });
     const first = beginQuestion(game, "host", 0, 0, T0 + 1_000);
     // A reload, a second device, a duplicated request: the clock is running.
     const again = beginQuestion(game, "host", 0, 0, T0 + 20_000);
@@ -303,8 +317,7 @@ describe("async pacing", () => {
   });
 
   it("scores nothing for an answer past the player's own window", () => {
-    const game = makeGame("async", { questionsPerRound: 1, rounds: 1, seconds: 30 });
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame({ questionsPerRound: 1, rounds: 1, seconds: 30 });
     beginQuestion(game, "host", 0, 0, T0);
     const outcome = submitAnswers(
       game,
@@ -326,9 +339,7 @@ describe("async pacing", () => {
   });
 
   it("closes a round once every opened question has lapsed", () => {
-    const game = makeGame("async", { questionsPerRound: 1, rounds: 1, seconds: 30 });
-    joinGame(game, "p2", "Ana", T0);
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame({ questionsPerRound: 1, rounds: 1, seconds: 30 }, ["p2"]);
 
     answerRight(game, "host", 0, 0, T0 + 1_000);
     // Ana opens hers and walks away without answering.
@@ -344,9 +355,7 @@ describe("async pacing", () => {
   });
 
   it("keeps waiting on a player who never opened the question at all", () => {
-    const game = makeGame("async", { questionsPerRound: 1, rounds: 1, seconds: 30 });
-    joinGame(game, "p2", "Ana", T0);
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame({ questionsPerRound: 1, rounds: 1, seconds: 30 }, ["p2"]);
     answerRight(game, "host", 0, 0, T0 + 1_000);
 
     // No stamp means no clock: nothing may start one on a player's behalf,
@@ -356,16 +365,12 @@ describe("async pacing", () => {
   });
 
   it("opens a round instead of a question", () => {
-    const game = makeGame("async");
-    joinGame(game, "p2", "Ana", T0);
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame({}, ["p2"]);
     expect(game.phase.name).toBe("open");
   });
 
   it("lets a player answer the whole round in one go, at their own pace", () => {
-    const game = makeGame("async");
-    joinGame(game, "p2", "Ana", T0);
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame({}, ["p2"]);
 
     const outcome = submitAnswers(
       game,
@@ -382,9 +387,7 @@ describe("async pacing", () => {
   });
 
   it("closes the round once everyone is in", () => {
-    const game = makeGame("async");
-    joinGame(game, "p2", "Ana", T0);
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame({}, ["p2"]);
 
     const all = (id: string) =>
       submitAnswers(
@@ -406,9 +409,7 @@ describe("async pacing", () => {
   });
 
   it("closes the round on a deadline when one is set", () => {
-    const game = makeGame("async", { roundOpenMinutes: 30 });
-    joinGame(game, "p2", "Ana", T0);
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame({ roundOpenMinutes: 30 }, ["p2"]);
 
     expect(advance(game, ctxAt(T0 + 29 * 60_000))).toBe(false);
     expect(advance(game, ctxAt(T0 + 31 * 60_000))).toBe(true);
@@ -416,8 +417,7 @@ describe("async pacing", () => {
   });
 
   it("waits for the host to move on from a reveal", () => {
-    const game = makeGame("async");
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame();
     hostAdvance(game, "host", ctxAt(T0 + 1_000)); // close round 0
     expect(game.phase.name).toBe("reveal");
 
@@ -431,16 +431,12 @@ describe("async pacing", () => {
   });
 
   it("refuses a host-only advance from a player", () => {
-    const game = makeGame("async");
-    joinGame(game, "p2", "Ana", T0);
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame({}, ["p2"]);
     expect(() => hostAdvance(game, "p2", ctxAt(T0 + 1))).toThrow(GameError);
   });
 
   it("scores a non-submitter nothing when the round closes", () => {
-    const game = makeGame("async");
-    joinGame(game, "idle", "Idle", T0);
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame({}, ["idle"]);
 
     const idle = game.players.idle;
     if (!idle) throw new Error("missing");
@@ -453,9 +449,7 @@ describe("async pacing", () => {
   });
 
   it("breaks a streak across a round the player sat out", () => {
-    const game = makeGame("async", { rounds: 3, questionsPerRound: 1 });
-    joinGame(game, "p2", "Ana", T0);
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame({ rounds: 3, questionsPerRound: 1 }, ["p2"]);
 
     // Round 0: answered correctly, so the streak is running.
     answerRight(game, "p2", 0, 0, T0 + 100);
@@ -476,8 +470,7 @@ describe("async pacing", () => {
 
 describe("streak reconstruction", () => {
   it("derives the streak from a player's own answers", () => {
-    const game = makeGame("async", { rounds: 1, questionsPerRound: 2 });
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame({ rounds: 1, questionsPerRound: 2 });
 
     answerRight(game, "host", 0, 0, T0 + 100);
     expect(streakBefore(game, game.players.host!, 0, 1)).toBe(1);
@@ -487,8 +480,7 @@ describe("streak reconstruction", () => {
   });
 
   it("does not count an unanswered question in a round still open", () => {
-    const game = makeGame("async", { rounds: 1, questionsPerRound: 2 });
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame({ rounds: 1, questionsPerRound: 2 });
     // Answering out of order: index 0 is still open, not a miss.
     answerRight(game, "host", 0, 1, T0 + 100);
     expect(streakBefore(game, game.players.host!, 0, 1)).toBe(0);
@@ -497,8 +489,7 @@ describe("streak reconstruction", () => {
 
 describe("submission is idempotent", () => {
   it("does not double-score a retried request", () => {
-    const game = makeGame("async");
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame();
     const payload = { 0: { answer: correctAnswer(game, 0, 0), elapsedMs: 500 } };
 
     const first = submitAnswers(game, "host", 0, payload, T0 + 500);
@@ -511,8 +502,7 @@ describe("submission is idempotent", () => {
   });
 
   it("ignores answers to questions that do not exist", () => {
-    const game = makeGame("async");
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame();
     const outcome = submitAnswers(
       game,
       "host",
@@ -524,8 +514,7 @@ describe("submission is idempotent", () => {
   });
 
   it("refuses answers from a stranger", () => {
-    const game = makeGame("async");
-    startGame(game, "host", ctxAt(T0));
+    const game = makeAsyncGame();
     expect(() => submitAnswers(game, "ghost", 0, {}, T0)).toThrow(GameError);
   });
 });

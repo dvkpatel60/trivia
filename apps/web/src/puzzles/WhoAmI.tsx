@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { OptionList } from "../design/index.js";
 import type { PuzzleProps } from "./types.js";
@@ -7,10 +7,21 @@ import type { PuzzleProps } from "./types.js";
  * Clues are rationed. Spent ones shrink and grey out rather than vanishing,
  * so you can see the trail you followed — and what it cost you.
  */
-export function WhoAmI({ question, locked, onCommit, morphId }: PuzzleProps<"whoAmI">) {
+export function WhoAmI({ question, locked, onStage, morphId }: PuzzleProps<"whoAmI">) {
   const [shown, setShown] = useState(1);
+  const [choice, setChoice] = useState<number | null>(null);
   const clues = question.view.clues;
   const more = shown < clues.length;
+
+  /**
+   * The clue count is part of the answer, so spending another clue after
+   * picking has to re-stage. Otherwise a player could pick early, read the
+   * rest of the clues to check themselves, and submit at the untouched price.
+   */
+  useEffect(() => {
+    if (choice == null) return;
+    onStage({ choice, clueIndex: shown - 1 });
+  }, [choice, shown, onStage]);
 
   return (
     <div className="stack--loose">
@@ -38,7 +49,7 @@ export function WhoAmI({ question, locked, onCommit, morphId }: PuzzleProps<"who
         locked={locked}
         label="Who am I?"
         morphId={morphId}
-        onPick={(choice) => onCommit({ choice, clueIndex: shown - 1 })}
+        onPick={setChoice}
       />
     </div>
   );

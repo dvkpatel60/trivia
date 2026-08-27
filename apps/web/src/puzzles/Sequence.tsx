@@ -1,5 +1,5 @@
 import { Reorder, useDragControls } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { PuzzleProps } from "./types.js";
 
@@ -38,16 +38,17 @@ function Row({ item, position, locked }: RowProps) {
  * is unchanged — the engine grades an array of original indices in their
  * final positions either way.
  */
-export function Sequence({ question, locked, onCommit }: PuzzleProps<"sequence">) {
+export function Sequence({ question, locked, onStage }: PuzzleProps<"sequence">) {
   const [items, setItems] = useState(question.view.items);
-  const [sent, setSent] = useState(false);
-  const [touched, setTouched] = useState(false);
 
-  const commit = () => {
-    if (locked || sent) return;
-    setSent(true);
-    onCommit({ order: items.map((item) => question.view.items.indexOf(item)) });
-  };
+  /**
+   * A sequence is always a complete answer, dealt order included, so it
+   * stages on mount as well as on every drag. A player who thinks the rows
+   * arrived in the right order can just submit.
+   */
+  useEffect(() => {
+    onStage({ order: items.map((item) => question.view.items.indexOf(item)) });
+  }, [items, question.view.items, onStage]);
 
   return (
     <div className="stack--loose">
@@ -56,20 +57,15 @@ export function Sequence({ question, locked, onCommit }: PuzzleProps<"sequence">
       <Reorder.Group
         axis="y"
         values={items}
-        onReorder={(next) => {
-          setItems(next);
-          setTouched(true);
-        }}
+        onReorder={setItems}
         className="sequence"
       >
         {items.map((item, position) => (
-          <Row key={item} item={item} position={position} locked={locked || sent} />
+          <Row key={item} item={item} position={position} locked={locked} />
         ))}
       </Reorder.Group>
 
-      <button type="button" className="button state" disabled={locked || sent} onClick={commit}>
-        {sent ? "Locked in" : touched ? "Lock it in" : "Drag them into order"}
-      </button>
+      <p className="tiny faint center">Drag them into order.</p>
     </div>
   );
 }

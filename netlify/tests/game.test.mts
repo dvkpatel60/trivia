@@ -97,6 +97,14 @@ beforeEach(() => {
   fake.reset();
 });
 
+async function revealAllQuestions(code: string, round: number, total: number) {
+  for (let i = 0; i < total; i++) {
+    await call<Envelope>({ op: "revealQuestion", code, hostId: "host", round, index: i });
+  }
+}
+
+const QUESTIONS_PER_ROUND = 2;
+
 describe("the endpoint", () => {
   it("refuses anything but POST", async () => {
     const response = await handler(new Request("https://example.test/x", { method: "GET" }));
@@ -138,6 +146,7 @@ describe("storage layout", () => {
   it("keeps each player's answers under their own key", async () => {
     const code = await openGame("async");
     await call<Envelope>({ op: "start", code, hostId: "host" });
+    await revealAllQuestions(code, 0, QUESTIONS_PER_ROUND);
     await answer(code, "ana", 0, 0);
 
     expect(fake.keys()).toContain(`g/${code}`);
@@ -148,6 +157,7 @@ describe("storage layout", () => {
   it("does not write another player's key when one of them answers", async () => {
     const code = await openGame("async");
     await call<Envelope>({ op: "start", code, hostId: "host" });
+    await revealAllQuestions(code, 0, QUESTIONS_PER_ROUND);
 
     const before = fake.raw.get(`g/${code}/p/host`);
     await answer(code, "ana", 0, 0);
@@ -157,6 +167,7 @@ describe("storage layout", () => {
   it("does not write another player's key when one of them opens a question", async () => {
     const code = await openGame("async");
     await call<Envelope>({ op: "start", code, hostId: "host" });
+    await revealAllQuestions(code, 0, QUESTIONS_PER_ROUND);
 
     const before = fake.raw.get(`g/${code}/p/host`);
     await call<Envelope>({ op: "begin", code, playerId: "ana", round: 0, index: 0 });
@@ -184,6 +195,7 @@ describe("storage layout", () => {
     const code = await openGame("async");
     const before = (await state(code)).game.version;
     await call<Envelope>({ op: "start", code, hostId: "host" });
+    await revealAllQuestions(code, 0, QUESTIONS_PER_ROUND);
     await answer(code, "ana", 0, 0);
     expect((await state(code)).game.version).toBeGreaterThan(before);
   });
@@ -193,6 +205,7 @@ describe("what crosses the wire", () => {
   it("never includes a solution, mid-round or after", async () => {
     const code = await openGame("async");
     await call<Envelope>({ op: "start", code, hostId: "host" });
+    await revealAllQuestions(code, 0, QUESTIONS_PER_ROUND);
 
     const during = JSON.stringify(await state(code));
     expect(during).not.toContain('"solution"');
@@ -265,6 +278,7 @@ describe("async pacing over the wire", () => {
     const code = await openGame("async");
     const started = await call<Envelope>({ op: "start", code, hostId: "host" });
     expect(started.game.phase.name).toBe("open");
+    await revealAllQuestions(code, 0, QUESTIONS_PER_ROUND);
 
     const submitted = await call<SubmitResponse>({
       op: "submit",
@@ -283,6 +297,7 @@ describe("async pacing over the wire", () => {
   it("stamps a player's own window when they open a question", async () => {
     const code = await openGame("async");
     await call<Envelope>({ op: "start", code, hostId: "host" });
+    await revealAllQuestions(code, 0, QUESTIONS_PER_ROUND);
 
     const opened = await call<Envelope>({
       op: "begin",
@@ -308,6 +323,7 @@ describe("async pacing over the wire", () => {
   it("closes the round when the last player finishes", async () => {
     const code = await openGame("async");
     await call<Envelope>({ op: "start", code, hostId: "host" });
+    await revealAllQuestions(code, 0, QUESTIONS_PER_ROUND);
 
     for (const player of ["host", "ana"]) {
       await call<SubmitResponse>({
@@ -343,6 +359,7 @@ describe("idempotency", () => {
   it("does not double-score a retried submission", async () => {
     const code = await openGame("async");
     await call<Envelope>({ op: "start", code, hostId: "host" });
+    await revealAllQuestions(code, 0, QUESTIONS_PER_ROUND);
 
     const first = await answer(code, "ana", 0, 0);
     const second = await answer(code, "ana", 0, 0);
@@ -356,6 +373,7 @@ describe("rejoining", () => {
   it("keeps a player's score when they rejoin from a new tab", async () => {
     const code = await openGame("async");
     await call<Envelope>({ op: "start", code, hostId: "host" });
+    await revealAllQuestions(code, 0, QUESTIONS_PER_ROUND);
     await answer(code, "ana", 0, 0);
     const scored = (await state(code)).game.players.ana?.score ?? 0;
 

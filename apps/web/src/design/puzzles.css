@@ -310,11 +310,13 @@
 
 .clues { display: flex; flex-direction: column; gap: var(--s3); }
 
+/* The live clue is the question, so it is set like one. Spent clues drop
+   back to body size below, which is what makes the trail read as a trail. */
 .clue {
   font-family: var(--font-display);
   font-variation-settings: var(--display-settings, normal);
   font-style: italic;
-  font-size: var(--text-lg);
+  font-size: var(--text-xl);
   line-height: var(--leading-snug);
   padding-left: var(--s4);
   border-left: 2px solid color-mix(in oklab, var(--accent) 40%, transparent);
@@ -360,15 +362,20 @@
 }
 
 /* A guess, lifted out of the board. */
+/* A button, because a group can be tapped to break it back apart. */
 .grouped {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 2px;
+  width: 100%;
   padding: var(--s1);
   border-radius: var(--r-sm);
   background: color-mix(in oklab, var(--accent-container) 70%, transparent);
   border: var(--hairline) solid color-mix(in oklab, var(--accent) 40%, transparent);
+  cursor: pointer;
 }
+
+.grouped:disabled { cursor: default; }
 
 .grouped__tile {
   padding: 6px 2px;

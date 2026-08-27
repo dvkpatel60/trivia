@@ -19,7 +19,11 @@ export function Pass({ name, round, onReady }: PassProps) {
       }
     >
       <div className="splash splash--solo">
-        <span className="ember" />
+        <span className="ember" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
         <h1>{name}</h1>
         <p className="lede">Pass the device along, then claim it when you're ready.</p>
       </div>

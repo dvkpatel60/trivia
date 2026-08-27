@@ -7,6 +7,7 @@ import {
   advance,
   createGame,
   joinGame,
+  revealAllQuestions,
   startGame,
   submitAnswers,
   type EngineContext,
@@ -132,6 +133,9 @@ function playToCompletion(
     if (id !== "host") joinGame(game, id, id, T0);
   }
   startGame(game, "host", ctxAt(game.code, T0));
+  if (pacing === "async") {
+    revealAllQuestions(game, 0);
+  }
 
   let now = T0;
   let turns = 0;
@@ -156,6 +160,7 @@ function playToCompletion(
         );
       }
     } else if (phase.name === "open") {
+      if (pacing === "async") revealAllQuestions(game, phase.round);
       now += 800;
       const questions = game.rounds[phase.round]?.questions ?? [];
       for (const id of options.players) {

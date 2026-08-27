@@ -30,7 +30,7 @@ const base: Atmosphere = {
   hue: 276,
   mood: "enigmatic",
   signature: { accent: "#e8b55c", support: "#3f9c7d", warn: "#c2543a", extra: "#8878d6" },
-  texture: ["grain"],
+  texture: ["vignette"],
   display: "fraunces",
 };
 
@@ -90,7 +90,7 @@ describe("contrast", () => {
 });
 
 describe("palette derivation", () => {
-  const moods: Mood[] = ["enigmatic", "deep", "warm", "stark"];
+  const moods: Mood[] = ["enigmatic", "deep", "warm", "stark", "bright"];
 
   it.each(moods)("%s produces a readable palette", (mood) => {
     expect(contrastProblems(derivePalette({ ...base, mood }))).toEqual([]);
@@ -106,17 +106,31 @@ describe("palette derivation", () => {
     }
   });
 
-  it("climbs the container ladder without a flat step", () => {
-    const { containers } = derivePalette(base);
+  /*
+   * Stated as "toward the foreground" rather than "lighter", because that is
+   * the invariant the model actually has: the ramp climbs from 7 toward 92
+   * on a dark ground and descends from 98 toward 10 on a light one. The old
+   * wording was true of the dark scheme and of nothing else.
+   */
+  it.each(moods)("%s steps the container ladder toward the foreground", (mood) => {
+    const { containers, onSurface, surface } = derivePalette({ ...base, mood });
     expect(containers.length).toBe(5);
+    const up = onSurface.l > surface.l;
     for (let step = 1; step < containers.length; step++) {
-      expect(containers[step]!.l).toBeGreaterThan(containers[step - 1]!.l);
+      const delta = containers[step]!.l - containers[step - 1]!.l;
+      expect(up ? delta : -delta).toBeGreaterThan(0);
     }
   });
 
-  it("keeps the page darker than anything raised on it", () => {
-    const { surface, containers } = derivePalette(base);
-    expect(surface.l).toBeLessThan(containers[2]!.l);
+  it.each(moods)("%s raises a surface off the page toward the foreground", (mood) => {
+    const { surface, containers, onSurface } = derivePalette({ ...base, mood });
+    const up = onSurface.l > surface.l;
+    expect(up ? containers[2]!.l - surface.l : surface.l - containers[2]!.l).toBeGreaterThan(0);
+  });
+
+  it("puts the page at the light end for a bright mood, and the dark end otherwise", () => {
+    expect(derivePalette({ ...base, mood: "bright" }).surface.l).toBeGreaterThan(0.9);
+    expect(derivePalette({ ...base, mood: "enigmatic" }).surface.l).toBeLessThan(0.2);
   });
 
   it("tints surfaces toward the pack's hue", () => {

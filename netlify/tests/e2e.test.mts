@@ -24,7 +24,23 @@ const DIST = path.resolve(HERE, "../../apps/web/dist");
 const PORT = 4180;
 const BASE = `http://127.0.0.1:${PORT}`;
 
-const CHROMIUM = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
+/**
+ * Where the browser lives.
+ *
+ * The pinned path is the one CI installs; anywhere else, Playwright's own
+ * download is fine. Hard-coding only the first meant the whole suite quietly
+ * skipped itself on a developer's machine.
+ */
+const CHROMIUM = ((): string | null => {
+  const pinned = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
+  if (existsSync(pinned)) return pinned;
+  try {
+    const own = chromium.executablePath();
+    return existsSync(own) ? own : null;
+  } catch {
+    return null;
+  }
+})();
 
 const TYPES: Record<string, string> = {
   ".html": "text/html",
@@ -38,7 +54,7 @@ let server: Server;
 let browser: Browser;
 
 const built = existsSync(path.join(DIST, "index.html"));
-const runnable = built && existsSync(CHROMIUM);
+const runnable = built && CHROMIUM !== null;
 
 beforeAll(async () => {
   if (!runnable) return;
@@ -74,7 +90,7 @@ beforeAll(async () => {
   });
 
   await new Promise<void>((resolve) => server.listen(PORT, "127.0.0.1", resolve));
-  browser = await chromium.launch({ executablePath: CHROMIUM });
+  browser = await chromium.launch({ executablePath: CHROMIUM ?? undefined });
 }, 60_000);
 
 afterAll(async () => {
@@ -88,42 +104,55 @@ async function newPlayer(): Promise<Page> {
   return context.newPage();
 }
 
-/** Answer whatever puzzle is on screen. Kinds vary run to run. */
+/**
+ * Answer whatever puzzle is on screen. Kinds vary run to run.
+ *
+ * Two steps, because the app is two steps: build an answer on the stage,
+ * then take the dock's Submit. Nothing here knows which kind it is looking
+ * at beyond enough to make one legal move.
+ */
 async function answerAnything(page: Page): Promise<boolean> {
+  const submit = page.locator(".scene__dock button:has-text('Submit')");
+  if (!(await submit.count())) return false;
+
+  // Sequence stages the dealt order on sight, so there may be nothing to do.
+  if (!(await submit.first().isDisabled())) {
+    await submit.first().click();
+    return true;
+  }
+
   const options = page.locator("button.option:not([disabled])");
   if (await options.count()) {
     await options.first().click();
-    return true;
-  }
-  const buckets = page.locator("button.bucket:not([disabled])");
-  if (await buckets.count()) {
-    await buckets.first().click();
-    return true;
-  }
-  // Sequence is drag-to-reorder now; accepting the order as dealt is a
-  // legitimate (usually wrong) answer, which is all this test needs.
-  const order = page.locator("button.button:has-text('Drag them into order')");
-  if (await order.count()) {
-    await order.first().click();
-    return true;
-  }
-  const tiles = page.locator("button.tile:not([disabled])");
-  if ((await tiles.count()) >= 2) {
+  } else if (await page.locator("button.bucket:not([disabled])").count()) {
+    // Sort It deals one card at a time; keep dropping until the stack is out.
+    for (let i = 0; i < 12; i++) {
+      const buckets = page.locator("button.bucket:not([disabled])");
+      if (!(await buckets.count())) break;
+      await buckets.first().click();
+      await page.waitForTimeout(60);
+    }
+  } else if ((await page.locator("button.wall__tile:not([disabled])").count()) >= 4) {
+    const tiles = page.locator("button.wall__tile:not([disabled])");
+    for (let i = 0; i < 4; i++) await tiles.nth(i).click();
+    await page.locator("button:has-text('Group these')").first().click();
+  } else if ((await page.locator("button.tile:not([disabled])").count()) >= 2) {
+    const tiles = page.locator("button.tile:not([disabled])");
     const n = await tiles.count();
     for (let i = 0; i < n / 2; i++) {
       await tiles.nth(i).click();
       await tiles.nth(n / 2 + i).click();
     }
-    await page.locator("button.button:has-text('Lock it in')").first().click();
-    return true;
+  } else if (await page.locator("input.input--code:not([disabled])").count()) {
+    await page.locator("input.input--code:not([disabled])").fill("GUESS");
+  } else {
+    return false;
   }
-  const input = page.locator("input.input--code:not([disabled])");
-  if ((await input.count()) && (await page.locator(".letters").count())) {
-    await input.fill("GUESS");
-    await page.locator("button.button:has-text('Lock it in')").first().click();
-    return true;
-  }
-  return false;
+
+  await page.waitForTimeout(80);
+  if (await submit.first().isDisabled()) return false;
+  await submit.first().click();
+  return true;
 }
 
 describe.runIf(runnable)("two devices, one live game", () => {
@@ -142,15 +171,15 @@ describe.runIf(runnable)("two devices, one live game", () => {
       await hostPage.goto(BASE, { waitUntil: "networkidle" });
       await hostPage.waitForSelector("#name");
       await hostPage.fill("#name", "Ana");
-      await hostPage.click("text=Host a game");
-      await hostPage.waitForSelector("text=Topic", { timeout: 15_000 });
+      await hostPage.click("button:has-text('Open a room')");
+      await hostPage.waitForSelector("text=Choose your curiosity", { timeout: 15_000 });
 
       // Trim it to one round of one question so the test is quick.
       for (let i = 0; i < 2; i++) await hostPage.click('button[aria-label="Fewer Rounds"]');
       for (let i = 0; i < 3; i++) {
         await hostPage.click('button[aria-label="Fewer Questions each round"]');
       }
-      await hostPage.click("text=Open the lobby");
+      await hostPage.click("button:has-text('Summon the room')");
 
       await hostPage.waitForSelector(".code-display", { timeout: 15_000 });
       const code = (await hostPage.locator(".code-display").innerText()).replace(/\s+/g, "");
@@ -162,14 +191,14 @@ describe.runIf(runnable)("two devices, one live game", () => {
       expect(await guestPage.inputValue("#join-code")).toBe(code);
 
       await guestPage.fill("#join-name", "Bo");
-      await guestPage.click("button.button:has-text('Join')");
+      await guestPage.click("button.button:has-text('Join a room')");
 
       // The host's lobby should learn about Bo without being touched — this
       // is the long poll delivering someone else's change.
       await hostPage.waitForSelector("text=Bo", { timeout: 20_000 });
 
       /* ── play it ── */
-      await hostPage.click("button.button:has-text('Start')");
+      await hostPage.click("button.button:has-text('Begin ·')");
 
       for (let step = 0; step < 40; step++) {
         const done =
@@ -179,11 +208,6 @@ describe.runIf(runnable)("two devices, one live game", () => {
 
         await answerAnything(hostPage);
         await answerAnything(guestPage);
-
-        for (const page of [hostPage, guestPage]) {
-          const skip = page.locator("button.button:has-text('Skip ahead')");
-          if (await skip.count()) await skip.first().click();
-        }
         await hostPage.waitForTimeout(400);
       }
 

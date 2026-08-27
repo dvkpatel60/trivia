@@ -136,7 +136,7 @@ function dealRound(game: GameState, round: number, ctx: EngineContext): void {
     usage: game.usage as KindUsage,
   });
   game.usage = built.usage as Record<string, number[]>;
-  game.rounds[round] = { questions: built.questions, revealed: false };
+  game.rounds[round] = { questions: built.questions, revealed: false, revealedQuestions: [] };
 }
 
 export function questionCount(game: GameState, round: number): number {
@@ -189,6 +189,20 @@ function revealRound(game: GameState, round: number): void {
   const state = game.rounds[round];
   if (!state || state.revealed) return;
   state.revealed = true;
+  // Ensure all questions are marked as revealed when the round closes.
+  state.revealedQuestions = state.questions.map((_, i) => i);
+}
+
+/**
+ * Mark every question in a round as revealed, without closing the round.
+ *
+ * Used by tests that need all questions playable, and by hosts who want to
+ * skip per-question gating.
+ */
+export function revealAllQuestions(game: GameState, round: number): void {
+  const state = game.rounds[round];
+  if (!state) return;
+  state.revealedQuestions = state.questions.map((_, i) => i);
 }
 
 /**
@@ -215,8 +229,8 @@ export function streakBefore(
       const answer = answers[i];
       if (answer) {
         streak = answer.fraction >= 0.999 ? streak + 1 : 0;
-      } else if (state.revealed) {
-        // They never answered and the round is closed: the streak is broken.
+      } else if (state.revealedQuestions?.includes(i)) {
+        // They never answered and this question was revealed: streak broken.
         streak = 0;
       }
       // Unanswered in a round still open (async, out of order) is not yet a miss.
@@ -272,6 +286,12 @@ function acceptsIndex(game: GameState, round: number, index: number, now: number
   if (game.rounds[round]?.revealed) return false;
 
   if (isRoundPaced(game.config.pacing)) {
+    // Per-question reveal: only revealed questions accept answers in async play.
+    // Local play doesn't use per-question reveal.
+    if (game.config.pacing === "async") {
+      const revealed = game.rounds[round]?.revealedQuestions ?? [];
+      if (!revealed.includes(index)) return false;
+    }
     return phase.name === "open" && phase.round === round;
   }
 
@@ -434,9 +454,15 @@ function everyoneFinishedRound(game: GameState, round: number, now: number): boo
   if (players.length === 0) return false;
   const total = questionCount(game, round);
   if (total === 0) return false;
+  // Local play doesn't use per-question reveal — check every question.
+  // Async play only checks revealed questions; unrevealed ones are not yet in play.
+  const checkIndices = isRoundPaced(game.config.pacing) && game.config.pacing !== "local"
+    ? (game.rounds[round]?.revealedQuestions ?? [])
+    : Array.from({ length: total }, (_, i) => i);
+  if (checkIndices.length === 0) return false;
   return players.every((player) => {
     const answers = player.rounds[round]?.answers ?? {};
-    for (let index = 0; index < total; index++) {
+    for (const index of checkIndices) {
       if (!answers[index] && !lapsed(game, player, round, index, now)) return false;
     }
     return true;
@@ -459,14 +485,22 @@ export function beginQuestion(
 ): number | null {
   const player = game.players[playerId];
   if (!player) throw new GameError("You are not in this game.", "forbidden");
+  // Local play doesn't use the begin stamp — the timer is managed differently.
+  if (game.config.pacing === "local") return null;
   if (!isRoundPaced(game.config.pacing)) {
-    throw new GameError("This game is paced by the host.", "conflict");
+    throw new GameError("Live play uses a shared clock.", "conflict");
   }
   if (game.phase.name !== "open" || game.phase.round !== round) {
     throw new GameError("That round is not open.", "conflict");
   }
   if (index < 0 || index >= questionCount(game, round)) {
     throw new GameError("No such question.", "conflict");
+  }
+
+  // Per-question reveal: can only begin a revealed question.
+  const revealed = game.rounds[round]?.revealedQuestions ?? [];
+  if (!revealed.includes(index)) {
+    throw new GameError("That question hasn't been revealed yet.", "conflict");
   }
 
   const record = ensureRound(player, round, now);
@@ -476,6 +510,41 @@ export function beginQuestion(
   const window = windowMs(game, round, index);
   const openedAt = record.openedAt[index];
   return window == null || openedAt == null ? null : openedAt + window;
+}
+
+/**
+ * Host reveals a single question in an async round.
+ *
+ * Adds the index to `revealedQuestions`. Returns true when every question
+ * in the round has now been revealed — the caller should then close the
+ * round to show all solutions.
+ */
+export function hostRevealQuestion(
+  game: GameState,
+  hostId: string,
+  round: number,
+  index: number,
+): boolean {
+  if (hostId !== game.hostId) throw new GameError("Only the host can do that.", "forbidden");
+  if (game.phase.name !== "open" || game.phase.round !== round) {
+    throw new GameError("That round is not open.", "conflict");
+  }
+  if (game.rounds[round]?.revealed) {
+    throw new GameError("That round is already closed.", "conflict");
+  }
+
+  const state = game.rounds[round];
+  if (!state) throw new GameError("That round hasn't started.", "conflict");
+
+  if (index < 0 || index >= state.questions.length) {
+    throw new GameError("No such question.", "conflict");
+  }
+
+  if (!state.revealedQuestions.includes(index)) {
+    state.revealedQuestions.push(index);
+  }
+
+  return state.revealedQuestions.length >= state.questions.length;
 }
 
 /** One transition, or null if this phase isn't finished yet. */

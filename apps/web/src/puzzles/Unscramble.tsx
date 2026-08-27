@@ -2,15 +2,12 @@ import { useState } from "react";
 
 import type { PuzzleProps } from "./types.js";
 
-export function Unscramble({ question, locked, onCommit }: PuzzleProps<"unscramble">) {
+export function Unscramble({ question, locked, onStage, onSubmit }: PuzzleProps<"unscramble">) {
   const [value, setValue] = useState("");
-  const [sent, setSent] = useState(false);
 
-  const commit = () => {
-    if (locked || sent || !value.trim()) return;
-    setSent(true);
-    navigator.vibrate?.(8);
-    onCommit({ word: value });
+  const type = (next: string) => {
+    setValue(next);
+    onStage(next.trim() ? { word: next } : null);
   };
 
   return (
@@ -29,26 +26,18 @@ export function Unscramble({ question, locked, onCommit }: PuzzleProps<"unscramb
         <input
           className="input input--code"
           value={value}
-          disabled={locked || sent}
+          disabled={locked}
           autoComplete="off"
           autoCapitalize="characters"
           autoCorrect="off"
           spellCheck={false}
           aria-label={`Your answer, ${question.view.length} letters`}
           placeholder={"·".repeat(Math.min(question.view.length, 12))}
-          onChange={(event) => setValue(event.target.value)}
+          onChange={(event) => type(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === "Enter") commit();
+            if (event.key === "Enter" && value.trim()) onSubmit?.();
           }}
         />
-        <button
-          type="button"
-          className="button state"
-          disabled={locked || sent || !value.trim()}
-          onClick={commit}
-        >
-          {sent ? "Locked in" : "Lock it in"}
-        </button>
       </div>
     </div>
   );
