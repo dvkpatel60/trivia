@@ -4,7 +4,6 @@ import {
   getKind,
   isErrorResponse,
   questionDurationMs,
-  type ContentPack,
   type GameConfig,
   type PublicGameState,
 } from "@curio/core";
@@ -18,7 +17,7 @@ import { useSession } from "./state/session.js";
 import { useToast } from "./state/useToast.js";
 import { domMax, LazyMotion } from "motion/react";
 
-import { applyPack, Atmosphere, KindIcon, Scene, Wordmark, type AtmosphereMood } from "./design/index.js";
+import { applyPack, Atmosphere, HOUSE, KindIcon, Scene, Wordmark, type AtmosphereMood } from "./design/index.js";
 
 import { Beat } from "./screens/Beat.js";
 import { Final } from "./screens/Final.js";
@@ -111,14 +110,20 @@ export function App() {
 
   /* ── the world follows whichever pack is in play ── */
 
-  const pack: ContentPack = useMemo(
-    () => resolvePack(game?.config.packId ?? previewPackId ?? undefined),
-    [game?.config.packId, previewPackId],
-  );
+  /**
+   * No topic yet means the app's own world, not a topic's.
+   *
+   * `resolvePack(undefined)` answers with Hogwarts, which is the right
+   * default for *dealing questions* and the wrong one for a front door: it
+   * put the player inside a topic before they had chosen one, and made
+   * choosing that topic a no-op.
+   */
+  const chosen = game?.config.packId ?? previewPackId ?? null;
+  const world = useMemo(() => (chosen ? resolvePack(chosen) : HOUSE), [chosen]);
 
   useEffect(() => {
-    applyPack(pack);
-  }, [pack]);
+    applyPack(world);
+  }, [world]);
 
   /** What the background should be doing, read straight off the phase. */
   const mood: AtmosphereMood = useMemo(() => {
@@ -348,8 +353,8 @@ export function App() {
   return (
     <LazyMotion features={domMax} strict>
       <Atmosphere
-        textures={pack.atmosphere.texture}
-        scenery={pack.atmosphere.scenery}
+        textures={world.atmosphere.texture}
+        scenery={world.atmosphere.scenery}
         mood={mood}
         pressure={pressure}
         bloomKey={bloomKey}

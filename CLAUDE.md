@@ -223,6 +223,19 @@ primitives; they do not hand-roll layout.
   take their lightness from fixed tone stops. `contrastProblems` is asserted
   empty for every pack, at every mood, every 15° around the hue circle, so a
   pack cannot ship an unreadable palette. Never put raw hex in a component.
+- **There are two schemes, and only one thing is true of both.** Four moods
+  are dark and `bright` is light, so `TONES` holds a stop table per scheme.
+  The invariant that survives the mirror is that the container ramp steps
+  *from the page toward the foreground colour* — up from tone 7 toward 92 on
+  a dark ground, down from 98 toward 10 on a light one. Anything phrased as
+  "raised is lighter" is written against the dark scheme rather than against
+  the model, and two tests said exactly that until `bright` arrived.
+- **The app has a world of its own.** `HOUSE` in `design/house.ts` is what the
+  shell wears before a topic is chosen — the one `bright` atmosphere, with
+  confetti. The shell used to fall through to `resolvePack(undefined)`, which
+  answers Hogwarts: the front door was a topic, and picking that topic
+  changed nothing. `applyPack` takes `Themed` (an id and an atmosphere), which
+  is all a `ContentPack` and `HOUSE` have in common.
 - **Elevation is tonal, not a shadow.** A raised surface steps up the container
   ladder first; the shadow is secondary. On a dark ground that reads as lit
   rather than as a cut-out.

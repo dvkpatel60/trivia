@@ -159,6 +159,42 @@ function Plane({ index }: PieceProps) {
   );
 }
 
+/* ── the app's own world ──────────────────────────────────────────────── */
+
+/**
+ * Confetti: the one scenery that keeps its colours.
+ *
+ * The rule everywhere else is that a piece has no hue of its own, because a
+ * peak or a cloud is big enough that its colour lands on whatever control it
+ * drifts behind. A ten-pixel scrap cannot do that, and colour is the entire
+ * point of it — this is what the app wears when no topic has been chosen, so
+ * it has to look like a party rather than like a pack that has not loaded.
+ *
+ * Three shapes and four colours off one index, so a dozen instances read as
+ * a scatter rather than as a repeating row.
+ */
+const CONFETTI_FILLS = ["fill-party-a", "fill-party-b", "fill-party-c", "fill-party-d"];
+
+function Confetti({ index }: PieceProps) {
+  const fill = CONFETTI_FILLS[index % CONFETTI_FILLS.length];
+  const shape = index % 3;
+
+  return (
+    <svg
+      className="scenery__piece scenery__confetti"
+      style={place(index, 10)}
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      aria-hidden="true"
+    >
+      {shape === 0 ? <rect x="2" y="3" width="10" height="7" rx="1.5" className={fill} /> : null}
+      {shape === 1 ? <circle cx="7" cy="7" r="4.5" className={fill} /> : null}
+      {shape === 2 ? <polygon points="7,1.5 12.5,12.5 1.5,12.5" className={fill} /> : null}
+    </svg>
+  );
+}
+
 /**
  * One renderer per member of the union.
  *
@@ -173,4 +209,5 @@ export const SCENERY: Record<SceneryId, { Piece: ComponentType<PieceProps>; coun
   peaks: { Piece: Peaks, count: 5 },
   clouds: { Piece: Cloud, count: 4 },
   planes: { Piece: Plane, count: 2 },
+  confetti: { Piece: Confetti, count: 10 },
 };

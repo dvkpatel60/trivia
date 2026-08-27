@@ -15,14 +15,18 @@
 import { contrastRatio, css, ensureContrast, hexToOklch, type Oklch } from "./color.js";
 
 /**
- * How dark and how saturated a pack's world is.
+ * How dark and how saturated a world is.
  *
  * - `enigmatic` — near-black, barely-there chroma, light used sparingly.
  * - `deep` — dark but clearly coloured; confident rather than mysterious.
  * - `warm` — dark with a lit, amber-leaning ground.
  * - `stark` — very low chroma, high contrast. Clinical and precise.
+ * - `bright` — the one light scheme: a near-white page with the signature
+ *   colours pulled down the ladder until they read as ink on paper. It is
+ *   what the app itself wears, so stepping into a topic is a change of
+ *   world rather than a change of accent.
  */
-export type Mood = "enigmatic" | "deep" | "warm" | "stark";
+export type Mood = "enigmatic" | "deep" | "warm" | "stark" | "bright";
 
 /**
  * Background treatments, drawn by the app from this vocabulary.
@@ -43,12 +47,14 @@ export type Texture = "grid" | "vignette";
  * draw them. The web app holds a renderer per member as a mapped type, so
  * adding a name here without drawing it is a compile error.
  *
- * Everything here is drawn as opacity over the pack's surface, with no hue
- * of its own, so a piece is a lightening of whatever ground it drifts
- * across. A signature colour on an object this large reads as something
- * pasted over the screen rather than as part of it. Nothing in this layer
- * uses a gradient either — wide gradients band on dark surfaces, which is
- * what made the old orb mesh look like noise.
+ * A large piece is drawn as opacity over the surface with no hue of its own,
+ * so it is a lightening of whatever ground it drifts across: a signature
+ * colour on an object that big reads as something pasted over the screen
+ * rather than as part of it, and it lands on the controls underneath.
+ * `confetti` is the exception the rule allows — pieces a few pixels across
+ * are never large enough to tint a button, and colour is the whole point of
+ * them. Nothing in this layer uses a gradient either: wide gradients band on
+ * dark surfaces, which is what made the old orb mesh look like noise.
  */
 export type Scenery =
   | "embers"
@@ -56,7 +62,8 @@ export type Scenery =
   | "keys"
   | "peaks"
   | "clouds"
-  | "planes";
+  | "planes"
+  | "confetti";
 
 /** Display faces a pack may set for its headings and question prompts. */
 export type DisplayFace = "fraunces" | "spaceGrotesk" | "inter";
@@ -82,6 +89,8 @@ export interface Atmosphere {
 }
 
 interface MoodShape {
+  /** Which end of the tonal ladder the page sits at. */
+  scheme: Scheme;
   /** Shifts the whole tonal ladder up or down. */
   lift: number;
   /** Chroma carried by surfaces — how much the base hue bleeds in. */
@@ -90,33 +99,82 @@ interface MoodShape {
   roleChroma: number;
 }
 
+type Scheme = "dark" | "light";
+
 const MOODS: Record<Mood, MoodShape> = {
-  enigmatic: { lift: 0, surfaceChroma: 0.016, roleChroma: 1 },
-  deep: { lift: 3, surfaceChroma: 0.034, roleChroma: 1.08 },
-  warm: { lift: 2, surfaceChroma: 0.028, roleChroma: 1.05 },
-  stark: { lift: 1, surfaceChroma: 0.004, roleChroma: 0.72 },
+  enigmatic: { scheme: "dark", lift: 0, surfaceChroma: 0.016, roleChroma: 1 },
+  deep: { scheme: "dark", lift: 3, surfaceChroma: 0.034, roleChroma: 1.08 },
+  warm: { scheme: "dark", lift: 2, surfaceChroma: 0.028, roleChroma: 1.05 },
+  stark: { scheme: "dark", lift: 1, surfaceChroma: 0.004, roleChroma: 0.72 },
+  /*
+   * Lift is 0 and must stay there: the light ladder already reaches tone
+   * 100, so anything positive clamps the top of the container ramp flat and
+   * the elevation steps disappear into white.
+   */
+  bright: { scheme: "light", lift: 0, surfaceChroma: 0.012, roleChroma: 1.2 },
 };
 
 /**
  * The tonal stops this app uses, named for what they are rather than for a
- * number. These are Material 3's dark-scheme assignments.
+ * number. These are Material 3's scheme assignments.
+ *
+ * The two schemes are mirror images, and the invariant that survives both is
+ * that the container ramp always steps *from the page toward the foreground
+ * colour*: up from 7 toward 92 on a dark ground, down from 98 toward 10 on a
+ * light one. Anything written against "raised is lighter" is written against
+ * the dark scheme rather than against the model.
  */
-const TONE = {
-  surface: 7,
-  containerLowest: 4,
-  containerLow: 11,
-  container: 14,
-  containerHigh: 19,
-  containerHighest: 24,
-  onSurface: 92,
-  onSurfaceVariant: 79,
-  outline: 62,
-  outlineVariant: 31,
-  role: 80,
-  onRole: 22,
-  roleContainer: 33,
-  onRoleContainer: 91,
-} as const;
+interface ToneStops {
+  surface: number;
+  containerLowest: number;
+  containerLow: number;
+  container: number;
+  containerHigh: number;
+  containerHighest: number;
+  onSurface: number;
+  onSurfaceVariant: number;
+  outline: number;
+  outlineVariant: number;
+  role: number;
+  onRole: number;
+  roleContainer: number;
+  onRoleContainer: number;
+}
+
+const TONES: Record<Scheme, ToneStops> = {
+  dark: {
+    surface: 7,
+    containerLowest: 4,
+    containerLow: 11,
+    container: 14,
+    containerHigh: 19,
+    containerHighest: 24,
+    onSurface: 92,
+    onSurfaceVariant: 79,
+    outline: 62,
+    outlineVariant: 31,
+    role: 80,
+    onRole: 22,
+    roleContainer: 33,
+    onRoleContainer: 91,
+  },
+  light: {
+    surface: 98,
+    containerLowest: 100,
+    containerLow: 96,
+    container: 93,
+    containerHigh: 90,
+    containerHighest: 87,
+    onSurface: 12,
+    onSurfaceVariant: 34,
+    outline: 48,
+    outlineVariant: 78,
+    role: 42,
+    onRole: 100,
+    roleContainer: 88,
+    onRoleContainer: 14,
+  },
+};
 
 /**
  * How much of the foreground colour is composited over a surface when a
@@ -163,6 +221,7 @@ export const AA_LARGE_CONTRAST = 3;
 
 export function derivePalette(atmosphere: Atmosphere): Palette {
   const shape = MOODS[atmosphere.mood];
+  const TONE = TONES[shape.scheme];
   const { hue } = atmosphere;
 
   /** A neutral step on the ladder, tinted toward the pack's hue. */
@@ -205,10 +264,22 @@ export function derivePalette(atmosphere: Atmosphere): Palette {
       h: authored.h,
     });
 
+    /*
+     * What reads on the role colour.
+     *
+     * The dark scheme puts it at tone 22 — a dark, tinted version of the
+     * role itself — and 0.6 of the chroma is what keeps it recognisably the
+     * same colour. The light scheme puts it at tone 100, where any chroma at
+     * all is outside sRGB and clips to a tinted off-white: `--on-accent`
+     * came back as `oklch(1 0.167 294)`, which is a way of spelling white
+     * that no longer means white.
+     */
+    const onRoleChroma = shape.scheme === "light" ? 0.03 : 0.6;
+
     const base = ensureContrast(at(TONE.role), highest, AA_LARGE_CONTRAST);
     return {
       base,
-      on: ensureContrast(at(TONE.onRole, 0.6), base, AA_CONTRAST),
+      on: ensureContrast(at(TONE.onRole, onRoleChroma), base, AA_CONTRAST),
       container: at(TONE.roleContainer, 0.85),
       onContainer: ensureContrast(
         at(TONE.onRoleContainer, 0.45),

@@ -96,6 +96,19 @@
 .fill-wax { fill: color-mix(in oklab, var(--on-surface) 58%, transparent); }
 
 /*
+ * Confetti keeps its colours — the one exception, and a narrow one.
+ *
+ * The hue-free rule above is about size: a peak is big enough that its
+ * colour lands on the button it drifts behind. A ten-pixel scrap is not, and
+ * colour is the whole point of it. These are the four signature roles at
+ * full strength, so the scatter is the palette rather than a fifth idea.
+ */
+.fill-party-a { fill: var(--accent); }
+.fill-party-b { fill: var(--support); }
+.fill-party-c { fill: var(--extra); }
+.fill-party-d { fill: var(--warn); }
+
+/*
  * This is a background. It is meant to be felt rather than read, so it sits
  * low enough that nothing on the stage ever competes with it.
  */
@@ -163,6 +176,29 @@
 @keyframes tumble {
   from { transform: translate3d(-30vw, 0, 0) rotate(0deg); }
   to { transform: translate3d(60vw, 12vh, 0) rotate(220deg); }
+}
+
+/* ── the app's own world ──────────────────────────────────────────────── */
+
+/*
+ * Confetti falls, turning as it goes, and starts again above the fold.
+ *
+ * Brighter than any other scenery: it is not atmosphere behind a question,
+ * it is the app's own front door, and at 0.17 it would have been invisible
+ * against a near-white page.
+ */
+.scenery__confetti {
+  top: -6vh;
+  opacity: calc(var(--scene-ink) * 1.05);
+  animation-name: fall;
+  animation-duration: calc(15s * var(--scene-drift) * var(--piece-jitter, 1));
+}
+
+@keyframes fall {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0; }
+  8% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { transform: translate3d(4vw, 112vh, 0) rotate(540deg); opacity: 0; }
 }
 
 /* ── Atlas ────────────────────────────────────────────────────────────── */

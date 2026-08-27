@@ -21,3 +21,4 @@ export {
   PackVessel,
 } from "./PackArtifacts.js";
 export { ScoreBurst } from "./ScoreBurst.js";
+export { HOUSE } from "./house.js";
