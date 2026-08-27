@@ -45,7 +45,16 @@
 
   transition:
     --scene-lift var(--dur-slow) var(--ease-out),
-    --scene-ink var(--dur-slow) var(--ease-out);
+    --scene-ink var(--dur-slow) var(--ease-out),
+    /*
+     * And the ground itself, so picking a topic *loads into* its world
+     * rather than cutting to it. `applyPack` rewrites --surface on the root
+     * and a custom property cannot be transitioned unless it is registered —
+     * but `background-color` resolving to a new value can, which is all this
+     * needs. The scenery swaps under the fade, which reads as the room
+     * changing rather than as two screens.
+     */
+    background-color var(--dur-scene) var(--ease-out);
 }
 
 .atmosphere > * {

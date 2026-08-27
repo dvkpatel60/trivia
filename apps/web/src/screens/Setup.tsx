@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   CONFIG_LIMITS,
   defaultConfig,
@@ -45,21 +45,20 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
   const [names, setNames] = useState(["Player 1", "Player 2"]);
   const [busy, setBusy] = useState(false);
 
-  /*
-   * A pack arrives already selected, so the world has to arrive with it.
-   * Without this the wizard sat in the app's own light theme while the first
-   * drawer was visibly picked, and choosing that same pack changed nothing.
-   */
-  useEffect(() => {
-    onPreview(first);
-  }, [first, onPreview]);
-
   const pack = packs.find((entry) => entry.id === packId) ?? packs[0];
   const kinds = pack?.kinds ?? [];
 
   const patch = (changes: Partial<GameConfig>) =>
     setConfig((current) => ({ ...current, ...changes }));
 
+  /**
+   * Choosing a topic is what changes the world.
+   *
+   * Setup opens in the app's own light room and stays there until a topic is
+   * picked, so the palette turning over is the visible consequence of the
+   * choice rather than something that already happened before you arrived.
+   * The first drawer being pre-selected is a default, not a decision.
+   */
   const choosePack = (id: string) => {
     setPackId(id);
     patch({ packId: id });

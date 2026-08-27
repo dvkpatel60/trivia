@@ -214,3 +214,65 @@
    */
   .scene__stage[data-flow="end"] .option { min-height: 60px; }
 }
+
+/*
+ * A phone on its side.
+ *
+ * This is the case that needs the split most and was the one case not
+ * getting it: 844x390 is wide, but so short that a single column put two of
+ * four answers underneath the dock, with the rest reachable only by
+ * scrolling — and an answer a player cannot see is an answer they will not
+ * pick. It sits below the tablet breakpoint, so the columns are narrower and
+ * the prompt scales with the viewport rather than holding the large-screen
+ * size that would leave nine characters to a line.
+ *
+ * 40rem rather than something rounder because an iPhone SE on its side is
+ * 667px, and it is the smallest screen that has this problem worst.
+ */
+@media (min-width: 40rem) and (max-width: 59.99rem) and (orientation: landscape) {
+  .scene__stage[data-flow="end"] > * {
+    flex-direction: row;
+    align-items: stretch;
+    gap: var(--s5);
+  }
+
+  .scene__stage[data-flow="end"] > * > .prompt {
+    flex: 1 1 42%;
+    align-content: center;
+    font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+  }
+
+  .scene__stage[data-flow="end"] > * > .prompt ~ * {
+    flex: 1 1 58%;
+    align-self: center;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* A board still wants the full width, exactly as on a large screen. */
+  .scene__stage[data-flow="end"] > .puzzle--dense { flex-direction: column; }
+}
+
+/*
+ * Short screens: the stage gives back the breathing room it cannot afford.
+ *
+ * The answer rows shrink too, but that lives in components.css — this file
+ * loads first, so an `.options` rule here loses to the one there on source
+ * order at equal specificity, and would silently do nothing.
+ */
+@media (max-height: 30rem) and (orientation: landscape) {
+  /*
+   * The deep bottom padding buys thumb clearance above a home indicator,
+   * which on a screen held sideways is down the edge rather than under the
+   * dock — and 32px of it is a twelfth of the whole screen. The zones close
+   * up by roughly forty pixels, which is what an iPhone SE on its side needs
+   * to show its fourth answer.
+   */
+  .scene {
+    gap: var(--s2);
+    padding-block: calc(env(safe-area-inset-top, 0px) + var(--s2))
+      calc(env(safe-area-inset-bottom, 0px) + var(--s3));
+  }
+
+  .scene__stage { gap: var(--s3); }
+}

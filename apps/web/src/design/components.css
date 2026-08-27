@@ -696,3 +696,14 @@
   letter-spacing: 0.06em;
   color: var(--accent);
 }
+
+/*
+ * A phone on its side has about 200px of stage. Four rows at their usual
+ * height need 240, so the fourth sat under the dock where nobody would find
+ * it. Padding gives up more than min-height does — the rows were 54px tall
+ * against a 46px floor, so the floor alone changed nothing.
+ */
+@media (max-height: 30rem) and (orientation: landscape) {
+  .options { gap: var(--s1); }
+  .option { min-height: 46px; padding-block: var(--s2); }
+}
