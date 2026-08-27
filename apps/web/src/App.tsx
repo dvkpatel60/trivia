@@ -453,7 +453,11 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
   const waiting = (
     <Scene id="settling">
       <div className="splash splash--solo">
-        <span className="ember" />
+        <span className="ember" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
       </div>
     </Scene>
   );

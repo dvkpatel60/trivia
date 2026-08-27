@@ -31,10 +31,23 @@ export type Phase =
 
 export type PhaseName = Phase["name"];
 
-/** How long the answer stays on screen between live questions. */
-export const BEAT_MS = 4_000;
-/** How long the live leaderboard holds before the next round starts. */
-export const STANDINGS_MS = 8_000;
+/**
+ * How long the answer stays on screen between live questions.
+ *
+ * Nothing is waiting on a network here: `everyoneAnswered` ends a question
+ * the instant the last answer lands, and the request carrying that answer is
+ * the one that advances the phase. The pause between questions is this
+ * number and nothing else, so it is the only place to tune the pace.
+ */
+export const BEAT_MS = 2_800;
+/**
+ * How long the live leaderboard holds before the next round starts.
+ *
+ * Was 8s, which with the beat put twelve dead seconds between the last
+ * answer of a round and the first question of the next one — long enough
+ * that it read as the app having stalled rather than as a pause.
+ */
+export const STANDINGS_MS = 5_000;
 /**
  * A submission this late still counts. Network latency shouldn't cost a
  * player their answer — but the speed bonus is still scored against the real

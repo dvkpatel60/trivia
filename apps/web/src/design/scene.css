@@ -31,10 +31,16 @@
    * dvh, so mobile browser chrome collapsing doesn't shift the dock.
    */
   height: 100dvh;
+  /*
+   * The bottom is deliberately deeper than the top. The dock is the last
+   * thing on the screen and at --s4 the primary button sat about sixteen
+   * pixels off the edge, which on a handset with a home indicator is no gap
+   * at all.
+   */
   padding:
     calc(env(safe-area-inset-top, 0px) + var(--s3))
     var(--gutter)
-    calc(env(safe-area-inset-bottom, 0px) + var(--s4));
+    calc(env(safe-area-inset-bottom, 0px) + var(--s6));
 }
 
 .scene__rail {

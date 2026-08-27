@@ -336,20 +336,62 @@
 /* A splash that is the whole scene, rather than sitting above a form. */
 .splash--solo { min-height: 58dvh; }
 
-/* A slow ember, the app's one piece of ornament. */
+/*
+ * Waiting: three pips going round, in the pack's three signature colours.
+ *
+ * It replaced a single 12x20px guttering ember, which at that size read as a
+ * rendering artefact rather than as "something is happening". An orbit
+ * rather than a spinner ring, because a ring wants a swept gradient and a
+ * swept gradient aliases along its edge — the same reason the timer is an
+ * SVG stroke. Three transforms and no JavaScript.
+ */
 .ember {
-  width: 12px;
-  height: 20px;
-  border-radius: 50% 50% 45% 45% / 62% 62% 38% 38%;
-  background: radial-gradient(circle at 50% 74%, color-mix(in oklab, var(--on-surface) 92%, var(--accent)), var(--accent) 54%, transparent 76%);
-  filter: blur(0.3px);
-  animation: flicker 3.4s var(--ease-in-out) infinite;
+  position: relative;
+  width: 62px;
+  height: 62px;
 }
 
-@keyframes flicker {
-  0%, 100% { transform: scale(1) translateY(0); opacity: 1; }
-  34% { transform: scale(0.93, 1.08) translateY(-1px); opacity: 0.86; }
-  62% { transform: scale(1.05, 0.95) translateY(1px); opacity: 0.97; }
+/* Each child is a full-size box that spins; the pip rides its top edge. */
+.ember span {
+  position: absolute;
+  inset: 0;
+  animation: orbit 1.4s linear infinite;
+}
+
+.ember span::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: var(--r-full);
+  background: var(--pip);
+  /* Same cycle and same delay as the orbit, so a pip is always largest at
+     the same point of its circuit rather than drifting against it. */
+  animation: pip-breathe 1.4s var(--ease-in-out) infinite;
+  animation-delay: inherit;
+}
+
+.ember span:nth-child(1) { --pip: var(--accent); }
+.ember span:nth-child(2) { --pip: var(--support); animation-delay: -0.47s; }
+.ember span:nth-child(3) { --pip: var(--extra); animation-delay: -0.93s; }
+
+@keyframes orbit {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pip-breathe {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(0.52); opacity: 0.5; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ember span,
+  .ember span::before { animation: none; }
+  .ember span:nth-child(2) { transform: rotate(120deg); }
+  .ember span:nth-child(3) { transform: rotate(240deg); }
 }
 
 /* ── pack picker ──────────────────────────────────────────────────────── */

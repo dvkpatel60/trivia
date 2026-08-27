@@ -174,7 +174,14 @@ describe("live pacing", () => {
         answerRight(game, "host", game.phase.round, game.phase.index, now + 500);
         answerRight(game, "p2", game.phase.round, game.phase.index, now + 600);
       }
-      now += 10_000;
+      /*
+       * Step to just past whatever this phase is waiting for, rather than a
+       * fixed ten seconds. A fixed step long enough to clear two phases at
+       * once makes the loop blind to the shorter of them — which is exactly
+       * what happened to `standings` when it came down to five seconds.
+       */
+      const endsAt = "endsAt" in game.phase ? game.phase.endsAt : null;
+      now = endsAt != null ? endsAt + 1 : now + 1_000;
       advance(game, ctxAt(now));
     }
 
