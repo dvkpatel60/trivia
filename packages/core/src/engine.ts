@@ -78,10 +78,16 @@ export function createGame(options: {
   hostName: string;
   config: GameConfig;
   now: number;
+  /**
+   * Supplied rather than generated here, so the engine stays a pure function
+   * of its inputs and a test can pin the deal.
+   */
+  seed?: number;
 }): GameState {
-  const { code, hostId, hostName, config, now } = options;
+  const { code, hostId, hostName, config, now, seed } = options;
   return {
     code,
+    ...(seed === undefined ? {} : { seed }),
     hostId,
     phase: { name: "lobby", startedAt: now },
     config,

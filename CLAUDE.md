@@ -103,8 +103,16 @@ g/<CODE>/p/<ID>   one player's answers and score
 **A player's key is written by that player alone.** The lifecycle key is
 written by host actions and by whichever request advances the phase — and
 those transitions are deterministic given the same input state, questions
-included, because rounds are dealt from `seedFor(code, round)`. Two requests
-racing therefore compute the same next state, so last-write-wins is not lossy.
+included, because rounds are dealt from `seedForRound(game, round)`. Two
+requests racing therefore compute the same next state, so last-write-wins is
+not lossy.
+
+That seed is the game's own random `seed`, stored with it — *not* its code.
+A code is one of eighteen words and two digits, and it is freed as soon as a
+game is swept, so seeding from it made the deal a pure function of 1,620
+possibilities: the same code came round again and replayed the same
+questions in the same order. A game with no `seed` predates the field and
+falls back to the code, which deals exactly as it used to.
 
 Two consequences to preserve:
 

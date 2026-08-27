@@ -8,7 +8,8 @@ import {
   joinGame,
   removePlayer,
   sanitizeConfig,
-  seedFor,
+  newGameSeed,
+  seedForRound,
   beginQuestion,
   startGame,
   submitAnswers,
@@ -36,7 +37,7 @@ export function createLocalTransport(): Transport {
 
   const context = (game: GameState, now: number): EngineContext => ({
     pack: resolvePack(game.config.packId),
-    rngFor: (round) => createRng(seedFor(game.code, round)),
+    rngFor: (round) => createRng(seedForRound(game, round)),
     now,
   });
 
@@ -77,6 +78,7 @@ export function createLocalTransport(): Transport {
               hostName: request.hostName,
               config,
               now,
+              seed: newGameSeed(),
             });
             games.set(code, game);
             return { game: toPublicGame(game), serverNow: now, code };

@@ -87,6 +87,21 @@ export interface GameState {
   rounds: Record<number, RoundState<AnyQuestion>>;
   /** Item indices already spent, per kind, so rounds don't repeat questions. */
   usage: Record<string, number[]>;
+  /**
+   * What the deal is drawn from. Random per game, and never shown to anyone.
+   *
+   * Rounds used to be seeded from the game code, which made the deal a pure
+   * function of a name drawn from 18 words and two digits: 1,620 possible
+   * games, and codes are freed as soon as a game is swept, so the same code
+   * came round again and replayed the same questions in the same order. The
+   * seed is part of the stored state, so two requests racing to advance a
+   * round still compute the same deal — which is the property the code was
+   * there to provide.
+   *
+   * Optional because a game created before this existed has none; those fall
+   * back to the code and carry on dealing exactly as they did.
+   */
+  seed?: number;
   /** Bumped on every write. Clients poll with `since` and get nothing back
    *  until this moves, which is what makes long-polling cheap. */
   version: number;

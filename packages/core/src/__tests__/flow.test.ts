@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRng, seedFor } from "../rng.js";
+import { createRng, newGameSeed, seedFor, seedForRound } from "../rng.js";
 import { defaultConfig } from "../config.js";
 import {
   advance,
@@ -566,5 +566,62 @@ describe("beat and standings timing", () => {
     expect(advance(game, ctxAt(startedAt + STANDINGS_MS - 100))).toBe(false);
     expect(advance(game, ctxAt(startedAt + STANDINGS_MS + 100))).toBe(true);
     expect(game.phase.name).toBe("question");
+  });
+});
+
+describe("the deal is fresh per game", () => {
+  /** A context that seeds the way the real transports do. */
+  const ctxFor = (game: GameState, now = T0): EngineContext => ({
+    now,
+    pack: fixturePack,
+    rngFor: (round) => createRng(seedForRound(game, round)),
+  });
+
+  const dealt = (game: GameState): string[] => {
+    startGame(game, "host", ctxFor(game));
+    return (game.rounds[0]?.questions ?? []).map((q) => q.prompt);
+  };
+
+  const gameWith = (code: string, seed: number | undefined): GameState =>
+    createGame({
+      code,
+      hostId: "host",
+      hostName: "Host",
+      config: { ...defaultConfig("fixture"), pacing: "live", rounds: 2, questionsPerRound: 2, seconds: 30 },
+      now: T0,
+      ...(seed === undefined ? {} : { seed }),
+    });
+
+  it("deals differently for two games that happen to share a code", () => {
+    /*
+     * The point of the change. Codes are one of 18 words and two digits and
+     * are freed as soon as a game is swept, so the same code comes round
+     * again — and used to replay the same questions in the same order.
+     */
+    const a = dealt(gameWith("NIFFLER-42", 1));
+    const b = dealt(gameWith("NIFFLER-42", 2));
+    expect(a).not.toEqual(b);
+  });
+
+  it("deals identically for the same seed, so racing requests agree", () => {
+    // The property the code was there to provide, and the one that matters:
+    // any request can be the one that advances a game into its next round.
+    expect(dealt(gameWith("NIFFLER-42", 7))).toEqual(dealt(gameWith("NIFFLER-42", 7)));
+  });
+
+  it("falls back to the code for a game stored before seeds existed", () => {
+    const legacy = gameWith("NIFFLER-42", undefined);
+    expect(legacy.seed).toBeUndefined();
+    expect(seedForRound(legacy, 0)).toBe(seedFor("NIFFLER-42", 0));
+  });
+
+  it("draws a seed from the whole 32-bit range", () => {
+    const seeds = new Set(Array.from({ length: 200 }, () => newGameSeed()));
+    expect(seeds.size).toBeGreaterThan(190);
+    for (const seed of seeds) {
+      expect(Number.isInteger(seed)).toBe(true);
+      expect(seed).toBeGreaterThanOrEqual(0);
+      expect(seed).toBeLessThan(2 ** 32);
+    }
   });
 });

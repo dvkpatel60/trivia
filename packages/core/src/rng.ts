@@ -88,3 +88,20 @@ export function seedFor(code: string, round: number): number {
   }
   return hash >>> 0;
 }
+
+/**
+ * The seed a game's round is dealt from.
+ *
+ * A game's own `seed` when it has one, and its code when it does not — which
+ * is every game created before the field existed, and they go on dealing
+ * exactly as they did. Both transports resolve it through here so the
+ * browser and the function can never disagree about what a round contains.
+ */
+export function seedForRound(game: { seed?: number; code: string }, round: number): number {
+  return seedFor(game.seed === undefined ? game.code : `s${game.seed}`, round);
+}
+
+/** A fresh deal seed. The only randomness in dealing a game. */
+export function newGameSeed(): number {
+  return Math.floor(Math.random() * 0x1_0000_0000);
+}

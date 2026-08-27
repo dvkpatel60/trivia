@@ -18,7 +18,8 @@ import {
   joinGame,
   removePlayer,
   sanitizeConfig,
-  seedFor,
+  newGameSeed,
+  seedForRound,
   startGame,
   beginQuestion,
   submitAnswers,
@@ -83,7 +84,7 @@ function contextFor(game: GameState, now: number): EngineContext {
     pack: resolvePack(game.config.packId),
     // Seeded from the game's identity, so whichever request ends up dealing a
     // round produces exactly the questions any other request would have.
-    rngFor: (round) => createRng(seedFor(game.code, round)),
+    rngFor: (round) => createRng(seedForRound(game, round)),
     now,
   };
 }
@@ -131,6 +132,7 @@ async function handle(body: GameRequest): Promise<Response> {
         hostName: body.hostName ?? "Host",
         config: { ...config, packId: pack.id },
         now,
+        seed: newGameSeed(),
       });
       await createMain(game, now);
       return envelope(game, now, { code });
