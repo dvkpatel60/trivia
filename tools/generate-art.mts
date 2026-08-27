@@ -5,9 +5,11 @@
  * the app, not the Netlify functions — ever talks to Cloudflare or sees the
  * token; this writes PNGs into `apps/web/public/packs/` and then it is done.
  *
+ *   npm run art                       every topic, only what is missing
+ *   npm run art -- --list             what each topic needs, call nothing
  *   npm run art -- --dry-run          show every prompt, call nothing
- *   npm run art -- --pack hogwarts    generate one pack
- *   npm run art -- --only place-greathall
+ *   npm run art -- --pack bollywood   one topic
+ *   npm run art -- --only place-ghat
  *   npm run art -- --force            redo images that already exist
  *
  * Images are seeded from their art id, so a rerun reproduces the same
@@ -84,6 +86,7 @@ type ModelName = keyof typeof MODELS;
 
 interface Options {
   dryRun: boolean;
+  list: boolean;
   force: boolean;
   pack?: string;
   only?: string;
@@ -100,11 +103,27 @@ function parseArgs(argv: string[]): Options {
   if (!(model in MODELS)) {
     throw new Error(`Unknown model "${model}". Try: ${Object.keys(MODELS).join(", ")}`);
   }
+  /*
+   * A topic that does not exist is a typo, not an empty run.
+   *
+   * `--pack hogwarts` and `--pack hogwarts-extra` used to behave the same
+   * way: collect nothing, then report "Nothing to generate. Add an `art`
+   * block to an imageChoice item", which sends you looking at the content
+   * rather than at what you typed.
+   */
+  const pack = value("--pack");
+  if (pack && !PACKS.some((entry) => entry.id === pack)) {
+    throw new Error(
+      `Unknown topic "${pack}". Try: ${PACKS.map((entry) => entry.id).join(", ")}`,
+    );
+  }
+
   return {
     dryRun: argv.includes("--dry-run"),
+    list: argv.includes("--list"),
     force: argv.includes("--force"),
-    pack: value("--pack"),
-    only: value("--only"),
+    ...(pack ? { pack } : {}),
+    ...(value("--only") ? { only: value("--only") } : {}),
     limit: Number(value("--limit") ?? Infinity),
     model,
   };
@@ -314,12 +333,54 @@ async function main(): Promise<void> {
 
   const jobs = collect(options);
   if (jobs.length === 0) {
-    console.log("Nothing to generate. Add an `art` block to an imageChoice item.");
+    console.log(
+      options.only
+        ? `No item carries the art id "${options.only}".`
+        : "Nothing to generate. Add an `art` block to an imageChoice item.",
+    );
     return;
   }
 
+  /*
+   * Work out what is missing *before* asking for a key.
+   *
+   * The existence check used to sit inside the generation loop, below the
+   * token requirement and below the account lookup — so a checkout where
+   * every image was already committed still died on "CLOUDFLARE_API_TOKEN is
+   * not set", having had nothing to do. Since the images are in git, that is
+   * the normal case for everyone who is not adding a topic.
+   */
+  const present: Job[] = [];
+  const pending: Job[] = [];
+  for (const job of jobs) {
+    ((await exists(job.file)) && !options.force ? present : pending).push(job);
+  }
+
   const spec: ModelSpec = MODELS[options.model];
-  console.log(`${jobs.length} image${jobs.length === 1 ? "" : "s"} · model ${spec.id}\n`);
+
+  /** Per topic, so it is obvious which one a run is actually about. */
+  const byTopic = (list: Job[]): string => {
+    const counts = new Map<string, number>();
+    for (const job of list) counts.set(job.pack.id, (counts.get(job.pack.id) ?? 0) + 1);
+    return [...counts].map(([id, count]) => `${id} ${count}`).join(", ") || "none";
+  };
+
+  if (options.list) {
+    for (const pack of PACKS) {
+      if (options.pack && pack.id !== options.pack) continue;
+      const mine = jobs.filter((job) => job.pack.id === pack.id);
+      const missing = pending.filter((job) => job.pack.id === pack.id);
+      console.log(
+        `${pack.id.padEnd(12)} ${String(mine.length).padStart(3)} generated image${mine.length === 1 ? "" : "s"}` +
+          `${missing.length > 0 ? ` · ${missing.length} missing` : " · all present"}`,
+      );
+      for (const job of missing) console.log(`             - ${job.art.id}`);
+    }
+    return;
+  }
+
+  console.log(`${jobs.length} image${jobs.length === 1 ? "" : "s"} · model ${spec.id}`);
+  console.log(`  to make: ${byTopic(pending)}   already there: ${byTopic(present)}\n`);
   if (!spec.sized) {
     console.log(
       `  note: ${spec.id} ignores width and height, so images come back square`,
@@ -341,21 +402,24 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (pending.length === 0) {
+    console.log(
+      `Every image is already there (${present.length}). ` +
+        "Pass --force to redo them, or --only <id> for one.",
+    );
+    return;
+  }
+
   const token = process.env.CLOUDFLARE_API_TOKEN;
   if (!token) throw new Error("CLOUDFLARE_API_TOKEN is not set. Copy .env.example to .env.");
 
   const account = await resolveAccountId(token);
   const done: Record<string, Job[]> = {};
   let made = 0;
-  let skipped = 0;
+  let failed = 0;
 
-  for (const job of jobs) {
+  for (const job of pending) {
     const label = `${job.pack.id}/${job.art.id}`;
-    if (!options.force && (await exists(job.file))) {
-      console.log(`  · ${label} — already there`);
-      skipped += 1;
-      continue;
-    }
 
     try {
       const bytes = await generate(job, account, token, options.model);
@@ -365,6 +429,8 @@ async function main(): Promise<void> {
       made += 1;
       console.log(`  ✓ ${label} — ${(bytes.byteLength / 1024).toFixed(0)}kb`);
     } catch (error) {
+      // One subject the model refuses must not cost the rest of the run.
+      failed += 1;
       console.error(`  ✗ ${label} — ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -373,7 +439,12 @@ async function main(): Promise<void> {
     await writeManifest(packId, packJobs, spec.id);
   }
 
-  console.log(`\n${made} generated, ${skipped} already present.`);
+  console.log(
+    `\n${made} generated, ${present.length} already present` +
+      `${failed > 0 ? `, ${failed} failed` : ""}.`,
+  );
+  // A partial run is still a successful run: the images that did land are on
+  // disk, and running again picks up only what is still missing.
 }
 
 main().catch((error: unknown) => {

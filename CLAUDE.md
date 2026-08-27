@@ -49,6 +49,7 @@ the engine honest about running on a server.
 ```
 packages/core          the engine — no React, no network, no Netlify
 packages/content-*     one topic pack per package, data only
+                       (hogwarts, atlas, bollywood)
 packages/content       the registry both client and server resolve through
 netlify/functions      the game API: thin I/O over the engine
 netlify/lib            blob storage layout
@@ -179,7 +180,8 @@ timeout is 10s — do not raise the hold near it.
 
 ## Adding things
 
-**A topic pack.** Copy `packages/content-atlas`. It needs an `id`, copy, an
+**A topic pack.** Copy `packages/content-atlas` — or `packages/content-bollywood`
+for one at full size. It needs an `id`, copy, an
 `atmosphere` — optionally with `scenery`, the objects that drift through its
 background — and items keyed by puzzle kind. Register it in
 `packages/content/src/index.ts`. Kinds with too few items simply do not appear,
@@ -321,8 +323,14 @@ person, offline, with `CLOUDFLARE_API_TOKEN` in a gitignored `.env`. Nothing at
 runtime — not the app, not the functions — ever sees that token or calls
 Cloudflare.
 
-- `--dry-run` prints every composed prompt and calls nothing. Use it when
-  editing art direction.
+- `--list` shows, per topic, how many generated images it declares and which
+  are missing. `--dry-run` prints every composed prompt and calls nothing.
+  Both are safe without a key.
+- **Whether an image already exists is decided before a key is asked for.**
+  The images are committed, so "everything is already there" is the normal
+  case for anyone not adding a topic — and that run used to die on
+  `CLOUDFLARE_API_TOKEN is not set` having had nothing to do. An unknown
+  `--pack` is an error naming the real ones, rather than an empty run.
 - It needs `CLOUDFLARE_ACCOUNT_ID` unless the token can list accounts; the
   script says so rather than returning a bare 403.
 - Seeds come from `seedForArt(id)`, so a rerun reproduces the same picture and

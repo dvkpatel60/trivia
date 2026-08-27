@@ -17,8 +17,9 @@ import {
 } from "@curio/core";
 import { hogwartsPack } from "@curio/content-hogwarts";
 import { atlasPack } from "@curio/content-atlas";
+import { bollywoodPack } from "@curio/content-bollywood";
 
-export const PACKS: ContentPack[] = [hogwartsPack, atlasPack];
+export const PACKS: ContentPack[] = [hogwartsPack, atlasPack, bollywoodPack];
 
 /** The pack a fresh game starts on. */
 export const DEFAULT_PACK_ID = hogwartsPack.id;
@@ -63,4 +64,4 @@ export function packSummaries(): PackSummary[] {
   }));
 }
 
-export { hogwartsPack, atlasPack, validatePack };
+export { hogwartsPack, atlasPack, bollywoodPack, validatePack };

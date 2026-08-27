@@ -13,7 +13,7 @@
     "preview": "npm run preview --workspace @curio/web",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc -p packages/core && tsc -p packages/content-hogwarts && tsc -p packages/content-atlas && tsc -p packages/content && tsc -p apps/web && tsc -p netlify && tsc -p tools",
+    "typecheck": "tsc -p packages/core && tsc -p packages/content-hogwarts && tsc -p packages/content-atlas && tsc -p packages/content-bollywood && tsc -p packages/content && tsc -p apps/web && tsc -p netlify && tsc -p tools",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test:e2e": "npm run build --workspace @curio/web && vitest run --config vitest.e2e.config.ts",

@@ -1,0 +1,53 @@
+{
+  "pack": "bollywood",
+  "images": {
+    "object-tabla": {
+      "subject": "a pair of hand drums, one small and wooden and one larger and metal, sitting on a cloth ring",
+      "alt": "A pair of hand drums on a cloth ring",
+      "prompt": "a pair of hand drums, one small and wooden and one larger and metal, sitting on a cloth ring, hand-painted Indian film poster illustration, bold flat brushwork, saturated poster colour, hard directional light, mid-century billboard style, marigold yellow, vermilion red, deep teal, ink black outlines, warm cream ground, single subject centred and filling the frame, plain flat background, no depth of field, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 2470979907,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-27T03:30:13.354Z"
+    },
+    "object-harmonium": {
+      "subject": "a small boxed keyboard with hand-pumped bellows at the back, open on a low table",
+      "alt": "A small boxed keyboard with hand-pumped bellows",
+      "prompt": "a small boxed keyboard with hand-pumped bellows at the back, open on a low table, hand-painted Indian film poster illustration, bold flat brushwork, saturated poster colour, hard directional light, mid-century billboard style, marigold yellow, vermilion red, deep teal, ink black outlines, warm cream ground, single subject centred and filling the frame, plain flat background, no depth of field, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 2066659171,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-27T03:30:13.354Z"
+    },
+    "place-mustardfield": {
+      "subject": "a field of yellow flowering mustard stretching to a low horizon, a dirt track running through it",
+      "alt": "A field of yellow flowering mustard with a dirt track",
+      "prompt": "a field of yellow flowering mustard stretching to a low horizon, a dirt track running through it, hand-painted Indian film poster illustration, bold flat brushwork, saturated poster colour, hard directional light, mid-century billboard style, marigold yellow, vermilion red, deep teal, ink black outlines, warm cream ground, single subject centred and filling the frame, plain flat background, no depth of field, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 1929572057,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-27T03:30:13.354Z"
+    },
+    "scene-baraat": {
+      "subject": "a wedding procession in a street at night, a decorated horse, a brass band and strings of lights carried on poles",
+      "alt": "A night wedding procession with a decorated horse and a brass band",
+      "prompt": "a wedding procession in a street at night, a decorated horse, a brass band and strings of lights carried on poles, hand-painted Indian film poster illustration, bold flat brushwork, saturated poster colour, hard directional light, mid-century billboard style, marigold yellow, vermilion red, deep teal, ink black outlines, warm cream ground, single subject centred and filling the frame, plain flat background, no depth of field, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 1417038955,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-27T03:30:13.354Z"
+    },
+    "scene-chaistall": {
+      "subject": "a roadside tea stall with a kettle on a burner, glass tumblers in a rack and a bench alongside",
+      "alt": "A roadside tea stall with a kettle, glass tumblers and a bench",
+      "prompt": "a roadside tea stall with a kettle on a burner, glass tumblers in a rack and a bench alongside, hand-painted Indian film poster illustration, bold flat brushwork, saturated poster colour, hard directional light, mid-century billboard style, marigold yellow, vermilion red, deep teal, ink black outlines, warm cream ground, single subject centred and filling the frame, plain flat background, no depth of field, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 1770546743,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-27T03:30:13.354Z"
+    },
+    "object-reel": {
+      "subject": "a metal film reel lying open beside its round tin case, a length of film unspooled across the table",
+      "alt": "A metal film reel beside its tin case with film unspooled",
+      "prompt": "a metal film reel lying open beside its round tin case, a length of film unspooled across the table, hand-painted Indian film poster illustration, bold flat brushwork, saturated poster colour, hard directional light, mid-century billboard style, marigold yellow, vermilion red, deep teal, ink black outlines, warm cream ground, single subject centred and filling the frame, plain flat background, no depth of field, no text, no lettering, no words or numbers, no watermark or signature, no border or frame, single subject, centred, plain uncluttered background, subject fully within frame with even margin",
+      "seed": 163394761,
+      "model": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      "generatedAt": "2026-08-27T03:30:13.354Z"
+    }
+  }
+}
