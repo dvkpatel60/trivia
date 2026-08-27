@@ -13,6 +13,9 @@ import type { PuzzleProps } from "./types.js";
  * card flies off and the next one lands, which turns what used to be a list
  * of radio buttons into the most physical thing in the app.
  *
+ * A sorted card can be taken back until the answer is submitted. Sorting is
+ * a working step; the dock is where a player commits.
+ *
  * The component never names a category itself: houses and continents render
  * through the same screen.
  */
@@ -35,6 +38,14 @@ export function Categorize({ question, locked, onStage }: PuzzleProps<"categoriz
     // Half a stack sorted is not an answer, so nothing is staged until the
     // last card lands and Submit stays inert until then.
     onStage(next.length === labels.length ? { assignments: next } : null);
+  };
+
+  /** Deal the last card back onto the stack. */
+  const undo = () => {
+    if (locked || assignments.length === 0) return;
+    navigator.vibrate?.(6);
+    setAssignments(assignments.slice(0, -1));
+    onStage(null);
   };
 
   /**
@@ -66,13 +77,24 @@ export function Categorize({ question, locked, onStage }: PuzzleProps<"categoriz
     <div className="stack--loose">
       <div className="row--between">
         <p className="eyebrow">{question.prompt}</p>
-        <div className="dots" aria-label={`${index} of ${labels.length} sorted`}>
-          {labels.map((entry, position) => (
-            <span
-              key={entry}
-              data-state={position < index ? "done" : position === index ? "now" : "todo"}
-            />
-          ))}
+        <div className="row--tight">
+          {assignments.length > 0 && !locked ? (
+            <button
+              type="button"
+              className="button button--ghost button--inline state"
+              onClick={undo}
+            >
+              Put one back
+            </button>
+          ) : null}
+          <div className="dots" aria-label={`${index} of ${labels.length} sorted`}>
+            {labels.map((entry, position) => (
+              <span
+                key={entry}
+                data-state={position < index ? "done" : position === index ? "now" : "todo"}
+              />
+            ))}
+          </div>
         </div>
       </div>
 

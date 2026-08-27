@@ -7,10 +7,13 @@ import type { PuzzleProps } from "./types.js";
 /**
  * Sixteen tiles, four hidden groups.
  *
- * Select a group's worth of tiles and lock it in. Locked guesses lift out of
- * the grid into a row of their own whether or not they were right, so the
+ * Select a group's worth of tiles and set it aside. Grouped guesses lift out
+ * of the grid into a row of their own whether or not they were right, so the
  * board shrinks as you go and a wrong guess is still visibly spent — the
  * tension of the puzzle is entirely in what you have left.
+ *
+ * Nothing here is final until Submit, so a group can be tapped to break it
+ * back apart and put its tiles on the board again.
  *
  * Nothing here knows whether a guess was correct: the server grades. The row
  * only shows what was committed.
@@ -63,6 +66,15 @@ export function Connections({ question, locked, onStage }: PuzzleProps<"connecti
     onStage({ groups: next });
   };
 
+  /** Break a group back apart. Grouping is a working step, not a commitment. */
+  const ungroup = (position: number) => {
+    if (locked) return;
+    const next = committed.filter((_, i) => i !== position);
+    setCommitted(next);
+    setSelected([]);
+    onStage(next.length > 0 ? { groups: next } : null);
+  };
+
   return (
     <div className="stack--loose puzzle--dense">
       <div className="row--between">
@@ -75,21 +87,25 @@ export function Connections({ question, locked, onStage }: PuzzleProps<"connecti
       {/* Guesses already spent, lifted out of the board. */}
       <AnimatePresence>
         {committed.map((group, index) => (
-          <m.div
+          <m.button
             key={group.join("|")}
-            className="grouped"
+            type="button"
+            className="grouped state"
+            aria-label={`Break up ${group.join(", ")}`}
             layout
             initial={{ opacity: 0, scale: 0.94 }}
             animate={{ opacity: 1, scale: 1 }}
+            whileTap={locked ? undefined : { scale: 0.97 }}
             transition={pounce}
-            style={{ animationDelay: `${index * 40}ms` }}
+            disabled={locked}
+            onClick={() => ungroup(index)}
           >
             {group.map((tile) => (
               <span key={tile} className="grouped__tile">
                 {tile}
               </span>
             ))}
-          </m.div>
+          </m.button>
         ))}
       </AnimatePresence>
 

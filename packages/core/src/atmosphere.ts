@@ -43,9 +43,12 @@ export type Texture = "grid" | "vignette";
  * draw them. The web app holds a renderer per member as a mapped type, so
  * adding a name here without drawing it is a compile error.
  *
- * Everything here is drawn in flat colour taken from the pack's palette.
- * Nothing in this layer uses a gradient — wide gradients band on dark
- * surfaces, which is what made the old orb mesh look like noise.
+ * Everything here is drawn as opacity over the pack's surface, with no hue
+ * of its own, so a piece is a lightening of whatever ground it drifts
+ * across. A signature colour on an object this large reads as something
+ * pasted over the screen rather than as part of it. Nothing in this layer
+ * uses a gradient either — wide gradients band on dark surfaces, which is
+ * what made the old orb mesh look like noise.
  */
 export type Scenery =
   | "embers"

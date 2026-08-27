@@ -72,16 +72,28 @@
   will-change: transform;
 }
 
-/* The palette, as flat fills. Nothing here authors a colour. */
-.fill-accent { fill: var(--accent); }
-.fill-support { fill: var(--support); }
-.fill-extra { fill: var(--extra); }
-.fill-outline { fill: var(--outline); }
+/*
+ * Scenery has no colour of its own. It is opacity, over whatever is behind.
+ *
+ * These were the pack's signature colours, and a signature colour on a big
+ * drifting object reads as something pasted over the screen rather than as
+ * part of it: Atlas's peaks were teal triangles, and they washed the dock
+ * green every time one passed behind it. A veil of `--on-surface` instead
+ * means a piece is only ever a *lightening* of the ground it stands on, so
+ * it takes the background's colour wherever it goes and `--scene-ink` is
+ * the one thing that governs how present it is.
+ *
+ * They still differ from each other, but by alpha alone — which is what
+ * lets a flat shape read as an object without introducing a second hue.
+ */
+.fill-accent { fill: color-mix(in oklab, var(--on-surface) 92%, transparent); }
+.fill-support { fill: color-mix(in oklab, var(--on-surface) 52%, transparent); }
+.fill-extra { fill: color-mix(in oklab, var(--on-surface) 68%, transparent); }
+.fill-outline { fill: color-mix(in oklab, var(--on-surface) 38%, transparent); }
 .fill-void { fill: var(--surface); }
 /* A lighter face on a solid body, so a flat shape still reads as an object. */
 .fill-highlight { fill: color-mix(in oklab, var(--on-surface) 22%, transparent); }
-/* Wax is warm and near-neutral — a signature colour would make it a prop. */
-.fill-wax { fill: color-mix(in oklab, var(--accent) 26%, var(--surface-high)); }
+.fill-wax { fill: color-mix(in oklab, var(--on-surface) 58%, transparent); }
 
 /*
  * This is a background. It is meant to be felt rather than read, so it sits
@@ -162,7 +174,13 @@
   animation-duration: calc(20s * var(--scene-drift) * var(--piece-jitter, 1));
   animation-direction: alternate;
   animation-timing-function: var(--ease-in-out);
-  opacity: calc(var(--scene-ink) * 0.3);
+  /*
+   * Lower than it was. The peaks used to be drawn in a signature colour and
+   * needed the extra presence to read at all; as a plain lightening of the
+   * ground they are far more visible, and at the old 0.3 a peak passing
+   * behind the dock visibly bleached the Submit button.
+   */
+  opacity: calc(var(--scene-ink) * 0.13);
 }
 
 @keyframes loom {

@@ -78,8 +78,13 @@
 }
 
 /* The prompt takes the slack and centres in it, so a one-line question sits
-   in the upper third rather than jammed against the rail. */
-.scene__stage[data-flow="end"] > * > .prompt {
+   in the upper third rather than jammed against the rail.
+
+   `.clues` is the same thing wearing a different name — Who Am I's clues
+   *are* its question — and without this it pinned itself to the rail with
+   half a screen of nothing under it. */
+.scene__stage[data-flow="end"] > * > .prompt,
+.scene__stage[data-flow="end"] > * > .clues {
   flex: 1;
   display: grid;
   align-content: center;

@@ -248,7 +248,12 @@ primitives; they do not hand-roll layout.
   what made it read as pixelated. Solid fills have nothing to band, so there
   is no blur and no grain. A pack declares `scenery` — a closed vocabulary in
   `packages/core` — and `SCENERY` in the web app is a mapped type over it, so
-  a name added there will not compile until something draws it.
+  a name added there will not compile until something draws it. **Scenery has
+  no hue of its own**: every piece is an alpha veil of `--on-surface`, and
+  differs from its neighbours by opacity alone, so it is only ever a
+  lightening of the ground it drifts across. The pieces used to be drawn in
+  the pack's signature colours, and Atlas's teal peaks washed the dock green
+  every time one passed behind it.
 - **The background reacts.** `Atmosphere` takes a mood read straight off the
   phase and rewrites three custom properties; `--scene-drift` scales every
   drift cycle at once. No per-frame JS, so it stays cheap on a mid-range
