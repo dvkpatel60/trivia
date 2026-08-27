@@ -36,11 +36,12 @@ export type Mood = "enigmatic" | "deep" | "warm" | "stark" | "bright";
  * as a seam between the background and the content rather than as ground.
  * What a pack's world is made of belongs in `scenery`, which moves.
  *
- * `nightGlow` is the one gradient left in the codebase, and it is narrow on
- * purpose: two low-contrast radials in the corners, no blur, no full-screen
- * mesh. The mesh is what banded and needed a noise bitmap over it.
+ * `nightGlow` and `projector` are the only gradients left in the codebase,
+ * and they are narrow on purpose: low-contrast radials anchored to a corner,
+ * running to transparent, no blur, no full-screen mesh. The mesh is what
+ * banded and needed a noise bitmap over it.
  */
-export type Texture = "grid" | "vignette" | "nightGlow";
+export type Texture = "grid" | "vignette" | "nightGlow" | "projector";
 
 /**
  * Objects that drift through a pack's background.
@@ -68,7 +69,10 @@ export type Scenery =
   | "clouds"
   | "planes"
   | "confetti"
-  | "stars";
+  | "stars"
+  | "bulbs"
+  | "garland"
+  | "filmstrip";
 
 /** Display faces a pack may set for its headings and question prompts. */
 export type DisplayFace = "fraunces" | "cormorant" | "spaceGrotesk" | "inter";

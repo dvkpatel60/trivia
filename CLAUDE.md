@@ -281,7 +281,11 @@ primitives; they do not hand-roll layout.
   differs from its neighbours by opacity alone, so it is only ever a
   lightening of the ground it drifts across. The pieces used to be drawn in
   the pack's signature colours, and Atlas's teal peaks washed the dock green
-  every time one passed behind it.
+  every time one passed behind it. The line the rule actually draws is
+  *size*: confetti, marquee bulbs and garland beads keep their colour because
+  a piece that small can never tint a control, and a marigold rendered in
+  grey is not a marigold. Anything large also belongs at the edges —
+  `placeAside` exists because a filmstrip at 50% sits behind the question.
 - **The background reacts.** `Atmosphere` takes a mood read straight off the
   phase and rewrites three custom properties; `--scene-drift` scales every
   drift cycle at once. No per-frame JS, so it stays cheap on a mid-range

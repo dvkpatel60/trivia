@@ -100,6 +100,12 @@
 .fill-extra { fill: color-mix(in oklab, var(--on-surface) 68%, transparent); }
 .fill-outline { fill: color-mix(in oklab, var(--on-surface) 38%, transparent); }
 .fill-void { fill: var(--surface); }
+/* The wire a marquee and a garland hang from — drawn, not filled. */
+.stroke-wire {
+  stroke: color-mix(in oklab, var(--on-surface) 30%, transparent);
+  stroke-width: 0.6;
+  vector-effect: non-scaling-stroke;
+}
 /* A lighter face on a solid body, so a flat shape still reads as an object. */
 .fill-highlight { fill: color-mix(in oklab, var(--on-surface) 22%, transparent); }
 .fill-wax { fill: color-mix(in oklab, var(--on-surface) 58%, transparent); }
@@ -210,6 +216,65 @@
 @keyframes twinkle {
   0%, 100% { opacity: 0.16; }
   50% { opacity: 0.75; }
+}
+
+/* ── the single-screen cinema ─────────────────────────────────────────── */
+
+/*
+ * The marquee spans the top and does not travel; the bulbs light in a chase.
+ * Brighter than the drifting layers because a marquee is a light source, and
+ * because it is a thin line of small points that nothing has to read through.
+ */
+.scenery__bulbs {
+  top: 0;
+  left: 0 !important;
+  width: 100%;
+  height: auto;
+  opacity: calc(var(--scene-ink) * 0.85);
+}
+
+.scenery__bulb {
+  animation: chase 2.2s var(--ease-in-out) infinite;
+  animation-delay: var(--piece-delay, 0s);
+}
+
+@keyframes chase {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+/* Garlands hang from the top edge and swing from where they are pinned. */
+.scenery__garland {
+  top: -14px;
+  transform-origin: 50% 0;
+  opacity: calc(var(--scene-ink) * 0.42);
+  animation-name: swing;
+  animation-duration: calc(13s * var(--scene-drift) * var(--piece-jitter, 1));
+  animation-direction: alternate;
+  animation-timing-function: var(--ease-in-out);
+}
+
+@keyframes swing {
+  from { transform: rotate(-2.2deg); }
+  to { transform: rotate(2.2deg); }
+}
+
+/* Celluloid runs downward, the way it runs through a projector gate. */
+.scenery__filmstrip {
+  top: -170px;
+  /*
+   * Very low. A filmstrip is the largest object in this world and the only
+   * one a player might have to read through — at 0.3 it was a pale slab
+   * behind the question.
+   */
+  opacity: calc(var(--scene-ink) * 0.11);
+  animation-name: run;
+  animation-duration: calc(34s * var(--scene-drift) * var(--piece-jitter, 1));
+}
+
+@keyframes run {
+  from { transform: translate3d(0, 0, 0) rotate(-4deg); }
+  to { transform: translate3d(0, 128vh, 0) rotate(-4deg); }
 }
 
 /* ── the app's own world ──────────────────────────────────────────────── */
@@ -341,6 +406,30 @@
       90% 60% at 10% 100%,
       color-mix(in oklab, var(--accent) 10%, transparent) 0%,
       transparent 55%
+    );
+}
+
+/*
+ * A projector throwing from the back of the hall.
+ *
+ * The same mechanism as `nightGlow` and for the same reasons — anchored off
+ * a corner, low contrast, running to transparent, no blur — but warm and
+ * from above, because that is where the beam comes from in a single-screen
+ * cinema. Two stops rather than one so the beam has an edge to it without
+ * the hard line a clip-path would give.
+ */
+.tex-projector {
+  background:
+    radial-gradient(
+      140% 70% at 82% -18%,
+      color-mix(in oklab, var(--accent) 22%, transparent) 0%,
+      color-mix(in oklab, var(--accent) 7%, transparent) 34%,
+      transparent 62%
+    ),
+    radial-gradient(
+      100% 55% at 8% 104%,
+      color-mix(in oklab, var(--extra) 14%, transparent) 0%,
+      transparent 58%
     );
 }
 

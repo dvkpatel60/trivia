@@ -28,6 +28,24 @@ interface PieceProps {
  * and cut the piece off from `--scene-drift` — the multiplier that lets the
  * whole world speed up when a question opens.
  */
+/**
+ * Push instances toward the edges, leaving the middle for the content.
+ *
+ * `place` spreads evenly, which is right for things meant to be seen and
+ * wrong for anything large: a filmstrip at 50% sits directly behind the
+ * prompt. This keeps the same jitter and delay, and only moves where.
+ */
+function placeAside(index: number, count: number): CSSProperties {
+  const half = Math.ceil(count / 2);
+  const side = index % 2 === 0 ? -1 : 1;
+  const depth = Math.floor(index / 2) / Math.max(1, half - 1 || 1);
+  const left = 50 + side * (34 + depth * 12);
+  return {
+    ...place(index, count),
+    left: `${Math.max(2, Math.min(90, left))}%`,
+  };
+}
+
 function place(index: number, count: number): CSSProperties {
   const step = 100 / (count + 1);
   return {
@@ -235,6 +253,100 @@ function Confetti({ index }: PieceProps) {
   );
 }
 
+/* ── the single-screen cinema ─────────────────────────────────────────── */
+
+/*
+ * Bollywood's world is a cinema, not a topic's leftovers.
+ *
+ * It used to declare `embers` and `planes` — Candlelight's candle sparks and
+ * Atlas's aeroplanes — because those existed, not because they meant
+ * anything. What belongs over Hindi cinema is what hangs over the entrance
+ * of a single-screen hall: a marquee of bulbs, marigold garlands strung up
+ * for the opening, and the film itself running past.
+ *
+ * Bulbs and beads keep the accent. They are the size of confetti, which is
+ * the line the hue-free rule actually draws: a piece small enough that its
+ * colour never lands on a control may carry one, and a marigold rendered in
+ * grey is not a marigold.
+ */
+
+/** A marquee: a wire of bulbs across the top, lighting in a chase. */
+function Bulbs({ index }: PieceProps) {
+  const count = 15;
+  return (
+    <svg
+      className="scenery__piece scenery__bulbs"
+      viewBox="0 0 100 7"
+      width="100%"
+      aria-hidden="true"
+      style={{ "--piece-delay": `-${index * 0.6}s` } as CSSProperties}
+    >
+      <path d="M0 2 Q 50 5 100 2" className="stroke-wire" fill="none" />
+      {Array.from({ length: count }, (_, i) => {
+        const t = (i + 0.5) / count;
+        return (
+          <circle
+            key={i}
+            cx={t * 100}
+            /* Sits on the sag of the wire, so the run reads as hung, not ruled. */
+            cy={2 + 3 * (1 - (2 * t - 1) ** 2)}
+            r={1.15}
+            className="fill-accent scenery__bulb"
+            style={{ "--piece-delay": `-${((i % 5) * 0.26).toFixed(2)}s` } as CSSProperties}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+/** A marigold swag, hung from the top edge and swinging from its pins. */
+function Garland({ index }: PieceProps) {
+  const beads = 11;
+  return (
+    <svg
+      className="scenery__piece scenery__garland"
+      style={placeAside(index, 2)}
+      width="132"
+      height="74"
+      viewBox="0 0 132 74"
+      aria-hidden="true"
+    >
+      <path d="M6 2 Q 66 88 126 2" className="stroke-wire" fill="none" />
+      {Array.from({ length: beads }, (_, i) => {
+        const t = i / (beads - 1);
+        // The quadratic the beads are threaded on, evaluated at t.
+        const x = (1 - t) ** 2 * 6 + 2 * (1 - t) * t * 66 + t ** 2 * 126;
+        const y = (1 - t) ** 2 * 2 + 2 * (1 - t) * t * 88 + t ** 2 * 2;
+        return <circle key={i} cx={x} cy={y} r={4.4} className="fill-accent" />;
+      })}
+    </svg>
+  );
+}
+
+/** Celluloid, running past the way it runs through a projector. */
+function Filmstrip({ index }: PieceProps) {
+  return (
+    <svg
+      className="scenery__piece scenery__filmstrip"
+      style={placeAside(index, 2)}
+      width="46"
+      height="150"
+      viewBox="0 0 46 150"
+      aria-hidden="true"
+    >
+      <rect x="0" y="0" width="46" height="150" rx="2" className="fill-outline" />
+      {Array.from({ length: 6 }, (_, i) => (
+        <g key={i}>
+          <rect x="3" y={6 + i * 25} width="6" height="12" rx="1.5" className="fill-void" />
+          <rect x="37" y={6 + i * 25} width="6" height="12" rx="1.5" className="fill-void" />
+          <rect x="13" y={5 + i * 25} width="20" height="15" rx="1" className="fill-highlight" />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 /**
  * One renderer per member of the union.
  *
@@ -251,4 +363,7 @@ export const SCENERY: Record<SceneryId, { Piece: ComponentType<PieceProps>; coun
   planes: { Piece: Plane, count: 2 },
   confetti: { Piece: Confetti, count: 10 },
   stars: { Piece: Stars, count: 1 },
+  bulbs: { Piece: Bulbs, count: 1 },
+  garland: { Piece: Garland, count: 2 },
+  filmstrip: { Piece: Filmstrip, count: 2 },
 };

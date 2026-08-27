@@ -40,9 +40,15 @@ export const bollywoodPack: ContentPack = {
       warn: "#e0653f",
       extra: "#8b6ad4",
     },
-    texture: ["vignette"],
-    /* Marquee bulbs drifting up, and reels of film crossing the frame. */
-    scenery: ["embers", "planes"],
+    /* The beam from the back of the hall, and the dark at the edges. */
+    texture: ["projector", "vignette"],
+    /*
+     * A single-screen cinema: the marquee over the entrance, marigolds hung
+     * for the opening, and the film running past. It used to declare
+     * `embers` and `planes` — Candlelight's candle sparks and Atlas's
+     * aeroplanes — which were what existed rather than what belonged.
+     */
+    scenery: ["bulbs", "garland", "filmstrip"],
     display: "spaceGrotesk",
   },
   /**

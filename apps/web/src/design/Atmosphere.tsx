@@ -8,6 +8,7 @@ const LAYERS: Record<Texture, string> = {
   grid: "tex-grid",
   vignette: "tex-vignette",
   nightGlow: "tex-nightglow",
+  projector: "tex-projector",
 };
 
 /** What the background should be doing right now. */
