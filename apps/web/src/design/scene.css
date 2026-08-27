@@ -18,8 +18,19 @@
   width: 100%;
   max-width: var(--page);
   margin-inline: auto;
-  /* dvh, so mobile browser chrome collapsing doesn't shift the dock. */
-  min-height: 100dvh;
+  /*
+   * Exactly the viewport, not merely at least it.
+   *
+   * `overflow-y: auto` on the stage only means something if the stage's
+   * track is *bounded*, and a `1fr` row under `min-height` is not: it grows
+   * to fit its content and takes the whole scene with it. Any screen long
+   * enough to need scrolling therefore got none — the stage sat at its full
+   * content height and the dock was pushed off the bottom of the page. The
+   * setup wizard was the one screen long enough to show it.
+   *
+   * dvh, so mobile browser chrome collapsing doesn't shift the dock.
+   */
+  height: 100dvh;
   padding:
     calc(env(safe-area-inset-top, 0px) + var(--s3))
     var(--gutter)

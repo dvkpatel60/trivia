@@ -543,11 +543,6 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
   const cursor = isLocal
     ? questions.findIndex((_, index) => !answers[index])
     : questions.findIndex((_, index) => revealed.includes(index) && !answers[index]);
-  /** Is the next unrevealed question waiting for the host? (async only) */
-  const nextUnrevealed = isLocal
-    ? -1
-    : questions.findIndex((_, index) => !revealed.includes(index) && !answers[index]);
-  const waitingForReveal = !isLocal && cursor === -1 && nextUnrevealed !== -1;
 
   /**
    * Each player's window, as the server stamped it.
