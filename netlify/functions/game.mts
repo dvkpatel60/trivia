@@ -14,6 +14,7 @@ import {
   defaultConfig,
   GameError,
   hostAdvance,
+  hostRevealQuestion,
   joinGame,
   removePlayer,
   sanitizeConfig,
@@ -183,6 +184,23 @@ async function handle(body: GameRequest): Promise<Response> {
 
       hostAdvance(game, body.hostId, contextFor(game, now));
       await saveMain(game, now);
+      return envelope(game, now);
+    }
+
+    case "revealQuestion": {
+      const loaded = await loadGame(body.code);
+      if (!loaded) return fail("No game with that code.", "not_found", 404);
+      const { game } = loaded;
+
+      const allRevealed = hostRevealQuestion(game, body.hostId, body.round, body.index);
+      await saveMain(game, now);
+
+      // If all questions are now revealed, auto-close the round to show solutions.
+      if (allRevealed) {
+        advance(game, contextFor(game, now));
+        await saveMain(game, now);
+      }
+
       return envelope(game, now);
     }
 

@@ -631,3 +631,68 @@
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+
+/* ── per-question reveal grid ─────────────────────────────────────────── */
+
+.reveal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+  gap: var(--s2);
+}
+
+.reveal-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 52px;
+  border-radius: var(--r-md);
+  border: var(--hairline) solid var(--outline-variant);
+  background: color-mix(in oklab, var(--surface) 76%, transparent);
+  color: var(--on-surface);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.reveal-tile:hover:not(:disabled) {
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+}
+
+.reveal-tile:disabled {
+  cursor: default;
+}
+
+.reveal-tile--done {
+  background: color-mix(in oklab, var(--accent) 16%, transparent);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.reveal-tile--next {
+  border-color: var(--accent);
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-color: var(--accent); }
+  50% { border-color: color-mix(in oklab, var(--accent) 50%, transparent); }
+}
+
+.reveal-tile__num {
+  font-size: var(--text-lg);
+}
+
+.reveal-tile__check {
+  font-size: var(--text-xs);
+}
+
+.reveal-tile__label {
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}

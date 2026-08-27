@@ -69,6 +69,8 @@ export interface PlayerState {
 export interface RoundState<Q> {
   questions: Q[];
   revealed: boolean;
+  /** Per-question reveal: which indices have been shown to players. */
+  revealedQuestions: number[];
   /** Plain-language answers. Only ever populated once `revealed` is true. */
   solutions?: string[];
 }
@@ -116,6 +118,7 @@ export function toPublicGame(game: GameState): PublicGameState {
     rounds[Number(key)] = {
       questions: round.questions.map((q) => toPublicQuestion(q) as AnyPublicQuestion),
       revealed: round.revealed,
+      revealedQuestions: round.revealedQuestions ?? [],
       ...(round.revealed ? { solutions: round.questions.map((q) => describeSolution(q)) } : {}),
     };
   }
@@ -175,6 +178,8 @@ export type GameRequest =
   | { op: "begin"; code: string; playerId: string; round: number; index: number }
   /** Host override: close the current round / skip the current beat. */
   | { op: "advance"; code: string; hostId: string }
+  /** Host: reveal a single question in an async round. */
+  | { op: "revealQuestion"; code: string; hostId: string; round: number; index: number }
   | { op: "leave"; code: string; playerId: string }
   | { op: "cleanup" };
 

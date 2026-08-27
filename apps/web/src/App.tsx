@@ -436,6 +436,20 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
     [session, game.code, activeId, onToast],
   );
 
+  const revealQuestion = useCallback(
+    async (round: number, index: number) => {
+      const response = await session.send({
+        op: "revealQuestion",
+        code: game.code,
+        hostId: identity.id,
+        round,
+        index,
+      });
+      if (isErrorResponse(response)) onToast(response.error);
+    },
+    [session, game.code, identity.id, onToast],
+  );
+
   const waiting = (
     <Scene id="settling">
       <div className="splash splash--solo">
@@ -520,7 +534,20 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
   const round = phase.round;
   const questions = game.rounds[round]?.questions ?? [];
   const answers = answersFor(round, activeId);
-  const cursor = questions.findIndex((_, index) => !answers[index]);
+  const revealed = game.rounds[round]?.revealedQuestions ?? [];
+  /**
+   * Local play doesn't use per-question reveal, so the gate only applies
+   * to remote async play.  The cursor finds the first unanswered question
+   * (local) or the first unanswered *and* revealed question (async).
+   */
+  const cursor = isLocal
+    ? questions.findIndex((_, index) => !answers[index])
+    : questions.findIndex((_, index) => revealed.includes(index) && !answers[index]);
+  /** Is the next unrevealed question waiting for the host? (async only) */
+  const nextUnrevealed = isLocal
+    ? -1
+    : questions.findIndex((_, index) => !revealed.includes(index) && !answers[index]);
+  const waitingForReveal = !isLocal && cursor === -1 && nextUnrevealed !== -1;
 
   /**
    * Each player's window, as the server stamped it.
@@ -592,6 +619,7 @@ function GameScreen({ game, identity, session, turn, setTurn, onLeave, onToast }
         endsAt={phase.endsAt}
         now={session.now}
         onClose={advance}
+        onReveal={revealQuestion}
         onLeave={onLeave}
       />
     );
