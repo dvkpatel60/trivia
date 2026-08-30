@@ -57,10 +57,23 @@ export interface LoadedGame {
   version: number;
 }
 
-let cached: Store | undefined;
+/**
+ * A fresh client per call, deliberately.
+ *
+ * `getStore` with no explicit credentials reads the blobs context Netlify
+ * injects into the invocation, and the token in that context is short-lived.
+ * This used to hold the `Store` in a module-level `cached ??=`, which meant a
+ * warm container kept using the token captured on its *first* invocation:
+ * everything worked until that token aged out, and then every request landing
+ * on that container failed with an expired-token error while a cold one was
+ * fine. That is a nasty shape of bug — it looks intermittent, it clears up on
+ * redeploy, and it gets worse the more traffic keeps a container warm.
+ *
+ * Constructing the client is cheap and makes no network call, so there is
+ * nothing to cache here. Do not put the cache back.
+ */
 function store(): Store {
-  cached ??= getStore({ name: STORE_NAME, consistency: "strong" });
-  return cached;
+  return getStore({ name: STORE_NAME, consistency: "strong" });
 }
 
 const mainKey = (code: string) => `g/${code}`;
