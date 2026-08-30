@@ -13,17 +13,23 @@ import { sequence } from "./items/sequence.js";
 import { imageChoice } from "./items/imageChoice.js";
 
 /**
- * A century of Hindi cinema.
+ * Hindi cinema at full volume: 2000 to 2019.
  *
  * A pack is data: items, the categories its sorting puzzles use, and an
  * atmosphere the app themes itself with. It imports types from the engine
  * and nothing else — no pack can reach into game logic.
+ *
+ * The window is the point. A pack spanning the whole century asks a table to
+ * hold Mughal-e-Azam and Gully Boy in the same round, and the questions
+ * flatten into dates nobody at a party can place. Two decades that one room
+ * mostly lived through gives every item a chance of being argued about —
+ * which is the game.
  */
 export const bollywoodPack: ContentPack = {
   id: "bollywood",
   name: "Bollywood",
-  tagline: "A century of Hindi cinema",
-  blurb: "Songs, dynasties, and the films everyone can quote.",
+  tagline: "The multiplex years, 2000–2019",
+  blurb: "Two decades of Hindi cinema at its loudest — the hits, the item numbers, and the lines nobody has stopped quoting.",
   atmosphere: {
     /*
      * Marigold, against a ground pulled almost to black.
@@ -43,10 +49,10 @@ export const bollywoodPack: ContentPack = {
     /* The beam from the back of the hall, and the dark at the edges. */
     texture: ["projector", "vignette"],
     /*
-     * A single-screen cinema: the marquee over the entrance, marigolds hung
-     * for the opening, and the film running past. It used to declare
-     * `embers` and `planes` — Candlelight's candle sparks and Atlas's
-     * aeroplanes — which were what existed rather than what belonged.
+     * A single-screen cinema on an opening night: the marquee over the
+     * entrance, marigolds hung for the première, and the film running past.
+     * The multiplex replaced the building over these two decades, but the
+     * first-day-first-show crowd outside it is what the pack is about.
      */
     scenery: ["bulbs", "garland", "filmstrip"],
     display: "spaceGrotesk",
