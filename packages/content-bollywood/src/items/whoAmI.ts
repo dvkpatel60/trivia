@@ -4,227 +4,254 @@ import type { WhoAmIItem } from "@curio/core";
 export const whoAmI: WhoAmIItem[] = [
   {
     clues: [
-      "My father was a poet, and I very nearly failed my first screen test.",
-      "A run of films in the 1970s made me the face of a furious decade.",
-      "Later I asked a nation quiz questions on television.",
+      "I came to films from television, and spent the decade being called the last of the great romantics.",
+      "In 2007 I coached a women's hockey team and gave them seventy minutes.",
+      "I also own a share of a cricket team in Kolkata.",
     ],
-    options: ["Amitabh Bachchan", "Dharmendra", "Vinod Khanna", "Shatrughan Sinha"],
+    options: ["Shah Rukh Khan", "Aamir Khan", "Salman Khan", "Akshay Kumar"],
     answer: 0,
   },
   {
     clues: [
-      "I directed and acted, and I built a studio around my own name.",
-      "My tramp wore borrowed clothes and sang about Japanese shoes.",
-      "I was as famous in Moscow as in Mumbai.",
+      "I release one film at a time and then disappear for a year.",
+      "I directed exactly one film, about a boy nobody understood.",
+      "I have played a village cricketer, an engineering student and a wrestling father.",
     ],
-    options: ["Guru Dutt", "Raj Kapoor", "Dev Anand", "Dilip Kumar"],
-    answer: 1,
-  },
-  {
-    clues: [
-      "I made films about longing, and one of them destroyed my confidence.",
-      "A poet nobody wanted, until they thought he was dead.",
-      "I died at thirty-nine, and my failures became classics.",
-    ],
-    options: ["Bimal Roy", "Mehboob Khan", "Guru Dutt", "K. Asif"],
-    answer: 2,
-  },
-  {
-    clues: [
-      "They called me the Tragedy King, and I earned it.",
-      "I was born Yusuf Khan.",
-      "Three generations of leading men studied how I stood still.",
-    ],
-    options: ["Dilip Kumar", "Raaj Kumar", "Balraj Sahni", "Sunil Dutt"],
+    options: ["Aamir Khan", "Shah Rukh Khan", "Ajay Devgn", "Abhishek Bachchan"],
     answer: 0,
   },
   {
     clues: [
-      "My sister sang too, and we were compared for fifty years.",
-      "I recorded in more languages than most people speak.",
-      "They called me the Nightingale.",
+      "My father launched me, and then directed me again and again.",
+      "I befriended an alien, and later wore his powers behind a mask.",
+      "In 2019 I taught thirty poor students to crack an entrance exam.",
     ],
-    options: ["Asha Bhosle", "Geeta Dutt", "Lata Mangeshkar", "Shamshad Begum"],
-    answer: 2,
-  },
-  {
-    clues: [
-      "I acted, I directed, and I refused to take any of it seriously.",
-      "I yodelled in the middle of love songs.",
-      "I was the voice of Rajesh Khanna's best years.",
-    ],
-    options: ["Mohammed Rafi", "Mukesh", "Manna Dey", "Kishore Kumar"],
-    answer: 3,
-  },
-  {
-    clues: [
-      "My father composed before me, and I spent years being called his son.",
-      "My friends called me Pancham.",
-      "I put a cabaret, a bhajan and a car horn in the same score.",
-    ],
-    options: ["R. D. Burman", "Laxmikant", "Naushad", "Madan Mohan"],
+    options: ["Hrithik Roshan", "Shahid Kapoor", "John Abraham", "Tiger Shroff"],
     answer: 0,
   },
   {
     clues: [
-      "I began in television, playing an army officer.",
-      "I made a career out of standing with my arms open.",
-      "One of my films has run in the same Mumbai cinema for decades.",
+      "I come from the oldest family in the business, and my debut was a Bhansali film.",
+      "I have played a rock musician and a man who could not hear or speak.",
+      "Then I played another actor's whole life, on screen, while he watched.",
     ],
-    options: ["Salman Khan", "Aamir Khan", "Shah Rukh Khan", "Akshay Kumar"],
-    answer: 2,
-  },
-  {
-    clues: [
-      "I was a child actor before I was anything else.",
-      "I take one film at a time and everyone complains about the wait.",
-      "I made a village play cricket for its taxes.",
-    ],
-    options: ["Aamir Khan", "Salman Khan", "Ajay Devgn", "Sunny Deol"],
+    options: ["Ranbir Kapoor", "Ranveer Singh", "Arjun Kapoor", "Aditya Roy Kapur"],
     answer: 0,
   },
   {
     clues: [
-      "I trained in Kathak before anyone put a camera on me.",
-      "Two numbers of mine are still the shorthand for 1990s dance.",
-      "One of them counts to three.",
+      "I turned up in 2010 as a Delhi wedding planner with no famous surname.",
+      "I have played a Peshwa, and the sultan who besieged Chittor.",
+      "In 2019 I rapped my way out of Dharavi.",
     ],
-    options: ["Sridevi", "Madhuri Dixit", "Juhi Chawla", "Karisma Kapoor"],
-    answer: 1,
-  },
-  {
-    clues: [
-      "I was a star in the south before Hindi films noticed me.",
-      "I once played a woman raised by a snake, and once a man.",
-      "Late in life I went back to school to learn English.",
-    ],
-    options: ["Rekha", "Hema Malini", "Sridevi", "Jaya Prada"],
-    answer: 2,
-  },
-  {
-    clues: [
-      "I won a beauty pageant before I was cast.",
-      "I have played Paro and a queen of Chittor.",
-      "I married into the most photographed family in the country.",
-    ],
-    options: ["Sushmita Sen", "Aishwarya Rai", "Lara Dutta", "Dia Mirza"],
-    answer: 1,
-  },
-  {
-    clues: [
-      "I write, I direct, and I act when nobody else will do.",
-      "My sister and I both make films about people who talk too much.",
-      "Three friends drove to Goa in my first film.",
-    ],
-    options: ["Farhan Akhtar", "Karan Johar", "Anurag Kashyap", "Imtiaz Ali"],
+    options: ["Ranveer Singh", "Ranbir Kapoor", "Vicky Kaushal", "Varun Dhawan"],
     answer: 0,
   },
   {
     clues: [
-      "My first films were rejected, banned or shelved.",
-      "I made a two-part saga about coal and revenge in Jharkhand.",
-      "Nobody in my films is likeable, and that is the point.",
+      "My first Hindi film gave me two roles at once, in a story about reincarnation.",
+      "I played the warrior a Peshwa refused to give up, and the queen at Chittor.",
+      "I also drove my father from Delhi to Kolkata, complaining the whole way.",
     ],
-    options: ["Anurag Kashyap", "Dibakar Banerjee", "Tigmanshu Dhulia", "Sudhir Mishra"],
+    options: ["Deepika Padukone", "Anushka Sharma", "Katrina Kaif", "Priyanka Chopra"],
     answer: 0,
   },
   {
     clues: [
-      "I compose, and I began in advertising jingles.",
-      "My first film score was for a Tamil director's debut.",
-      "I have two Academy Awards.",
+      "I arrived in 2005, in a Bengali period romance set in Calcutta.",
+      "I walked through Kolkata pregnant, looking for a husband.",
+      "I put on weight to play a southern star nobody would take seriously.",
     ],
-    options: ["Shankar Mahadevan", "Vishal Bhardwaj", "A. R. Rahman", "Amit Trivedi"],
-    answer: 2,
-  },
-  {
-    clues: [
-      "I write songs, and I also write the scenes around them.",
-      "I was half of the partnership that wrote the biggest films of the 1970s.",
-      "My daughter directs and my son acts.",
-    ],
-    options: ["Gulzar", "Javed Akhtar", "Kader Khan", "Salim Khan"],
-    answer: 1,
-  },
-  {
-    clues: [
-      "I direct films about people who leave and come back.",
-      "My heroines are more interesting than my heroes and I know it.",
-      "One of mine begins with a girl missing a train.",
-    ],
-    options: ["Imtiaz Ali", "Ayan Mukerji", "Shakun Batra", "Zoya Akhtar"],
+    options: ["Vidya Balan", "Rani Mukerji", "Konkona Sen Sharma", "Tabu"],
     answer: 0,
   },
   {
     clues: [
-      "I came to Mumbai from Delhi theatre and waited a long time.",
-      "I played a gangster called Faizal.",
-      "I am usually the most interesting person in a film I am not leading.",
+      "I broke through as a gangster's girlfriend in 2006, and was written off as a bad actor for years.",
+      "Then I went on my honeymoon alone and won a National Award for it.",
+      "Later I took a co-director credit on a film about the queen of Jhansi.",
     ],
-    options: ["Irrfan Khan", "Nawazuddin Siddiqui", "Manoj Bajpayee", "Pankaj Tripathi"],
-    answer: 1,
-  },
-  {
-    clues: [
-      "I was a National School of Drama student who ended up in Hollywood.",
-      "I played a policeman in a film about a slum quiz show.",
-      "My last films were about fathers, and I ran out of time.",
-    ],
-    options: ["Om Puri", "Irrfan Khan", "Naseeruddin Shah", "Kay Kay Menon"],
-    answer: 1,
-  },
-  {
-    clues: [
-      "I arrived from a beauty pageant and stayed for the acting.",
-      "I played a boxer from Manipur.",
-      "Then I went and led an American television series.",
-    ],
-    options: ["Priyanka Chopra", "Deepika Padukone", "Anushka Sharma", "Kangana Ranaut"],
+    options: ["Kangana Ranaut", "Priyanka Chopra", "Anushka Sharma", "Richa Chadha"],
     answer: 0,
   },
   {
     clues: [
-      "I had no film family and everybody mentioned it.",
-      "I played a bride who went on her honeymoon alone.",
-      "I have played the same woman twice in one film.",
+      "I spent a decade in one-scene parts before anyone learnt my name.",
+      "I played the second son of a Wasseypur don, and stole the whole thing.",
+      "I have also been an intelligence officer in Kolkata and a killer for Anurag Kashyap.",
     ],
-    options: ["Kangana Ranaut", "Vidya Balan", "Bhumi Pednekar", "Radhika Apte"],
+    options: ["Nawazuddin Siddiqui", "Manoj Bajpayee", "Pankaj Tripathi", "Rajkummar Rao"],
     answer: 0,
   },
   {
     clues: [
-      "I played a pregnant investigator in Kolkata.",
-      "I played a South Indian star of the 1980s.",
-      "I built a career out of films nobody thought would sell.",
+      "I played Macbeth as a Mumbai gangster in 2003.",
+      "I won a National Award as a steeplechase champion who took to the ravines.",
+      "I also wrote letters to a stranger whose lunch kept arriving on my desk.",
     ],
-    options: ["Vidya Balan", "Tabu", "Konkona Sen Sharma", "Rani Mukerji"],
+    options: ["Irrfan Khan", "Naseeruddin Shah", "Manoj Bajpayee", "Kay Kay Menon"],
     answer: 0,
   },
   {
     clues: [
-      "My father directed my first film.",
-      "I danced well enough that it became the point.",
-      "I played India's first big superhero.",
+      "My first two films were about a gangster who is nobody's idea of a doctor.",
+      "Then I sent three friends through the worst engineering college in India.",
+      "I have worked with Aamir Khan, Sanjay Dutt and Ranbir Kapoor, and never made a film without a lesson in it.",
     ],
-    options: ["Hrithik Roshan", "Tiger Shroff", "Varun Dhawan", "Abhishek Bachchan"],
+    options: ["Rajkumar Hirani", "Ashutosh Gowariker", "Nitesh Tiwari", "Kabir Khan"],
     answer: 0,
   },
   {
     clues: [
-      "I make films about families who own several houses.",
-      "My father's company is named after a duty.",
-      "I put a school reunion, a wedding and a funeral in most of them.",
+      "I retold Devdas with a Punjabi trucker's soundtrack.",
+      "My biggest film came in two parts and was set in a coal town.",
+      "Half the directors of my generation worked for me first.",
     ],
-    options: ["Karan Johar", "Sooraj Barjatya", "Aditya Chopra", "Rohit Shetty"],
+    options: ["Anurag Kashyap", "Dibakar Banerjee", "Vishal Bhardwaj", "Tigmanshu Dhulia"],
     answer: 0,
   },
   {
     clues: [
-      "I direct big rooms and bigger feelings.",
-      "I remade a novel about a drunk lover in 2002.",
-      "I like a mirror, a staircase and a hundred candles.",
+      "My brother directs too, and our father writes.",
+      "I sent three men to Spain and made half the country want to skydive.",
+      "In 2019 I made a film about a rapper from Dharavi.",
     ],
-    options: ["Sanjay Leela Bhansali", "Subhash Ghai", "Karan Johar", "Ashutosh Gowariker"],
+    options: ["Zoya Akhtar", "Reema Kagti", "Meghna Gulzar", "Gauri Shinde"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I write the music for my own films, which almost nobody else here does.",
+      "I have adapted Macbeth, Othello and Hamlet, in that order.",
+      "One of them ended in a Kashmiri graveyard.",
+    ],
+    options: ["Vishal Bhardwaj", "Sanjay Leela Bhansali", "Anurag Kashyap", "Sudhir Mishra"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I am accused of caring more about the sets than the script, and I compose my own songs.",
+      "I made a deaf and blind girl the centre of a film in 2005.",
+      "Later I filled the screen with a Peshwa, a courtesan and a queen at Chittor.",
+    ],
+    options: ["Sanjay Leela Bhansali", "Ashutosh Gowariker", "Karan Johar", "Rakeysh Omprakash Mehra"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I am from Chennai, and I scored a film about a village and a cricket match.",
+      "I gave Rockstar its guitars and Delhi-6 its pigeon.",
+      "One night in 2009 I collected two Academy Awards.",
+    ],
+    options: ["A. R. Rahman", "Shankar Mahadevan", "Amit Trivedi", "Pritam"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I came out of a television talent contest and sang scratch tracks for years.",
+      "One song in 2013 changed everything, and it was a sequel's love theme.",
+      "For the rest of the decade almost every hit ballad was mine.",
+    ],
+    options: ["Arijit Singh", "Atif Aslam", "Mohit Chauhan", "Ankit Tiwari"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "A television contest found me while I was still a teenager.",
+      "Sanjay Leela Bhansali gave me my first film songs, in 2002.",
+      "I have sung for practically every heroine since.",
+    ],
+    options: ["Shreya Ghoshal", "Sunidhi Chauhan", "Neha Kakkar", "Shilpa Rao"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I choreographed for a decade before anyone let me direct.",
+      "My first film had Shah Rukh Khan going back to college.",
+      "In another, I got thirty-one stars into one song.",
+    ],
+    options: ["Farah Khan", "Remo D'Souza", "Ahmed Khan", "Bosco Martis"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I won a reality show and hosted television before I acted.",
+      "My debut was a comedy about sperm donation.",
+      "Later I played a pianist who was not as blind as he claimed.",
+    ],
+    options: ["Ayushmann Khurrana", "Rajkummar Rao", "Kartik Aaryan", "Vicky Kaushal"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I played a lawyer who was murdered, and won a National Award for it.",
+      "I ran a polling booth in a forest with nobody to vote in it.",
+      "I have also been chased around Chanderi by a ghost.",
+    ],
+    options: ["Rajkummar Rao", "Ayushmann Khurrana", "Vicky Kaushal", "Jim Sarbh"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I was launched in a Karan Johar film set in a school, at nineteen.",
+      "Two years later I was kidnapped and did not want to go home.",
+      "In 2018 I married into a Pakistani military family and sent everything I heard back to Delhi.",
+    ],
+    options: ["Alia Bhatt", "Parineeti Chopra", "Kriti Sanon", "Shraddha Kapoor"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I turned up in a Banaras film about caste and grief in 2015.",
+      "I played the officer who married a spy without knowing it.",
+      "Then I asked a whole country how its josh was.",
+    ],
+    options: ["Vicky Kaushal", "Sidharth Malhotra", "Aditya Roy Kapur", "Harshvardhan Kapoor"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I have been a chatterbox on a train, a bride in the badlands of western UP, and a medical student called Pia.",
+      "My sister and my father were both stars before me.",
+      "The train film gave me the most quoted heroine of the decade.",
+    ],
+    options: ["Kareena Kapoor", "Rani Mukerji", "Preity Zinta", "Bipasha Basu"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I won a global pageant before I ever faced a camera.",
+      "I played a model chewed up by the industry, and won a National Award.",
+      "Then I boxed for India, and later left for American television.",
+    ],
+    options: ["Priyanka Chopra", "Aishwarya Rai", "Lara Dutta", "Sushmita Sen"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "In 2000 I started asking a nation quiz questions on television.",
+      "In 2005 I taught a deaf and blind girl to speak.",
+      "In 2015 I played a Bengali hypochondriac being driven to Kolkata.",
+    ],
+    options: ["Amitabh Bachchan", "Naseeruddin Shah", "Anupam Kher", "Rishi Kapoor"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I came from television, and my first film had three friends in Ahmedabad.",
+      "In 2016 I played a cricket captain from Ranchi.",
+      "In 2019 I was in a campus comedy about failing, and finding it survivable.",
+    ],
+    options: ["Sushant Singh Rajput", "Rajkummar Rao", "Varun Dhawan", "Sidharth Malhotra"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I played the widow in a film about a pianist, and the mother in a Kashmiri Hamlet.",
+      "Before that I was a gangster's mistress in a Mumbai Macbeth.",
+      "Vishal Bhardwaj has cast me more than once, and I am usually the most dangerous person in the room.",
+    ],
+    options: ["Tabu", "Konkona Sen Sharma", "Shefali Shah", "Ratna Pathak Shah"],
     answer: 0,
   },
 ];

@@ -4,18 +4,23 @@ import type { CategorySet } from "@curio/core";
  * The ways this pack sorts things.
  *
  * A sorting question draws from one set at a time, so the buckets on screen
- * always belong together — decades never appear beside crafts. The engine
- * knows nothing about playback singers; it only asks the pack.
+ * always belong together — release windows never appear beside crafts. The
+ * engine knows nothing about playback singers; it only asks the pack.
+ *
+ * Every bucket here lives inside the pack's window, 2000 to 2019. A set that
+ * spanned the whole century would put a 1950s answer beside a 2016 one and
+ * make the sorting trivial; four five-year slices of the same two decades is
+ * a real question.
  */
 export const categorySets: CategorySet[] = [
   {
-    id: "decades",
-    prompt: "Which decade did it come out?",
+    id: "era",
+    prompt: "When did it come out?",
     categories: [
-      { id: "sixties", label: "1950s–60s", sub: "Black and white", color: "#8aa1c9" },
-      { id: "seventies", label: "1970s–80s", sub: "The angry years", color: "#e0653f" },
-      { id: "nineties", label: "1990s", sub: "Chiffon and NRIs", color: "#e8a33d" },
-      { id: "modern", label: "2000s on", sub: "Multiplex era", color: "#3fa088" },
+      { id: "early2000s", label: "2000–2004", sub: "Before the multiplex", color: "#8aa1c9" },
+      { id: "late2000s", label: "2005–2009", sub: "The 100-crore club", color: "#e0653f" },
+      { id: "early2010s", label: "2010–2014", sub: "Small films, big money", color: "#e8a33d" },
+      { id: "late2010s", label: "2015–2019", sub: "Biopics and streaming", color: "#3fa088" },
     ],
   },
   {
@@ -29,23 +34,23 @@ export const categorySets: CategorySet[] = [
     ],
   },
   {
+    id: "stars",
+    prompt: "Whose film is it?",
+    categories: [
+      { id: "shahrukh", label: "Shah Rukh Khan", sub: "The romantic", color: "#e0653f" },
+      { id: "salman", label: "Salman Khan", sub: "The Eid release", color: "#3fa088" },
+      { id: "aamir", label: "Aamir Khan", sub: "One film at a time", color: "#8b6ad4" },
+      { id: "akshay", label: "Akshay Kumar", sub: "Three a year", color: "#e8a33d" },
+    ],
+  },
+  {
     id: "settings",
     prompt: "Where does it take place?",
     categories: [
       { id: "mumbai", label: "Mumbai", sub: "The city itself", color: "#e0653f" },
-      { id: "punjab", label: "Punjab & north", sub: "Fields and weddings", color: "#e8a33d" },
+      { id: "delhi", label: "Delhi", sub: "Punjabi weddings, Old City", color: "#e8a33d" },
       { id: "abroad", label: "Abroad", sub: "Passport required", color: "#8b6ad4" },
       { id: "smalltown", label: "Small-town India", sub: "Everywhere else", color: "#3fa088" },
-    ],
-  },
-  {
-    id: "families",
-    prompt: "Which film family?",
-    categories: [
-      { id: "kapoor", label: "Kapoor", sub: "The first dynasty", color: "#e0653f" },
-      { id: "bachchan", label: "Bachchan", sub: "Of Allahabad", color: "#8b6ad4" },
-      { id: "khan", label: "Khan", sub: "Salim's line", color: "#3fa088" },
-      { id: "chopra", label: "Chopra & Johar", sub: "The studio families", color: "#e8a33d" },
     ],
   },
 ];
