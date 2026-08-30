@@ -285,6 +285,16 @@ export function Setup({ local, onStart, onBack, onPreview }: SetupProps) {
             onToggle={() => patch({ hideAnswers: !config.hideAnswers })}
           />
         )}
+        {local ? null : (
+          <Switch
+            label="House rules"
+            hint="Everyone but you scores single figures. The truth comes out at the end."
+            on={config.mischief === "houseRules"}
+            onToggle={() =>
+              patch({ mischief: config.mischief === "houseRules" ? "off" : "houseRules" })
+            }
+          />
+        )}
       </section>
     </Scene>
   );

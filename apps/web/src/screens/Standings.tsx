@@ -18,11 +18,25 @@ interface StandingsProps {
  */
 export function Standings({ game, meId, round }: StandingsProps) {
   const last = round + 1 >= game.config.rounds;
+  /*
+   * The tell.
+   *
+   * A rigged scoreboard with no marker on it reads as a broken app, and the
+   * reveal lands as an accusation rather than a punchline. This is loud
+   * enough to be noticed and vague enough to be denied, which is the whole
+   * trick — the table should half-suspect it and only be sure at the end.
+   */
+  const rigged = game.config.mischief === "houseRules";
 
   return (
     <Scene
       id={`standings-${round}`}
-      rail={<span className="eyebrow">End of round {round + 1}</span>}
+      rail={
+        <span className="eyebrow">
+          End of round {round + 1}
+          {rigged ? " · house rules" : ""}
+        </span>
+      }
       dock={
         <p className="tiny faint center">
           {last ? "Final scores coming up…" : `Round ${round + 2} opens in a moment…`}

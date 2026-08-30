@@ -161,6 +161,13 @@
   gap: var(--s2);
   padding-inline: var(--s2);
   min-height: 210px;
+  /*
+   * The stage is a flex column, so a tall final screen would otherwise
+   * shrink this below `min-height` — and the plinths, whose height is set
+   * from the score in px, would spill upward over the winner's name rather
+   * than letting the stage scroll as it is supposed to.
+   */
+  flex-shrink: 0;
   border-bottom: 2px solid color-mix(in oklab, var(--accent) 42%, var(--outline-variant));
 }
 
