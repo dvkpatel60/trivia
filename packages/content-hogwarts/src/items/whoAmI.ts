@@ -183,4 +183,76 @@ export const whoAmI: WhoAmIItem[] = [
     options: ["Nearly Headless Nick", "The Bloody Baron", "The Fat Friar", "Sir Patrick"],
     answer: 0,
   },
+  {
+    clues: [
+      "I was born on the last day of the year, in a Muggle orphanage.",
+      "I asked a teacher a question about souls and he never forgave himself for answering.",
+      "I was Head Boy, and everybody liked me.",
+    ],
+    options: ["Tom Riddle", "Severus Snape", "Gellert Grindelwald", "Barty Crouch Jr"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I sold my family's heirloom for gold when I had nothing left.",
+      "I used a potion on a man who did not love me, and then I stopped.",
+      "I died giving my son a name.",
+    ],
+    options: ["Merope Gaunt", "Eileen Prince", "Ariana Dumbledore", "Hepzibah Smith"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I kept my brother's secret and my sister's, and blamed myself for both.",
+      "I run a pub nobody clean would drink in.",
+      "A portrait of a girl hangs over my fireplace, and it is a door.",
+    ],
+    options: ["Aberforth Dumbledore", "Mundungus Fletcher", "Tom the innkeeper", "Elphias Doge"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I was the cleverest boy in my year and the most dangerous friend to have.",
+      "I looked for something greater than us, and I found a prison to build.",
+      "At the end I lied to a man with a wand, to protect a grave.",
+    ],
+    options: ["Gellert Grindelwald", "Tom Riddle", "Igor Karkaroff", "Antonin Dolohov"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I was given a locket by a boy who did not come back.",
+      "I could not destroy it, and it broke my heart to fail.",
+      "I led the house-elves into the last battle with a cleaver.",
+    ],
+    options: ["Kreacher", "Dobby", "Winky", "Hokey"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I was one of the first to see what he was, and I said so.",
+      "I taught Muggle Studies.",
+      "He killed me at a dinner table, in front of his own people.",
+    ],
+    options: ["Charity Burbage", "Emmeline Vance", "Amelia Bones", "Bathilda Bagshot"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I had a fortune, a cup and a locket, and I liked showing them off.",
+      "A charming young man came to value my things.",
+      "My house-elf was blamed for what happened next.",
+    ],
+    options: ["Hepzibah Smith", "Bathilda Bagshot", "Muriel Prewett", "Griselda Marchbanks"],
+    answer: 0,
+  },
+  {
+    clues: [
+      "I once had the wand that killed more people than any other, though I did not make it.",
+      "A young man stole from me in the night.",
+      "I only ever wanted to know how it worked.",
+    ],
+    options: ["Gregorovitch", "Garrick Ollivander", "Antioch Peverell", "Death himself"],
+    answer: 0,
+  },
 ];

@@ -1,14 +1,23 @@
 import type { MatchItem } from "@curio/core";
 
-/** Spell to effect. Four are drawn per question. */
+/**
+ * Spell to effect. Four are drawn per question.
+ *
+ * Every left-hand entry appears exactly once. Riddikulus used to appear
+ * twice — "Defeats a Boggart" and "Turns a Boggart absurd" — and since the
+ * kind draws four pairs at random from the whole pool, a question could
+ * serve both: the same spell in the left column twice, with two different
+ * right answers and no way for a player to tell which pairing was wanted.
+ */
 export const match: MatchItem[] = [
+  /* ── the ones everybody can cast ── */
   { left: "Expelliarmus", right: "Disarms your opponent" },
   { left: "Lumos", right: "Lights the wand tip" },
   { left: "Nox", right: "Puts out wandlight" },
   { left: "Alohomora", right: "Unlocks doors" },
   { left: "Wingardium Leviosa", right: "Makes an object float" },
   { left: "Expecto Patronum", right: "Conjures a Patronus" },
-  { left: "Riddikulus", right: "Defeats a Boggart" },
+  { left: "Riddikulus", right: "Turns a Boggart absurd" },
   { left: "Accio", right: "Summons an object to you" },
   { left: "Obliviate", right: "Erases memories" },
   { left: "Reparo", right: "Mends broken things" },
@@ -24,8 +33,6 @@ export const match: MatchItem[] = [
   { left: "Sectumsempra", right: "Slashes deep wounds" },
   { left: "Rictusempra", right: "Sets the target laughing" },
   { left: "Engorgio", right: "Makes something swell in size" },
-
-  { left: "Riddikulus", right: "Turns a Boggart absurd" },
   { left: "Morsmordre", right: "Casts the Dark Mark" },
   { left: "Serpensortia", right: "Conjures a snake" },
   { left: "Finite Incantatem", right: "Ends a spell in progress" },
@@ -35,4 +42,38 @@ export const match: MatchItem[] = [
   { left: "Densaugeo", right: "Makes teeth grow" },
   { left: "Anapneo", right: "Clears a blocked airway" },
   { left: "Homenum Revelio", right: "Reveals people hidden nearby" },
+  { left: "Stupefy", right: "Stuns the target" },
+  { left: "Rennervate", right: "Wakes someone who was stunned" },
+  { left: "Impedimenta", right: "Slows whatever is coming at you" },
+  { left: "Locomotor Mortis", right: "Locks the target's legs together" },
+  { left: "Tarantallegra", right: "Sets the legs dancing" },
+  { left: "Furnunculus", right: "Covers the target in boils" },
+  { left: "Colloportus", right: "Seals a door shut" },
+  { left: "Diffindo", right: "Cuts or rips something open" },
+  { left: "Geminio", right: "Makes a worthless copy of an object" },
+  { left: "Portus", right: "Turns an object into a Portkey" },
+  { left: "Sonorus", right: "Magnifies the caster's voice" },
+  { left: "Waddiwasi", right: "Fires a stuck object out at speed" },
+  { left: "Scourgify", right: "Cleans something" },
+  { left: "Ferula", right: "Conjures bandages and a splint" },
+  { left: "Deletrius", right: "Clears the echo of a cast spell" },
+  { left: "Prior Incantato", right: "Shows a wand's last spell" },
+  { left: "Quietus", right: "Returns a magnified voice to normal" },
+  { left: "Relashio", right: "Forces a grip to let go" },
+  { left: "Salvio Hexia", right: "Wards a campsite against hexes" },
+  { left: "Cave Inimicum", right: "Hides a camp from enemies" },
+  { left: "Protego Totalum", right: "Shields a whole area" },
+  { left: "Langlock", right: "Glues the tongue to the roof of the mouth" },
+  { left: "Liberacorpus", right: "Lets the dangling target down" },
+  { left: "Confringo", right: "Makes the target explode in flame" },
+  { left: "Deprimo", right: "Blasts a hole downward" },
+  { left: "Erecto", right: "Puts up a tent or structure" },
+  { left: "Obscuro", right: "Blindfolds the target" },
+  { left: "Point Me", right: "Turns the wand into a compass" },
+  { left: "Meteolojinx Recanto", right: "Ends a weather spell" },
+  { left: "Piertotum Locomotor", right: "Wakes the castle's statues to fight" },
+  { left: "Fidelius", right: "Hides a secret inside one person's soul" },
+  { left: "Imperio", right: "Puts the victim under the caster's control" },
+  { left: "Crucio", right: "Causes unbearable pain" },
+  { left: "Avada Kedavra", right: "Kills instantly, with no counter-curse" },
 ];
