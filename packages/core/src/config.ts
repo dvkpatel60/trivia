@@ -1,4 +1,5 @@
 import { KIND_IDS } from "./kinds/index.js";
+import { isMischiefMode } from "./mischief.js";
 import type { GameConfig, PuzzleKindId } from "./types.js";
 
 export const DEFAULT_CONFIG: Omit<GameConfig, "packId"> = {
@@ -14,6 +15,7 @@ export const DEFAULT_CONFIG: Omit<GameConfig, "packId"> = {
   themedRounds: true,
   hideAnswers: true,
   passScreen: true,
+  mischief: "off",
   kinds: Object.fromEntries(KIND_IDS.map((id) => [id, true])) as Record<PuzzleKindId, boolean>,
 };
 
@@ -88,6 +90,7 @@ export function sanitizeConfig(input: unknown, fallbackPackId: string): GameConf
     themedRounds: raw.themedRounds !== false,
     hideAnswers: raw.hideAnswers !== false,
     passScreen: raw.passScreen !== false,
+    mischief: isMischiefMode(raw.mischief) ? raw.mischief : base.mischief,
     kinds,
   };
 }

@@ -7,6 +7,7 @@
  */
 
 import { describeSolution, toPublicQuestion } from "./grade.js";
+import { isRigged, shownScore, type MischiefReveal } from "./mischief.js";
 import type { Phase } from "./phase.js";
 import { gameStatus, type GameStatus } from "./phase.js";
 import type { AnyPublicQuestion, AnyQuestion, GameConfig } from "./types.js";
@@ -119,12 +120,26 @@ export interface PublicGameState {
   players: Record<string, PlayerState>;
   rounds: Record<number, RoundState<AnyPublicQuestion>>;
   version: number;
+  /**
+   * Present only once the game is over and only when the standings were
+   * rigged: what the table had been told, so the last screen can animate
+   * from the fiction to the fact. Before `final` this is absent and
+   * `players` carries the fiction instead.
+   */
+  mischief?: MischiefReveal;
 }
 
 /**
  * Strip a stored game down to what players may see: questions lose their
  * solutions, and a round only gains a human-readable answer list once it has
  * been revealed.
+ *
+ * It is also where the standings are rigged, when a host has asked for that.
+ * A true score is a secret with the same shape as a solution — the server
+ * holds it, publishes a projection of it while the game runs, and hands over
+ * the real thing at the end — so it belongs at the same chokepoint rather
+ * than in a screen. Screens cannot tell the transports apart, which is what
+ * stops pass-and-play telling the truth while online play lies.
  */
 export function toPublicGame(game: GameState): PublicGameState {
   const rounds: Record<number, RoundState<AnyPublicQuestion>> = {};
@@ -138,6 +153,9 @@ export function toPublicGame(game: GameState): PublicGameState {
     };
   }
 
+  const over = game.phase.name === "final";
+  const rigged = isRigged(game.config);
+
   return {
     code: game.code,
     hostId: game.hostId,
@@ -146,10 +164,42 @@ export function toPublicGame(game: GameState): PublicGameState {
     config: game.config,
     createdAt: game.createdAt,
     updatedAt: game.updatedAt,
-    players: game.players,
+    players: rigged && !over ? riggedPlayers(game) : game.players,
     rounds,
     version: game.version,
+    ...(rigged && over ? { mischief: mischiefReveal(game) } : {}),
   };
+}
+
+/**
+ * Every published total, projected — the running score and the per-round
+ * delta both, because the standings row shows them side by side and a total
+ * that moves by something other than its own delta is a bug on screen.
+ *
+ * The per-answer receipts under `answers` are deliberately left alone.
+ */
+function riggedPlayers(game: GameState): Record<string, PlayerState> {
+  const players: Record<string, PlayerState> = {};
+
+  for (const [id, player] of Object.entries(game.players)) {
+    const project = (score: number) => shownScore(score, id, game.hostId, game.config);
+    const playerRounds: Record<number, PlayerRound> = {};
+    for (const [key, round] of Object.entries(player.rounds)) {
+      playerRounds[Number(key)] = { ...round, score: project(round.score) };
+    }
+    players[id] = { ...player, score: project(player.score), rounds: playerRounds };
+  }
+
+  return players;
+}
+
+/** What the table was looking at, one moment before the truth landed. */
+function mischiefReveal(game: GameState): MischiefReveal {
+  const shown: Record<string, number> = {};
+  for (const [id, player] of Object.entries(game.players)) {
+    shown[id] = shownScore(player.score, id, game.hostId, game.config);
+  }
+  return { mode: game.config.mischief, shown, hostId: game.hostId };
 }
 
 /* ── requests ─────────────────────────────────────────────────────────── */

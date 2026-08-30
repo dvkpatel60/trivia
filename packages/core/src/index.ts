@@ -8,6 +8,7 @@ export * from "./kind.js";
 export * from "./kinds/index.js";
 export * from "./pack.js";
 export * from "./scoring.js";
+export * from "./mischief.js";
 export * from "./grade.js";
 export * from "./round.js";
 export * from "./config.js";

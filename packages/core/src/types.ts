@@ -1,4 +1,5 @@
 import type { Atmosphere } from "./atmosphere.js";
+import type { MischiefMode } from "./mischief.js";
 import type { ArtDirection, GeneratedArt } from "./art.js";
 
 /**
@@ -388,6 +389,13 @@ export interface GameConfig {
   hideAnswers: boolean;
   /** Local pass-and-play: show a handoff screen between players. */
   passScreen: boolean;
+  /**
+   * Rigged standings, for a host who wants to troll the table.
+   *
+   * Presentation only: scoring never sees this. See `mischief.ts` — the
+   * lie lives entirely in `toPublicGame`, and `final` tells the truth.
+   */
+  mischief: MischiefMode;
   /**
    * Async only: close a round automatically this long after it opens.
    * null leaves it open until the host closes it.
